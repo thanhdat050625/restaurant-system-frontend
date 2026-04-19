@@ -9,7 +9,7 @@ export const ThemeProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    document.body.classList.toggle('dark', isDark);
+    document.documentElement.classList.toggle('dark', isDark);
     localStorage.setItem('foodhub-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
