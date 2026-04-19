@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
 import { useAuth } from '../../context/AuthContext';
 
@@ -40,6 +40,10 @@ const Login = () => {
         {/* Right - Form */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-light dark:bg-dark">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+            <Link to="/" className="inline-flex items-center gap-2 text-text-secondary dark:text-text-light hover:text-primary dark:hover:text-primary mb-8 transition-colors font-medium">
+              <ArrowLeft size={18} /> Quay lại Trang chủ
+            </Link>
+
             <div className="lg:hidden text-center mb-8">
               <Link to="/" className="inline-flex items-center gap-2">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
@@ -89,12 +93,9 @@ const Login = () => {
             {/* Social login */}
             <div className="mt-6">
               <div className="relative flex items-center my-6"><div className="flex-1 h-px bg-light-border dark:bg-dark-border" /><span className="px-4 text-text-light text-sm">hoặc</span><div className="flex-1 h-px bg-light-border dark:bg-dark-border" /></div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <button className="flex items-center justify-center gap-2 py-3 border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white text-sm font-medium hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                   <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" /> Google
-                </button>
-                <button className="flex items-center justify-center gap-2 py-3 border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white text-sm font-medium hover:bg-light-card dark:hover:bg-dark-card transition-colors">
-                  <span className="text-blue-600 text-lg">f</span> Facebook
                 </button>
               </div>
             </div>

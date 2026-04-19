@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Phone, ArrowLeft } from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
 import { useAuth } from '../../context/AuthContext';
 
@@ -42,6 +42,10 @@ const Register = () => {
         {/* Right - Form */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-light dark:bg-dark">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+            <Link to="/" className="inline-flex items-center gap-2 text-text-secondary dark:text-text-light hover:text-primary dark:hover:text-primary mb-8 transition-colors font-medium">
+              <ArrowLeft size={18} /> Quay lại Trang chủ
+            </Link>
+            
             <h1 className="text-3xl font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)] mb-2">Đăng Ký</h1>
             <p className="text-text-secondary dark:text-text-light mb-8">Tạo tài khoản mới</p>
 
