@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Truck, Clock, Star, UtensilsCrossed, CalendarCheck, ShoppingBag } from 'lucide-react';
@@ -179,7 +179,7 @@ const Home = () => {
       </section>
 
       {/* ===== CATEGORIES ===== */}
-      <section className="py-20 bg-white dark:bg-dark-surface">
+      <section className="py-10 bg-white dark:bg-dark-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -202,7 +202,7 @@ const Home = () => {
             </Link>
           </motion.div>
 
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          <div className="flex gap-4 overflow-x-auto pt-4 pb-4 px-2 -mx-2 scrollbar-hide">
             {categories.map((cat, i) => (
               <motion.div
                 key={cat.id}
@@ -381,7 +381,7 @@ const Home = () => {
                         selectedOption === i
                           ? 'border-primary bg-primary/5'
                           : 'border-light-border dark:border-dark-border hover:border-primary/50'
-                      }`}
+                        }`}
                     >
                       <span className="text-sm text-text-primary dark:text-white">{opt.name}</span>
                       <span className="text-sm font-medium text-primary">

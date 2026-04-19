@@ -121,7 +121,7 @@ const Menu = () => {
       <section className="py-12 bg-light dark:bg-dark">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Category Filters */}
-          <div className="flex gap-3 overflow-x-auto pb-4 mb-8 scrollbar-hide">
+          <div className="flex gap-3 overflow-x-auto py-4 px-2 -mx-2 mb-8 scrollbar-hide">
             <CategoryCard
               category={{ icon: '🍽️', name: 'Tất cả', itemCount: menuItems.length }}
               isActive={activeCategory === 'all'}
