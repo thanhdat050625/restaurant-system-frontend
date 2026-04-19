@@ -15,6 +15,16 @@ const Header = () => {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
 
+  // Khai báo các trang có banner tối màu ở trên cùng
+  const darkHeroPages = ['/', '/menu', '/reservation', '/about', '/contact', '/login', '/register'];
+  // Kiểm tra xem trang hiện tại có nằm trong danh sách trên không (xử lý luôn cả route động như /order/1)
+  const hasDarkHero = darkHeroPages.includes(location.pathname);
+  
+  // Header sẽ chuyển sang dạng Solid (nền trắng/đen rõ ràng) nếu:
+  // 1. Đã cuộn chuột XUỐNG
+  // HOẶC 2. Đang ở trang KHÔNG CÓ banner tối (như Cart, Profile)
+  const isSolidHeader = isScrolled || !hasDarkHero;
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
@@ -36,7 +46,7 @@ const Header = () => {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled
+      isSolidHeader
         ? 'bg-white/90 dark:bg-dark/90 backdrop-blur-lg shadow-lg'
         : 'bg-transparent'
     }`}>
@@ -48,7 +58,7 @@ const Header = () => {
               <span className="text-white font-bold text-xl">F</span>
             </div>
             <span className={`text-2xl font-bold font-[family-name:var(--font-heading)] ${
-              isScrolled ? 'text-dark dark:text-white' : 'text-white'
+              isSolidHeader ? 'text-dark dark:text-white' : 'text-white'
             }`}>
               Food<span className="text-primary">Hub</span>
             </span>
@@ -64,7 +74,7 @@ const Header = () => {
                   `relative text-sm font-medium transition-colors duration-300 py-2 ${
                     isActive
                       ? 'text-primary'
-                      : isScrolled
+                      : isSolidHeader
                         ? 'text-text-primary dark:text-white hover:text-primary'
                         : 'text-white/90 hover:text-white'
                   }`
@@ -91,7 +101,7 @@ const Header = () => {
             <button
               onClick={toggleTheme}
               className={`p-2 rounded-full transition-all duration-300 hover:scale-110 ${
-                isScrolled
+                isSolidHeader
                   ? 'text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card'
                   : 'text-white hover:bg-white/10'
               }`}
@@ -103,7 +113,7 @@ const Header = () => {
             <Link
               to="/cart"
               className={`relative p-2 rounded-full transition-all duration-300 hover:scale-110 ${
-                isScrolled
+                isSolidHeader
                   ? 'text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card'
                   : 'text-white hover:bg-white/10'
               }`}
@@ -126,13 +136,13 @@ const Header = () => {
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className={`flex items-center gap-2 p-1.5 rounded-full transition-all duration-300 ${
-                    isScrolled
+                    isSolidHeader
                       ? 'hover:bg-light-card dark:hover:bg-dark-card'
                       : 'hover:bg-white/10'
                   }`}
                 >
                   <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/50" />
-                  <ChevronDown size={16} className={isScrolled ? 'text-text-primary dark:text-white' : 'text-white'} />
+                  <ChevronDown size={16} className={isSolidHeader ? 'text-text-primary dark:text-white' : 'text-white'} />
                 </button>
 
                 <AnimatePresence>
@@ -169,7 +179,7 @@ const Header = () => {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={`lg:hidden p-2 rounded-full transition-all duration-300 ${
-                isScrolled
+                isSolidHeader
                   ? 'text-text-primary dark:text-white'
                   : 'text-white'
               }`}
