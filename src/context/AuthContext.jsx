@@ -1,32 +1,94 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import apiClient from '../services/api';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const response = await apiClient.get('/auth/me');
+      if (response.success) {
+        setUser(response.data);
+      }
+    } catch (error) {
+      console.log("Chưa đăng nhập hoặc phiên hết hạn");
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const login = useCallback(async (email, password) => {
     setIsLoading(true);
-    // Mock login
-    await new Promise(r => setTimeout(r, 1000));
-    setUser({ id: 1, name: 'Nguyễn Văn A', email, phone: '0123456789', avatar: 'https://i.pravatar.cc/100?img=11' });
-    setIsLoading(false);
-    return true;
+    try {
+      const response = await apiClient.post('/auth/login', {
+        usernameOrEmail: email,
+        password: password
+      });
+
+      if (response.success) {
+        const { user } = response.data;
+        setUser(user);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Lỗi đăng nhập:", error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const register = useCallback(async (data) => {
     setIsLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setUser({ id: 1, name: data.name, email: data.email, phone: data.phone, avatar: 'https://i.pravatar.cc/100?img=11' });
-    setIsLoading(false);
-    return true;
+    try {
+      const response = await apiClient.post('/auth/register', {
+        fullName: data.name,
+        username: data.username,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        confirmPassword: data.confirmPassword
+      });
+
+      return response.success;
+    } catch (error) {
+      console.error("Lỗi đăng ký:", error);
+      throw new Error(error.response?.data?.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const verifyOtp = useCallback(async (email, otp) => {
+    setIsLoading(true);
+    try {
+      const response = await apiClient.post('/auth/verify-otp', {
+        email: email,
+        otp: otp
+      });
+
+      return response.success;
+    } catch (error) {
+      console.error("Lỗi xác thực OTP:", error);
+      throw new Error(error.response?.data?.message);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const logout = useCallback(() => setUser(null), []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, register, verifyOtp, logout }}>
       {children}
     </AuthContext.Provider>
   );

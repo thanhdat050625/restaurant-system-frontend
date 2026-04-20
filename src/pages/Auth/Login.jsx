@@ -17,7 +17,11 @@ const Login = () => {
     e.preventDefault();
     setError('');
     const success = await login(email, password);
-    if (success) navigate('/');
+    if (success) {
+      navigate('/');
+    } else {
+      setError('Sai email/tên đăng nhập hoặc mật khẩu!');
+    }
   };
 
   return (

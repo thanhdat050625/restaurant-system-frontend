@@ -3,7 +3,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const apiClient = {
   get: async (endpoint) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response.json();
   },
@@ -11,6 +13,7 @@ const apiClient = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -20,13 +23,17 @@ const apiClient = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response.json();
   },
   delete: async (endpoint) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response.json();
   },
