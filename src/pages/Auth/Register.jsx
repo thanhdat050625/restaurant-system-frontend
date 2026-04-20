@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, User, Phone, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, AtSign, Phone, ArrowLeft } from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
 import { useAuth } from '../../context/AuthContext';
 
 const Register = () => {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ name: '', username: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const { register, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -58,6 +59,13 @@ const Register = () => {
                 </div>
               </div>
               <div>
+                <label className="block text-sm font-medium text-text-primary dark:text-white mb-1.5">Tên đăng nhập</label>
+                <div className="relative">
+                  <AtSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
+                  <input name="username" value={form.username} onChange={handleChange} required placeholder="foodhub_user" className="w-full pl-10 pr-4 py-3 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white placeholder-text-light focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                </div>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-text-primary dark:text-white mb-1.5">Email</label>
                 <div className="relative">
                   <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
@@ -83,7 +91,8 @@ const Register = () => {
                 <label className="block text-sm font-medium text-text-primary dark:text-white mb-1.5">Xác nhận mật khẩu</label>
                 <div className="relative">
                   <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                  <input type="password" name="confirmPassword" value={form.confirmPassword} onChange={handleChange} required placeholder="••••••••" className="w-full pl-10 pr-4 py-3 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white placeholder-text-light focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                  <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={form.confirmPassword} onChange={handleChange} required placeholder="••••••••" className="w-full pl-10 pr-12 py-3 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white placeholder-text-light focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text-primary transition-colors">{showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                 </div>
               </div>
 

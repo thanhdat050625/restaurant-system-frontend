@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import AppRoutes from './routes/AppRoutes';
+import ScrollToTop from './components/common/ScrollToTop';
 import { useLocation } from 'react-router-dom';
 
 // Layout wrapper to conditionally show header/footer
@@ -15,6 +16,7 @@ const Layout = () => {
 
   return (
     <>
+      <ScrollToTop />
       {showLayout && <Header />}
       <AppRoutes />
       {showLayout && <Footer />}
