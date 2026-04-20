@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = useCallback(async () => {
     try {
-      const response = await apiClient.get('/auth/me');
+      const response = await apiClient.get('/profile/me');
       // Check xem có data không (nếu là khách, Backend sẽ trả về response.data = null)
       if (response.success && response.data) {
         setUser(response.data);
