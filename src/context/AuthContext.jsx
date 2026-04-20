@@ -10,11 +10,14 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = useCallback(async () => {
     try {
       const response = await apiClient.get('/auth/me');
-      if (response.success) {
+      // Check xem có data không (nếu là khách, Backend sẽ trả về response.data = null)
+      if (response.success && response.data) {
         setUser(response.data);
+      } else {
+        setUser(null); // Im lặng set thành null, không log lỗi
       }
     } catch (error) {
-      console.log("Chưa đăng nhập hoặc phiên hết hạn");
+      // Chỉ bắt những lỗi nghiêm trọng thực sự (như rớt mạng, server sập)
       setUser(null);
     } finally {
       setIsLoading(false);
