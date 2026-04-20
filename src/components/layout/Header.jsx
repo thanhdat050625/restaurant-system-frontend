@@ -141,7 +141,7 @@ const Header = () => {
                       : 'hover:bg-white/10'
                   }`}
                 >
-                  <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/50" />
+                  <img src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`} alt={user.fullName || user.username} className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/50" />
                   <ChevronDown size={16} className={isSolidHeader ? 'text-text-primary dark:text-white' : 'text-white'} />
                 </button>
 
