@@ -50,6 +50,16 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const logout = useCallback(async () => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (error) {
+      console.error("Lỗi đăng xuất:", error);
+    } finally {
+      setUser(null);
+    }
+  }, []);
+
   const register = useCallback(async (data) => {
     setIsLoading(true);
     try {
@@ -87,8 +97,6 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   }, []);
-
-  const logout = useCallback(() => setUser(null), []);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, register, verifyOtp, logout }}>
