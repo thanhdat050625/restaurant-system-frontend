@@ -1,42 +1,22 @@
-// API Configuration - Ready for Spring Boot integration
+import axios from 'axios';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const apiClient = {
-  get: async (endpoint) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response.json();
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
   },
-  post: async (endpoint, data) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response.json();
+});
+
+apiClient.interceptors.response.use(
+  (response) => {
+    return response.data;
   },
-  put: async (endpoint, data) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response.json();
-  },
-  delete: async (endpoint) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response.json();
-  },
-};
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export default apiClient;
