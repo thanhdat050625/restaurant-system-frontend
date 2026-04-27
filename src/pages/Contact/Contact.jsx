@@ -12,7 +12,7 @@ const Contact = () => {
 
   const contactInfo = [
     { icon: MapPin, label: 'Địa chỉ', value: '123 Nguyễn Huệ, Quận 1, TP.HCM', color: 'bg-primary/10 text-primary' },
-    { icon: Phone, label: 'Điện thoại', value: '0123 456 789', color: 'bg-secondary/10 text-secondary' },
+    { icon: Phone, label: 'Điện thoại', value: '0359 537 981', color: 'bg-secondary/10 text-secondary' },
     { icon: Mail, label: 'Email', value: 'hello@foodhub.vn', color: 'bg-accent/10 text-accent-dark' },
     { icon: Clock, label: 'Giờ mở cửa', value: 'T2-T6: 10:00-22:00 | T7-CN: 09:00-23:00', color: 'bg-success/10 text-success' },
   ];

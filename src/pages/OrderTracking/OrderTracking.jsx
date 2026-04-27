@@ -103,7 +103,7 @@ const OrderTracking = () => {
             <div className="mt-6 text-center">
               <p className="text-text-secondary dark:text-text-light text-sm mb-2">Cần hỗ trợ?</p>
               <a href="tel:0123456789" className="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-dark transition-colors">
-                <Phone size={16} /> Gọi hotline: 0123 456 789
+                <Phone size={16} /> Gọi hotline: 0359 537 981
               </a>
             </div>
           </motion.div>
