@@ -2,13 +2,13 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, X, Star, Clock } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
+import PageWrapper from '../../layouts/PageWrapper';
 import MenuCard from '../../components/common/MenuCard';
 import CategoryCard from '../../components/common/CategoryCard';
 import Modal from '../../components/ui/Modal';
-import { menuItems } from '../../data/menuData';
-import { categories } from '../../data/categoryData';
-import { useCart } from '../../context/CartContext';
+import { menuItems } from '../../assets/data/menuData';
+import { categories } from '../../assets/data/categoryData';
+import { useCart } from '../../features/menu/CartContext';
 import { formatPrice } from '../../utils/helpers';
 
 const Menu = () => {

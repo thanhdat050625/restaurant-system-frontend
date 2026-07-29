@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Package, Clock, ChefHat, Truck, CheckCircle2, MapPin, Phone, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import PageWrapper from '../../components/layout/PageWrapper';
+import PageWrapper from '../../layouts/PageWrapper';
 import { formatPrice } from '../../utils/helpers';
 
 const orderSteps = [

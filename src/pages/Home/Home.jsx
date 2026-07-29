@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Truck, Clock, Star, UtensilsCrossed, CalendarCheck, ShoppingBag } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
+import PageWrapper from '../../layouts/PageWrapper';
 import MenuCard from '../../components/common/MenuCard';
 import CategoryCard from '../../components/common/CategoryCard';
 import ReviewCard from '../../components/common/ReviewCard';
 import Modal from '../../components/ui/Modal';
-import { menuItems } from '../../data/menuData';
-import { categories } from '../../data/categoryData';
-import { reviews } from '../../data/restaurantData';
-import { useCart } from '../../context/CartContext';
+import { menuItems } from '../../assets/data/menuData';
+import { categories } from '../../assets/data/categoryData';
+import { reviews } from '../../assets/data/restaurantData';
+import { useCart } from '../../features/menu/CartContext';
 import { formatPrice } from '../../utils/helpers';
 
 const Home = () => {

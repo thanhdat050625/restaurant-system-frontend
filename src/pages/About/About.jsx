@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Award, Heart, Leaf, Users } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
-import { chefs } from '../../data/restaurantData';
+import PageWrapper from '../../layouts/PageWrapper';
+import { chefs } from '../../assets/data/restaurantData';
 
 const values = [
   { icon: Heart, title: 'Đam Mê', desc: 'Mỗi món ăn là một tác phẩm nghệ thuật, được chế biến với tất cả đam mê.' },

@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
-import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
+import { useCart } from '../features/menu/CartContext';
+import { useAuth } from '../features/auth/AuthContext';
+import { useTheme } from '../hooks/ThemeContext';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);

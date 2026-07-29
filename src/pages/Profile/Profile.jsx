@@ -6,8 +6,8 @@ import {
   ShieldCheck, Clock, ChevronRight, Edit3,
   CheckCircle2, XCircle, Truck, ReceiptText,
 } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
-import { useAuth } from '../../context/AuthContext';
+import PageWrapper from '../../layouts/PageWrapper';
+import { useAuth } from '../../features/auth/AuthContext';
 import { formatPrice } from '../../utils/helpers';
 import { useNavigate } from 'react-router-dom';
 

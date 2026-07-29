@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
+import PageWrapper from '../../layouts/PageWrapper';
 
 const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });

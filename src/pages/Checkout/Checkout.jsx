@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, User, Clock, CreditCard, Wallet, Banknote, CheckCircle2 } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
-import { useCart } from '../../context/CartContext';
+import PageWrapper from '../../layouts/PageWrapper';
+import { useCart } from '../../features/menu/CartContext';
 import { formatPrice } from '../../utils/helpers';
 
 const Checkout = () => {

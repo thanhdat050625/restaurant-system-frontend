@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Clock, Plus, ShoppingBag } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '../../features/menu/CartContext';
 import { formatPrice } from '../../utils/helpers';
 
 const MenuCard = ({ item, onQuickView }) => {

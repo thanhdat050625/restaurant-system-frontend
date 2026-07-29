@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, ArrowRight, Trash2, ArrowLeft } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
+import PageWrapper from '../../layouts/PageWrapper';
 import CartItem from '../../components/common/CartItem';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '../../features/menu/CartContext';
 import { formatPrice } from '../../utils/helpers';
 
 const Cart = () => {

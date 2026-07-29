@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
-import { useAuth } from '../../context/AuthContext';
+import PageWrapper from '../../layouts/PageWrapper';
+import { useAuth } from '../../features/auth/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, User, AtSign, Phone, ArrowLeft, KeyRound, CheckCircle2 } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
-import { useAuth } from '../../context/AuthContext';
+import PageWrapper from '../../layouts/PageWrapper';
+import { useAuth } from '../../features/auth/AuthContext';
 
 const Register = () => {
   // Step 1: Điền form | Step 2: Nhập OTP | Step 3: Thành công

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Share2, Camera, MessageCircle, Video, MapPin, Phone, Mail, ArrowUp } from 'lucide-react';
-import { scrollToTop } from '../../utils/helpers';
+import { scrollToTop } from '../utils/helpers';
 
 const Footer = () => {
   return (

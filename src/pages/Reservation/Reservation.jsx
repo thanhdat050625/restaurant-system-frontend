@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarDays, Clock, Users, MapPin, UtensilsCrossed, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
-import PageWrapper from '../../components/layout/PageWrapper';
+import PageWrapper from '../../layouts/PageWrapper';
 import MenuCard from '../../components/common/MenuCard';
-import { menuItems } from '../../data/menuData';
-import { timeSlots } from '../../data/restaurantData';
-import { SEATING_AREAS } from '../../constants';
-import { useCart } from '../../context/CartContext';
+import { menuItems } from '../../assets/data/menuData';
+import { timeSlots } from '../../assets/data/restaurantData';
+import { SEATING_AREAS } from '../../utils/constants';
+import { useCart } from '../../features/menu/CartContext';
 import { formatPrice } from '../../utils/helpers';
 
 const Reservation = () => {
