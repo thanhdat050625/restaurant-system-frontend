@@ -6,6 +6,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const checkAuth = useCallback(async () => {
     try {
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
     } finally {
       setIsLoading(false);
+      setIsCheckingAuth(false);
     }
   }, []);
 
@@ -32,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await apiClient.post('/auth/login', {
-        usernameOrEmail: email,
+        email: email, // Changed from usernameOrEmail
         password: password
       });
 
@@ -60,46 +62,103 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const register = useCallback(async (data) => {
+  const requestRegisterOtp = useCallback(async (email) => {
     setIsLoading(true);
     try {
-      const response = await apiClient.post('/auth/register', {
-        fullName: data.name,
-        username: data.username,
-        email: data.email,
-        phone: data.phone,
-        password: data.password,
-        confirmPassword: data.confirmPassword
+      await apiClient.post('/auth/register/request-otp', {
+        email: email
       });
-
-      return response.success;
+      return true; // Trả về true luôn nếu API không quăng lỗi (2xx)
     } catch (error) {
-      console.error("Lỗi đăng ký:", error);
-      throw new Error(error.response?.data?.message);
+      console.error("Lỗi yêu cầu OTP:", error);
+      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi gửi mã OTP.');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const verifyOtp = useCallback(async (email, otp) => {
+  const register = useCallback(async (data) => {
     setIsLoading(true);
     try {
-      const response = await apiClient.post('/auth/verify-otp', {
-        email: email,
-        otp: otp
+      await apiClient.post('/auth/register', {
+        fullName: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        otp: data.otp // Pass OTP
       });
 
-      return response.success;
+      return true;
     } catch (error) {
-      console.error("Lỗi xác thực OTP:", error);
-      throw new Error(error.response?.data?.message);
+      console.error("Lỗi đăng ký:", error);
+      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const forgotPassword = useCallback(async (email) => {
+    setIsLoading(true);
+    try {
+      await apiClient.post('/auth/forgot-password', {
+        email: email
+      });
+      return true;
+    } catch (error) {
+      console.error("Lỗi quên mật khẩu:", error);
+      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi gửi yêu cầu quên mật khẩu.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (email, otp, newPassword) => {
+    setIsLoading(true);
+    try {
+      await apiClient.post('/auth/reset-password', {
+        email: email,
+        otp: otp,
+        newPassword: newPassword
+      });
+      return true;
+    } catch (error) {
+      console.error("Lỗi đặt lại mật khẩu:", error);
+      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi đặt lại mật khẩu.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const resendOtp = useCallback(async (email) => {
+    setIsLoading(true);
+    try {
+      await apiClient.post('/auth/resend-otp', {
+        email: email
+      });
+      return true;
+    } catch (error) {
+      console.error("Lỗi gửi lại OTP:", error);
+      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi gửi lại mã OTP.');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, register, verifyOtp, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading,
+      isCheckingAuth,
+      isAuthenticated: !!user, 
+      login, 
+      logout, 
+      requestRegisterOtp, 
+      register, 
+      forgotPassword, 
+      resetPassword, 
+      resendOtp 
+    }}>
       {children}
     </AuthContext.Provider>
   );
