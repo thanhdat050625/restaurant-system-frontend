@@ -14,15 +14,16 @@ import Checkout from './pages/Checkout/Checkout';
 import Reservation from './pages/Reservation/Reservation';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
 import Profile from './pages/Profile/Profile';
 import OrderTracking from './pages/OrderTracking/OrderTracking';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
 
 const GuestRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isCheckingAuth } = useAuth();
 
-  if (isLoading) {
+  if (isCheckingAuth) {
     return null;
   }
 
@@ -35,7 +36,7 @@ const GuestRoute = ({ children }) => {
 // Layout wrapper to conditionally show header/footer
 const Layout = () => {
   const location = useLocation();
-  const noLayoutPages = ['/login', '/register'];
+  const noLayoutPages = ['/login', '/register', '/forgot-password'];
   const showLayout = !noLayoutPages.includes(location.pathname);
 
   return (
@@ -51,6 +52,7 @@ const Layout = () => {
           <Route path="/reservation" element={<Reservation />} />
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+          <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/order/:id" element={<OrderTracking />} />
           <Route path="/about" element={<About />} />

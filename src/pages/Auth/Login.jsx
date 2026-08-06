@@ -84,7 +84,7 @@ const Login = () => {
                 <label className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-light cursor-pointer">
                   <input type="checkbox" className="w-4 h-4 accent-primary rounded" /> Ghi nhớ
                 </label>
-                <a href="#" className="text-sm text-primary hover:text-primary-dark font-medium">Quên mật khẩu?</a>
+                <Link to="/forgot-password" className="text-sm text-primary hover:text-primary-dark font-medium">Quên mật khẩu?</Link>
               </div>
 
               {error && <p className="text-error text-sm">{error}</p>}
