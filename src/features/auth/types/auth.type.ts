@@ -29,3 +29,24 @@ export interface ResetPasswordRequest {
 export interface ResendOtpRequest {
     email: string;
 }
+
+export interface AuthUser {
+    id: string;
+    fullName: string;
+    email: string;
+    provider: string;
+    providerId?: string | null;
+    phone?: string | null;
+    gender?: string | null;
+    avatar?: string | null;
+    role: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface AuthResult {
+    accessToken: string;
+    refreshToken: string;
+    user: AuthUser;
+}
