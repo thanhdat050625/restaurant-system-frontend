@@ -6,39 +6,83 @@ import PageWrapper from '../../layouts/PageWrapper';
 import { useAuth } from '../../features/auth/AuthContext';
 
 const Register = () => {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  });
+
   const [otp, setOtp] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  
+
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  
+
   const { requestRegisterOtp, register, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === 'email') {
+      const newEmail = value;
+
+      setForm((prev) => ({
+        ...prev,
+        email: newEmail,
+      }));
+
+      if (newEmail.trim() !== form.email.trim()) {
+        setIsOtpSent(false);
+        setOtp('');
+        setSuccessMessage('');
+      }
+
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleRequestOtp = async () => {
-    if (!form.email) {
-      setError('Vui lòng nhập email trước khi nhận mã');
+    const email = form.email.trim();
+    if (!email) {
+      setError('Vui lòng nhập email');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Email không hợp lệ');
       return;
     }
     setError('');
     setSuccessMessage('');
     setIsSendingOtp(true);
     try {
-      const success = await requestRegisterOtp(form.email);
-      if (success) {
+      const response = await requestRegisterOtp({
+        email,
+      });
+      if (response?.success) {
         setIsOtpSent(true);
-        setSuccessMessage('Mã OTP đã được gửi đến email của bạn!');
+        setSuccessMessage(
+          response.message || 'Mã OTP đã được gửi đến email của bạn!',
+        );
       }
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      setError(
+        error?.response?.data?.message ||
+        'Không thể gửi mã OTP. Vui lòng thử lại.',
+      );
     } finally {
       setIsSendingOtp(false);
     }
@@ -46,29 +90,72 @@ const Register = () => {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) { 
-      setError('Mật khẩu không khớp'); 
-      return; 
-    }
-    if (otp.length !== 6) {
-      setError('Mã OTP phải gồm 6 chữ số');
-      return;
-    }
-    if (!isOtpSent) {
-      setError('Vui lòng lấy mã OTP trước');
-      return;
-    }
+
     setError('');
     setSuccessMessage('');
-    try {
-      const success = await register({ ...form, otp });
-      if (success) {
-        setIsSuccess(true);
-        setTimeout(() => navigate('/login'), 2500);
-      }
-    } catch (err) {
-      setError(err.message);
+
+    const validationError = validateRegisterForm();
+    if (validationError) {
+      setError(validationError);
+      return;
     }
+
+    try {
+      const response = await register({
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+        otp,
+      });
+
+      if (response?.success) {
+        setIsSuccess(true);
+
+        setTimeout(() => {
+          navigate('/login');
+        }, 2500);
+      }
+    } catch (error) {
+      setError(
+        error?.response?.data?.message ||
+        'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
+      );
+    }
+  };
+
+
+  const validateRegisterForm = () => {
+    if (!form.fullName.trim()) {
+      return 'Vui lòng nhập họ tên';
+    }
+
+    const phoneRegex = /^[0-9]{10,11}$/;
+
+    if (!phoneRegex.test(form.phone)) {
+      return 'Số điện thoại phải gồm 10-11 chữ số';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(form.email)) {
+      return 'Email không hợp lệ';
+    }
+
+    if (form.password.length < 6) {
+      return 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+
+    if (form.password !== form.confirmPassword) {
+      return 'Mật khẩu xác nhận không khớp';
+    }
+
+    if (!/^\d{6}$/.test(otp)) {
+      return 'Mã OTP phải gồm 6 chữ số';
+    }
+
+    return null;
   };
 
   return (
@@ -91,9 +178,9 @@ const Register = () => {
         {/* Right - Form Container */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-light dark:bg-dark">
           <div className="w-full max-w-xl overflow-hidden relative min-h-[500px] flex items-center">
-            
+
             {isSuccess ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                 className="w-full text-center py-10"
               >
@@ -105,14 +192,14 @@ const Register = () => {
                 <p className="text-text-light text-sm mt-4">Tự động chuyển về trang đăng nhập...</p>
               </motion.div>
             ) : (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                 className="w-full"
               >
                 <Link to="/" className="inline-flex items-center gap-2 text-text-secondary dark:text-text-light hover:text-primary mb-6 font-medium">
                   <ArrowLeft size={18} /> Quay lại
                 </Link>
-                
+
                 <h1 className="text-3xl font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)] mb-2">Đăng Ký</h1>
                 <p className="text-text-secondary dark:text-text-light mb-6">Điền thông tin của bạn để tạo tài khoản</p>
 
@@ -121,10 +208,10 @@ const Register = () => {
                     <label className="block text-sm font-medium text-text-primary dark:text-white mb-1.5">Họ tên</label>
                     <div className="relative">
                       <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                      <input name="name" value={form.name} onChange={handleChange} required className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-sm text-text-primary dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
+                      <input name="fullName" value={form.fullName} onChange={handleChange} required className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-sm text-text-primary dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-text-primary dark:text-white mb-1.5">Số điện thoại</label>
                     <div className="relative">
@@ -138,10 +225,10 @@ const Register = () => {
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                        <input type="email" name="email" value={form.email} onChange={handleChange} readOnly={isOtpSent} required placeholder="your@email.com" className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-sm text-text-primary dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none disabled:opacity-70 disabled:bg-light" />
+                        <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="your@email.com" className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-sm text-text-primary dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none disabled:opacity-70 disabled:bg-light" />
                       </div>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={handleRequestOtp}
                         disabled={isSendingOtp || !form.email}
                         className="px-4 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 font-semibold rounded-xl text-sm whitespace-nowrap transition-colors"
@@ -155,15 +242,15 @@ const Register = () => {
                     <label className="block text-sm font-medium text-text-primary dark:text-white mb-1.5">Mã OTP (6 chữ số)</label>
                     <div className="relative">
                       <KeyRound size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         maxLength="6"
-                        value={otp} 
+                        value={otp}
                         onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="000000" 
+                        placeholder="000000"
                         disabled={!isOtpSent}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-sm font-bold tracking-widest text-text-primary dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none disabled:opacity-50" 
-                        required 
+                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-sm font-bold tracking-widest text-text-primary dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none disabled:opacity-50"
+                        required
                       />
                     </div>
                   </div>
@@ -177,7 +264,7 @@ const Register = () => {
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-text-primary dark:text-white mb-1.5">Xác nhận mật khẩu</label>
                       <div className="relative">
