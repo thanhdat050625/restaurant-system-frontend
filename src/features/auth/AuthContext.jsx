@@ -1,164 +1,193 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import apiClient from '../../services/api';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from 'react';
 
-const AuthContext = createContext();
+import {
+  login as loginService,
+  logout as logoutService,
+  requestRegisterOtp as requestRegisterOtpService,
+  register as registerService,
+  forgotPassword as forgotPasswordService,
+  resetPassword as resetPasswordService,
+  resendOtp as resendOtpService,
+} from '../auth/services/auth.service';
+
+import {
+  getMe,
+} from '../user/services/user.service';
+
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Loading cho các authentication actions
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Loading riêng cho việc kiểm tra authentication khi app khởi động
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
+  /**
+   * Kiểm tra session hiện tại.
+   *
+   * Access Token nằm trong HttpOnly Cookie nên FE không tự đọc token.
+   * FE gọi GET /users/me để BE xác nhận session.
+   */
   const checkAuth = useCallback(async () => {
     try {
-      const response = await apiClient.get('/profile/me');
-      // Check xem có data không (nếu là khách, Backend sẽ trả về response.data = null)
-      if (response.success && response.data) {
+      const response = await getMe();
+
+      if (response?.success && response?.data) {
         setUser(response.data);
       } else {
-        setUser(null); // Im lặng set thành null, không log lỗi
+        setUser(null);
       }
-    } catch (error) {
-      // Chỉ bắt những lỗi nghiêm trọng thực sự (như rớt mạng, server sập)
+    } catch {
+      // 401 hoặc lỗi request → xem như chưa đăng nhập
       setUser(null);
     } finally {
-      setIsLoading(false);
       setIsCheckingAuth(false);
     }
   }, []);
 
+  /**
+   * Kiểm tra authentication một lần khi AuthProvider được mount.
+   */
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  const login = useCallback(async (email, password) => {
+  /**
+   * Login
+   */
+  const login = useCallback(async (data) => {
     setIsLoading(true);
-    try {
-      const response = await apiClient.post('/auth/login', {
-        email: email, // Changed from usernameOrEmail
-        password: password
-      });
 
-      if (response.success) {
-        const { user } = response.data;
-        setUser(user);
-        return true;
+    try {
+      const response = await loginService(data);
+
+      if (response?.success && response?.data?.user) {
+        setUser(response.data.user);
       }
-      return false;
-    } catch (error) {
-      console.error("Lỗi đăng nhập:", error);
-      return false;
+
+      return response;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  /**
+   * Logout
+   */
   const logout = useCallback(async () => {
-    try {
-      await apiClient.post('/auth/logout');
-    } catch (error) {
-      console.error("Lỗi đăng xuất:", error);
-    } finally {
-      setUser(null);
-    }
-  }, []);
-
-  const requestRegisterOtp = useCallback(async (email) => {
     setIsLoading(true);
+
     try {
-      await apiClient.post('/auth/register/request-otp', {
-        email: email
-      });
-      return true; // Trả về true luôn nếu API không quăng lỗi (2xx)
-    } catch (error) {
-      console.error("Lỗi yêu cầu OTP:", error);
-      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi gửi mã OTP.');
+      const response = await logoutService();
+
+      setUser(null);
+
+      return response;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  /**
+   * Request OTP cho Register
+   */
+  const requestRegisterOtp = useCallback(async (data) => {
+    setIsLoading(true);
+
+    try {
+      return await requestRegisterOtpService(data);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  /**
+   * Register
+   *
+   * BE hiện tại trả accessToken/refreshToken/user
+   * nhưng register controller chưa set Cookie.
+   * Vì vậy chưa setUser() ở đây.
+   */
   const register = useCallback(async (data) => {
     setIsLoading(true);
-    try {
-      await apiClient.post('/auth/register', {
-        fullName: data.name,
-        email: data.email,
-        phone: data.phone,
-        password: data.password,
-        confirmPassword: data.confirmPassword,
-        otp: data.otp // Pass OTP
-      });
 
-      return true;
-    } catch (error) {
-      console.error("Lỗi đăng ký:", error);
-      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.');
+    try {
+      return await registerService(data);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const forgotPassword = useCallback(async (email) => {
+  /**
+   * Forgot Password
+   */
+  const forgotPassword = useCallback(async (data) => {
     setIsLoading(true);
+
     try {
-      await apiClient.post('/auth/forgot-password', {
-        email: email
-      });
-      return true;
-    } catch (error) {
-      console.error("Lỗi quên mật khẩu:", error);
-      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi gửi yêu cầu quên mật khẩu.');
+      return await forgotPasswordService(data);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const resetPassword = useCallback(async (email, otp, newPassword) => {
+  /**
+   * Reset Password
+   */
+  const resetPassword = useCallback(async (data) => {
     setIsLoading(true);
+
     try {
-      await apiClient.post('/auth/reset-password', {
-        email: email,
-        otp: otp,
-        newPassword: newPassword
-      });
-      return true;
-    } catch (error) {
-      console.error("Lỗi đặt lại mật khẩu:", error);
-      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi đặt lại mật khẩu.');
+      return await resetPasswordService(data);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const resendOtp = useCallback(async (email) => {
+  /**
+   * Resend OTP
+   */
+  const resendOtp = useCallback(async (data) => {
     setIsLoading(true);
+
     try {
-      await apiClient.post('/auth/resend-otp', {
-        email: email
-      });
-      return true;
-    } catch (error) {
-      console.error("Lỗi gửi lại OTP:", error);
-      throw new Error(error.response?.data?.message || 'Có lỗi xảy ra khi gửi lại mã OTP.');
+      return await resendOtpService(data);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isLoading,
-      isCheckingAuth,
-      isAuthenticated: !!user, 
-      login, 
-      logout, 
-      requestRegisterOtp, 
-      register, 
-      forgotPassword, 
-      resetPassword, 
-      resendOtp 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+
+        isLoading,
+        isCheckingAuth,
+
+        checkAuth,
+
+        login,
+        logout,
+
+        requestRegisterOtp,
+        register,
+
+        forgotPassword,
+        resetPassword,
+        resendOtp,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -166,7 +195,11 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+
   return context;
 };
 

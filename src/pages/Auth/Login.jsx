@@ -16,11 +16,21 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const success = await login(email, password);
-    if (success) {
-      navigate('/');
-    } else {
-      setError('Sai email/tên đăng nhập hoặc mật khẩu!');
+
+    try {
+      const response = await login({
+        email,
+        password,
+      });
+
+      if (response?.success) {
+        navigate('/');
+      }
+    } catch (error) {
+      setError(
+        error?.response?.data?.message ||
+        'Email hoặc mật khẩu không chính xác.',
+      );
     }
   };
 
@@ -82,7 +92,7 @@ const Login = () => {
 
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-light cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 accent-primary rounded" /> Ghi nhớ
+                  {/* <input type="checkbox" className="w-4 h-4 accent-primary rounded" /> Ghi nhớ */}
                 </label>
                 <Link to="/forgot-password" className="text-sm text-primary hover:text-primary-dark font-medium">Quên mật khẩu?</Link>
               </div>
