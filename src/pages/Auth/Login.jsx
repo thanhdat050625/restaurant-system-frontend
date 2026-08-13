@@ -108,9 +108,9 @@ const Login = () => {
             <div className="mt-6">
               <div className="relative flex items-center my-6"><div className="flex-1 h-px bg-light-border dark:bg-dark-border" /><span className="px-4 text-text-light text-sm">hoặc</span><div className="flex-1 h-px bg-light-border dark:bg-dark-border" /></div>
               <div className="grid grid-cols-1 gap-3">
-                <button className="flex items-center justify-center gap-2 py-3 border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white text-sm font-medium hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                <a href={`${import.meta.env.VITE_API_URL}/auth/google`} className="flex items-center justify-center gap-2 py-3 border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white text-sm font-medium hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                   <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" /> Google
-                </button>
+                </a>
               </div>
             </div>
 
