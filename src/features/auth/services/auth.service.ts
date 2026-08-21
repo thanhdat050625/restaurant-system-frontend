@@ -1,4 +1,5 @@
 import apiClient from '../../../services/api';
+import { ApiResponse } from '../../../types/api-response.type';
 import type {
     RequestRegisterOtpRequest,
     RegisterRequest,
@@ -12,7 +13,7 @@ import type {
 export const requestRegisterOtp = async (
     data: RequestRegisterOtpRequest,
 ) => {
-    return apiClient.post(
+    return apiClient.post<ApiResponse<any>>(
         '/auth/register/request-otp',
         data,
     );
@@ -21,7 +22,7 @@ export const requestRegisterOtp = async (
 export const register = async (
     data: RegisterRequest,
 ) => {
-    return apiClient.post<AuthResult>(
+    return apiClient.post<ApiResponse<AuthResult>>(
         '/auth/register',
         data,
     );
@@ -30,7 +31,7 @@ export const register = async (
 export const login = async (
     data: LoginRequest,
 ) => {
-    return apiClient.post<AuthResult>(
+    return apiClient.post<ApiResponse<AuthResult>>(
         '/auth/login',
         data,
     );
@@ -39,7 +40,7 @@ export const login = async (
 export const forgotPassword = async (
     data: ForgotPasswordRequest,
 ) => {
-    return apiClient.post(
+    return apiClient.post<ApiResponse<any>>(
         '/auth/forgot-password',
         data,
     );
@@ -48,7 +49,7 @@ export const forgotPassword = async (
 export const resetPassword = async (
     data: ResetPasswordRequest,
 ) => {
-    return apiClient.post(
+    return apiClient.post<ApiResponse<any>>(
         '/auth/reset-password',
         data,
     );
@@ -57,12 +58,12 @@ export const resetPassword = async (
 export const resendOtp = async (
     data: ResendOtpRequest,
 ) => {
-    return apiClient.post(
+    return apiClient.post<ApiResponse<any>>(
         '/auth/resend-otp',
         data,
     );
 };
 
 export const logout = async () => {
-    return apiClient.post('/auth/logout');
+    return apiClient.post<ApiResponse<any>>('/auth/logout');
 };

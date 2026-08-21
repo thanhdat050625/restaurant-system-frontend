@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { Toaster } from 'react-hot-toast';
 import { CartProvider } from './features/menu/CartContext';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ThemeProvider } from './hooks/ThemeContext';
@@ -20,6 +21,15 @@ import OrderTracking from './pages/OrderTracking/OrderTracking';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
 
+// Admin Imports
+import AdminRoute from './components/common/AdminRoute';
+import AdminLayout from './layouts/admin/AdminLayout';
+import Dashboard from './pages/Admin/Dashboard/Dashboard';
+import Branches from './pages/Admin/Branches/Branches';
+import TableTypes from './pages/Admin/TableTypes/TableTypes';
+import Tables from './pages/Admin/Tables/Tables';
+
+
 const GuestRoute = ({ children }) => {
   const { isAuthenticated, isCheckingAuth } = useAuth();
 
@@ -37,7 +47,8 @@ const GuestRoute = ({ children }) => {
 const Layout = () => {
   const location = useLocation();
   const noLayoutPages = ['/login', '/register', '/forgot-password'];
-  const showLayout = !noLayoutPages.includes(location.pathname);
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const showLayout = !noLayoutPages.includes(location.pathname) && !isAdminRoute;
 
   return (
     <>
@@ -57,6 +68,14 @@ const Layout = () => {
           <Route path="/order/:id" element={<OrderTracking />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+            <Route index element={<Dashboard />} />
+            <Route path="branches" element={<Branches />} />
+            <Route path="table-types" element={<TableTypes />} />
+            <Route path="tables" element={<Tables />} />
+          </Route>
         </Routes>
       </AnimatePresence>
       {showLayout && <Footer />}
@@ -70,6 +89,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <CartProvider>
+            <Toaster position="top-right" />
             <Layout />
           </CartProvider>
         </AuthProvider>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown, Shield } from 'lucide-react';
 import { useCart } from '../features/menu/CartContext';
 import { useAuth } from '../features/auth/AuthContext';
 import { useTheme } from '../hooks/ThemeContext';
@@ -156,6 +156,11 @@ const Header = () => {
                       <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                         <User size={16} /> Tài khoản
                       </Link>
+                      {user?.role === 'ADMIN' && (
+                        <Link to="/admin" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                          <Shield size={16} /> Trang quản trị
+                        </Link>
+                      )}
                       <button
                         onClick={logout}
                         className="flex items-center gap-2 w-full px-4 py-3 text-sm text-error hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -220,6 +225,11 @@ const Header = () => {
                     <Link to="/profile" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                       Tài khoản
                     </Link>
+                    {user?.role === 'ADMIN' && (
+                      <Link to="/admin" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                        Trang quản trị
+                      </Link>
+                    )}
                     <button onClick={logout} className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-error hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                       Đăng xuất
                     </button>
