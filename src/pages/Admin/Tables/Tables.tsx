@@ -7,6 +7,7 @@ import { IBranch } from '../../../types/admin/branch.type';
 import { ITableType } from '../../../types/admin/table-type.type';
 import Modal from '../../../components/ui/Modal';
 import TableForm, { TableFormData } from './TableForm';
+import BulkTableForm, { BulkTableFormData } from './BulkTableForm';
 import toast from 'react-hot-toast';
 
 const Tables: React.FC = () => {
@@ -16,6 +17,7 @@ const Tables: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [selectedTable, setSelectedTable] = useState<ITable | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
@@ -73,6 +75,14 @@ const Tables: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const handleOpenBulkModal = () => {
+    setIsBulkModalOpen(true);
+  };
+
+  const handleCloseBulkModal = () => {
+    setIsBulkModalOpen(false);
+  };
+
   const handleSubmit = async (data: TableFormData) => {
     try {
       setIsSubmitting(true);
@@ -84,6 +94,21 @@ const Tables: React.FC = () => {
         toast.success('Thêm bàn thành công!');
       }
       handleCloseModal();
+      fetchTablesOnly();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra!');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBulkSubmit = async (data: BulkTableFormData) => {
+    try {
+      setIsSubmitting(true);
+      const res = await tableService.bulkCreateTables(data);
+      toast.success(res?.data?.message || 'Tạo hàng loạt bàn thành công!');
+      handleCloseBulkModal();
       fetchTablesOnly();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Có lỗi xảy ra!');
@@ -121,6 +146,12 @@ const Tables: React.FC = () => {
             ))}
           </select>
           <button
+            onClick={() => handleOpenBulkModal()}
+            className="bg-secondary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors text-sm font-medium whitespace-nowrap"
+          >
+            + Tạo nhiều bàn
+          </button>
+          <button
             onClick={() => handleOpenModal()}
             className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors text-sm font-medium whitespace-nowrap"
           >
@@ -138,7 +169,7 @@ const Tables: React.FC = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                <th className="p-3 font-medium">Số bàn</th>
+                <th className="p-3 font-medium">Bàn</th>
                 <th className="p-3 font-medium">Tầng</th>
                 <th className="p-3 font-medium">Chi nhánh</th>
                 <th className="p-3 font-medium">Loại bàn</th>
@@ -205,6 +236,22 @@ const Tables: React.FC = () => {
           branches={branches}
           tableTypes={tableTypes}
           onSubmit={handleSubmit}
+          isLoading={isSubmitting}
+          selectedBranchId={selectedBranchId}
+        />
+      </Modal>
+
+      {/* Bulk Form Modal */}
+      <Modal
+        isOpen={isBulkModalOpen}
+        onClose={handleCloseBulkModal}
+        title="Tạo nhiều bàn cùng lúc"
+        maxWidth="max-w-3xl"
+      >
+        <BulkTableForm
+          branches={branches}
+          tableTypes={tableTypes}
+          onSubmit={handleBulkSubmit}
           isLoading={isSubmitting}
           selectedBranchId={selectedBranchId}
         />
