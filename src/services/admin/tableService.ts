@@ -19,6 +19,10 @@ export const tableService = {
     return await apiClient.post('/tables', data);
   },
 
+  bulkCreateTables: async (data: any): Promise<ApiResponse<{ message: string, count: number }>> => {
+    return await apiClient.post('/tables/bulk', data);
+  },
+
   updateTable: async (id: string, data: Partial<ITable>): Promise<ApiResponse<ITable>> => {
     return await apiClient.patch(`/tables/${id}`, data);
   },
