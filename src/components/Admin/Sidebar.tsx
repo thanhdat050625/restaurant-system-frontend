@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Home, MapPin, Layers, LayoutGrid, LogOut } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 

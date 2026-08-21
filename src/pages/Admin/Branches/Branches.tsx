@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { branchService } from '../../../services/admin/branchService';
+import { IBranch } from '../../../types/admin/branch.type';
 
-const Branches = () => {
-  const [branches, setBranches] = useState([]);
-  const [loading, setLoading] = useState(true);
+const Branches: React.FC = () => {
+  const [branches, setBranches] = useState<IBranch[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetchBranches();
@@ -41,7 +42,6 @@ const Branches = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                <th className="p-3 font-medium">ID</th>
                 <th className="p-3 font-medium">Tên chi nhánh</th>
                 <th className="p-3 font-medium">Địa chỉ</th>
                 <th className="p-3 font-medium">Số điện thoại</th>
@@ -51,14 +51,13 @@ const Branches = () => {
             <tbody>
               {branches.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-4 text-center text-gray-500">
+                  <td colSpan={4} className="p-4 text-center text-gray-500">
                     Chưa có chi nhánh nào
                   </td>
                 </tr>
               ) : (
                 branches.map((branch) => (
                   <tr key={branch.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="p-3 text-sm text-gray-500">{branch.id.substring(0, 8)}...</td>
                     <td className="p-3 text-sm font-medium text-gray-900">{branch.name}</td>
                     <td className="p-3 text-sm text-gray-600">{branch.address}</td>
                     <td className="p-3 text-sm text-gray-600">{branch.phone}</td>

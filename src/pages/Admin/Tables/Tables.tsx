@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { tableService } from '../../../services/admin/tableService';
+import { ITable } from '../../../types/admin/table.type';
 
-const Tables = () => {
-  const [tables, setTables] = useState([]);
-  const [loading, setLoading] = useState(true);
+const Tables: React.FC = () => {
+  const [tables, setTables] = useState<ITable[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetchTables();
@@ -41,7 +42,6 @@ const Tables = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                <th className="p-3 font-medium">ID</th>
                 <th className="p-3 font-medium">Tên/Số bàn</th>
                 <th className="p-3 font-medium">Loại bàn</th>
                 <th className="p-3 font-medium">Trạng thái</th>
@@ -51,14 +51,13 @@ const Tables = () => {
             <tbody>
               {tables.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-4 text-center text-gray-500">
+                  <td colSpan={4} className="p-4 text-center text-gray-500">
                     Chưa có bàn nào
                   </td>
                 </tr>
               ) : (
                 tables.map((table) => (
                   <tr key={table.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="p-3 text-sm text-gray-500">{table.id.substring(0, 8)}...</td>
                     <td className="p-3 text-sm font-medium text-gray-900">{table.name || table.tableNumber}</td>
                     <td className="p-3 text-sm text-gray-600">{table.tableType?.name || 'N/A'}</td>
                     <td className="p-3 text-sm">

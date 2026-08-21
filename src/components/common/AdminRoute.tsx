@@ -2,7 +2,11 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
 
-const AdminRoute = ({ children }) => {
+interface AdminRouteProps {
+  children: React.ReactNode;
+}
+
+const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const { isAuthenticated, isCheckingAuth, user } = useAuth();
 
   if (isCheckingAuth) {
@@ -23,7 +27,7 @@ const AdminRoute = ({ children }) => {
     return <Navigate to="/" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 export default AdminRoute;

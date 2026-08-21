@@ -1,4 +1,4 @@
-import {
+import React, {
   createContext,
   useContext,
   useState,
@@ -16,14 +16,14 @@ import {
   resendOtp as resendOtpService,
 } from '../auth/services/auth.service';
 
-import {
-  getMe,
-} from '../user/services/user.service';
+import { getMe } from '../user/services/user.service';
+import { IAuthContext } from '../../types/auth.type';
+import { AuthUser } from './types/auth.type';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext<IAuthContext | null>(null);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   // Loading cho các authentication actions
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Login
    */
-  const login = useCallback(async (data) => {
+  const login = useCallback(async (data: any) => {
     setIsLoading(true);
 
     try {
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Request OTP cho Register
    */
-  const requestRegisterOtp = useCallback(async (data) => {
+  const requestRegisterOtp = useCallback(async (data: any) => {
     setIsLoading(true);
 
     try {
@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
    * nhưng register controller chưa set Cookie.
    * Vì vậy chưa setUser() ở đây.
    */
-  const register = useCallback(async (data) => {
+  const register = useCallback(async (data: any) => {
     setIsLoading(true);
 
     try {
@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Forgot Password
    */
-  const forgotPassword = useCallback(async (data) => {
+  const forgotPassword = useCallback(async (data: any) => {
     setIsLoading(true);
 
     try {
@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Reset Password
    */
-  const resetPassword = useCallback(async (data) => {
+  const resetPassword = useCallback(async (data: any) => {
     setIsLoading(true);
 
     try {
@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Resend OTP
    */
-  const resendOtp = useCallback(async (data) => {
+  const resendOtp = useCallback(async (data: any) => {
     setIsLoading(true);
 
     try {
@@ -193,7 +193,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): IAuthContext => {
   const context = useContext(AuthContext);
 
   if (!context) {

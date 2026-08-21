@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from '../../components/Admin/Sidebar';
 import Topbar from '../../components/Admin/Topbar';
 
-const AdminLayout = () => {
+const AdminLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-body">
       {/* Sidebar */}
