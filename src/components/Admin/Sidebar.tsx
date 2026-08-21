@@ -1,7 +1,7 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
-import { Home, MapPin, Layers, LayoutGrid, LogOut } from 'lucide-react';
+import { Home, MapPin, Layers, LayoutGrid, LogOut, ExternalLink } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
@@ -60,6 +60,13 @@ const Sidebar: React.FC = () => {
             <p className="text-xs text-gray-500 truncate">{user?.role}</p>
           </div>
         </div>
+        <Link
+          to="/"
+          className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors mb-1 font-medium"
+        >
+          <ExternalLink size={18} />
+          Về trang chủ
+        </Link>
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"

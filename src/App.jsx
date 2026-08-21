@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { Toaster } from 'react-hot-toast';
 import { CartProvider } from './features/menu/CartContext';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ThemeProvider } from './hooks/ThemeContext';
@@ -88,6 +89,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <CartProvider>
+            <Toaster position="top-right" />
             <Layout />
           </CartProvider>
         </AuthProvider>

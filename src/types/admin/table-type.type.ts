@@ -1,6 +1,6 @@
 export interface ITableType {
   id: string;
   name: string;
-  seatCount: number;
+  capacity: number;
   description?: string;
 }

@@ -3,5 +3,7 @@ export interface IBranch {
   name: string;
   address: string;
   phone: string;
-  isActive?: boolean;
+  latitude: number;
+  longitude: number;
+  status: 'ACTIVE' | 'INACTIVE';
 }

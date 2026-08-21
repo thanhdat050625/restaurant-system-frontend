@@ -24,7 +24,11 @@ const Login = () => {
       });
 
       if (response?.success) {
-        navigate('/');
+        if (response.data?.user?.role === 'ADMIN') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       setError(

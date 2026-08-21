@@ -1,11 +1,14 @@
 import { ITableType } from './table-type.type';
+import { IBranch } from './branch.type';
 
 export interface ITable {
   id: string;
-  name?: string;
   tableNumber: string;
-  status: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED';
+  floor: number;
+  status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'DIRTY';
+  note?: string;
   branchId: string;
   tableTypeId: string;
+  branch?: IBranch;
   tableType?: ITableType;
 }
