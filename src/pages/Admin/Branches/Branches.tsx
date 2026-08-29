@@ -3,6 +3,7 @@ import { branchService } from '../../../services/admin/branchService';
 import { IBranch } from '../../../types/admin/branch.type';
 import { PaginationMeta } from '../../../types/api-response.type';
 import Modal from '../../../components/ui/Modal';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 import BranchForm, { BranchFormData } from './BranchForm';
 import Pagination from '../../../components/common/Pagination';
 import toast from 'react-hot-toast';
@@ -16,9 +17,14 @@ const Branches: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
 
+  // Form modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<IBranch | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Confirm delete state
+  const [deleteBranch, setDeleteBranch] = useState<IBranch | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchBranches();
@@ -82,15 +88,22 @@ const Branches: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')) {
-      try {
-        await branchService.deleteBranch(id);
-        toast.success('Xóa chi nhánh thành công!');
-        fetchBranches();
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || 'Xóa chi nhánh thất bại!');
-      }
+  const handleDeleteClick = (branch: IBranch) => {
+    setDeleteBranch(branch);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteBranch) return;
+    try {
+      setIsDeleting(true);
+      await branchService.deleteBranch(deleteBranch.id);
+      toast.success(`Đã xóa chi nhánh "${deleteBranch.name}" thành công!`);
+      setDeleteBranch(null);
+      fetchBranches();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Xóa chi nhánh thất bại!');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -156,7 +169,7 @@ const Branches: React.FC = () => {
                           Sửa
                         </button>
                         <button 
-                          onClick={() => handleDelete(branch.id)}
+                          onClick={() => handleDeleteClick(branch)}
                           className="text-error hover:text-red-700"
                         >
                           Xóa
@@ -191,6 +204,19 @@ const Branches: React.FC = () => {
           isLoading={isSubmitting}
         />
       </Modal>
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteBranch}
+        onClose={() => setDeleteBranch(null)}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận xóa chi nhánh"
+        message={`Bạn có chắc chắn muốn xóa chi nhánh "${deleteBranch?.name}"?\n\nHành động này không thể hoàn tác.`}
+        confirmText="Xóa chi nhánh"
+        cancelText="Hủy"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

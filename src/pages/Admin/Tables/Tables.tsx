@@ -7,6 +7,7 @@ import { IBranch } from '../../../types/admin/branch.type';
 import { ITableType } from '../../../types/admin/table-type.type';
 import { PaginationMeta } from '../../../types/api-response.type';
 import Modal from '../../../components/ui/Modal';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 import TableForm, { TableFormData } from './TableForm';
 import BulkTableForm, { BulkTableFormData } from './BulkTableForm';
 import Pagination from '../../../components/common/Pagination';
@@ -23,11 +24,16 @@ const Tables: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
 
+  // Form modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [selectedTable, setSelectedTable] = useState<ITable | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
+
+  // Confirm delete state
+  const [deleteTable, setDeleteTable] = useState<ITable | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
@@ -142,15 +148,22 @@ const Tables: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
-      try {
-        await tableService.deleteTable(id);
-        toast.success('Xóa bàn thành công!');
-        fetchTablesOnly();
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || 'Xóa bàn thất bại!');
-      }
+  const handleDeleteClick = (table: ITable) => {
+    setDeleteTable(table);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTable) return;
+    try {
+      setIsDeleting(true);
+      await tableService.deleteTable(deleteTable.id);
+      toast.success(`Xóa bàn "${deleteTable.tableNumber}" thành công!`);
+      setDeleteTable(null);
+      fetchTablesOnly();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Xóa bàn thất bại!');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -241,7 +254,7 @@ const Tables: React.FC = () => {
                           Sửa
                         </button>
                         <button
-                          onClick={() => handleDelete(table.id)}
+                          onClick={() => handleDeleteClick(table)}
                           className="text-error hover:text-red-700"
                         >
                           Xóa
@@ -297,6 +310,19 @@ const Tables: React.FC = () => {
           selectedBranchId={selectedBranchId}
         />
       </Modal>
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTable}
+        onClose={() => setDeleteTable(null)}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận xóa bàn"
+        message={`Bạn có chắc chắn muốn xóa bàn "${deleteTable?.tableNumber}" (Tầng ${deleteTable?.floor})?\n\nHành động này sẽ xóa dữ liệu bàn khỏi chi nhánh.`}
+        confirmText="Xóa bàn"
+        cancelText="Hủy"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

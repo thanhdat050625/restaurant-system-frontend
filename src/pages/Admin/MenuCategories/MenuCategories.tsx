@@ -3,6 +3,7 @@ import { menuCategoryService } from '../../../services/admin/menuCategory.servic
 import { MenuCategory } from '../../../types/menuCategory.type';
 import { PaginationMeta } from '../../../types/api-response.type';
 import Modal from '../../../components/ui/Modal';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 import MenuCategoryForm, { MenuCategoryFormData } from './MenuCategoryForm';
 import Pagination from '../../../components/common/Pagination';
 import toast from 'react-hot-toast';
@@ -16,9 +17,14 @@ const MenuCategories: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
 
+  // Form modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Confirm delete state
+  const [deleteCategory, setDeleteCategory] = useState<MenuCategory | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -87,15 +93,22 @@ const MenuCategories: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn ẩn danh mục này? Các món ăn trong danh mục sẽ không bị xóa.')) {
-      try {
-        await menuCategoryService.delete(id);
-        toast.success('Đã ẩn danh mục thành công!');
-        fetchCategories();
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || 'Ẩn danh mục thất bại!');
-      }
+  const handleDeleteClick = (category: MenuCategory) => {
+    setDeleteCategory(category);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteCategory) return;
+    try {
+      setIsDeleting(true);
+      await menuCategoryService.delete(deleteCategory.id);
+      toast.success(`Đã ẩn danh mục "${deleteCategory.name}" thành công!`);
+      setDeleteCategory(null);
+      fetchCategories();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Ẩn danh mục thất bại!');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -169,7 +182,7 @@ const MenuCategories: React.FC = () => {
                           Sửa
                         </button>
                         <button 
-                          onClick={() => handleDelete(category.id)}
+                          onClick={() => handleDeleteClick(category)}
                           className="text-error hover:text-red-700"
                         >
                           Ẩn
@@ -204,6 +217,19 @@ const MenuCategories: React.FC = () => {
           isLoading={isSubmitting}
         />
       </Modal>
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteCategory}
+        onClose={() => setDeleteCategory(null)}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận ẩn danh mục"
+        message={`Bạn có chắc chắn muốn ẩn danh mục "${deleteCategory?.name}"?\n\nCác món ăn trong danh mục này sẽ không bị xóa nhưng danh mục sẽ không hiển thị trên thực đơn của khách hàng.`}
+        confirmText="Ẩn danh mục"
+        cancelText="Hủy"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

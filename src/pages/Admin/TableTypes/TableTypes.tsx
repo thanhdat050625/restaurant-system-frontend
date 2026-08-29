@@ -3,6 +3,7 @@ import { tableTypeService } from '../../../services/admin/tableTypeService';
 import { ITableType } from '../../../types/admin/table-type.type';
 import { PaginationMeta } from '../../../types/api-response.type';
 import Modal from '../../../components/ui/Modal';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 import TableTypeForm, { TableTypeFormData } from './TableTypeForm';
 import Pagination from '../../../components/common/Pagination';
 import toast from 'react-hot-toast';
@@ -16,9 +17,14 @@ const TableTypes: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
 
+  // Form modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTableType, setSelectedTableType] = useState<ITableType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Confirm delete state
+  const [deleteTableType, setDeleteTableType] = useState<ITableType | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchTableTypes();
@@ -82,15 +88,22 @@ const TableTypes: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa loại bàn này?')) {
-      try {
-        await tableTypeService.deleteTableType(id);
-        toast.success('Xóa loại bàn thành công!');
-        fetchTableTypes();
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || 'Xóa loại bàn thất bại!');
-      }
+  const handleDeleteClick = (type: ITableType) => {
+    setDeleteTableType(type);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTableType) return;
+    try {
+      setIsDeleting(true);
+      await tableTypeService.deleteTableType(deleteTableType.id);
+      toast.success(`Xóa loại bàn "${deleteTableType.name}" thành công!`);
+      setDeleteTableType(null);
+      fetchTableTypes();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Xóa loại bàn thất bại!');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -146,7 +159,7 @@ const TableTypes: React.FC = () => {
                           Sửa
                         </button>
                         <button 
-                          onClick={() => handleDelete(type.id)}
+                          onClick={() => handleDeleteClick(type)}
                           className="text-error hover:text-red-700"
                         >
                           Xóa
@@ -180,6 +193,19 @@ const TableTypes: React.FC = () => {
           isLoading={isSubmitting}
         />
       </Modal>
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTableType}
+        onClose={() => setDeleteTableType(null)}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận xóa loại bàn"
+        message={`Bạn có chắc chắn muốn xóa loại bàn "${deleteTableType?.name}"?\n\nChỉ có thể xóa loại bàn khi không có bàn nào đang sử dụng loại bàn này.`}
+        confirmText="Xóa loại bàn"
+        cancelText="Hủy"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

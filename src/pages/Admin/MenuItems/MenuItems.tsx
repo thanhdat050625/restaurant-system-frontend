@@ -5,6 +5,7 @@ import { MenuItem } from '../../../types/menuItem.type';
 import { MenuCategory } from '../../../types/menuCategory.type';
 import { PaginationMeta } from '../../../types/api-response.type';
 import Modal from '../../../components/ui/Modal';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 import MenuItemForm from './MenuItemForm';
 import Pagination from '../../../components/common/Pagination';
 import { Search, Plus, Star, Clock, Filter, Eye, EyeOff } from 'lucide-react';
@@ -27,6 +28,10 @@ const MenuItems: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Confirm delete state
+  const [deleteItem, setDeleteItem] = useState<MenuItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -145,15 +150,22 @@ const MenuItems: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn ẩn món ăn này khỏi thực đơn?')) {
-      try {
-        await menuItemService.delete(id);
-        toast.success('Đã ẩn món ăn thành công!');
-        fetchMenuItems();
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || 'Ẩn món ăn thất bại!');
-      }
+  const handleDeleteClick = (item: MenuItem) => {
+    setDeleteItem(item);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteItem) return;
+    try {
+      setIsDeleting(true);
+      await menuItemService.delete(deleteItem.id);
+      toast.success(`Đã ẩn món "${deleteItem.name}" thành công!`);
+      setDeleteItem(null);
+      fetchMenuItems();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Ẩn món ăn thất bại!');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -334,7 +346,7 @@ const MenuItems: React.FC = () => {
                             Sửa
                           </button>
                           <button
-                            onClick={() => handleDelete(item.id)}
+                            onClick={() => handleDeleteClick(item)}
                             className="text-error hover:text-red-700 font-medium text-xs px-2 py-1 bg-red-50 rounded hover:bg-red-100 transition-colors"
                           >
                             Ẩn
@@ -370,6 +382,19 @@ const MenuItems: React.FC = () => {
           isLoading={isSubmitting}
         />
       </Modal>
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteItem}
+        onClose={() => setDeleteItem(null)}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận ẩn món ăn"
+        message={`Bạn có chắc chắn muốn ẩn món "${deleteItem?.name}" khỏi thực đơn?\n\nMón ăn này sẽ tạm thời không xuất hiện trên thực đơn dành cho khách hàng.`}
+        confirmText="Ẩn món ăn"
+        cancelText="Hủy"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
