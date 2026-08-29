@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
-import { Home, MapPin, Layers, LayoutGrid, LogOut, ExternalLink } from 'lucide-react';
+import { Home, MapPin, Layers, LayoutGrid, LogOut, ExternalLink, UtensilsCrossed, Utensils } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
@@ -17,6 +17,8 @@ const Sidebar: React.FC = () => {
     { name: 'Chi nhánh', path: '/admin/branches', icon: <MapPin size={18} /> },
     { name: 'Loại bàn', path: '/admin/table-types', icon: <Layers size={18} /> },
     { name: 'Bàn', path: '/admin/tables', icon: <LayoutGrid size={18} /> },
+    { name: 'Danh mục món', path: '/admin/menu-categories', icon: <UtensilsCrossed size={18} /> },
+    { name: 'Món ăn', path: '/admin/menu-items', icon: <Utensils size={18} /> },
   ];
 
   return (

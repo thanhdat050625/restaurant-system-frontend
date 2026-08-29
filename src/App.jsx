@@ -28,7 +28,8 @@ import Dashboard from './pages/Admin/Dashboard/Dashboard';
 import Branches from './pages/Admin/Branches/Branches';
 import TableTypes from './pages/Admin/TableTypes/TableTypes';
 import Tables from './pages/Admin/Tables/Tables';
-
+import MenuCategories from './pages/Admin/MenuCategories/MenuCategories';
+import MenuItems from './pages/Admin/MenuItems/MenuItems';
 
 const GuestRoute = ({ children }) => {
   const { isAuthenticated, isCheckingAuth } = useAuth();
@@ -75,6 +76,8 @@ const Layout = () => {
             <Route path="branches" element={<Branches />} />
             <Route path="table-types" element={<TableTypes />} />
             <Route path="tables" element={<Tables />} />
+            <Route path="menu-categories" element={<MenuCategories />} />
+            <Route path="menu-items" element={<MenuItems />} />
           </Route>
         </Routes>
       </AnimatePresence>
