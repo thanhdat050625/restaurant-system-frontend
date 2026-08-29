@@ -1,9 +1,9 @@
 import apiClient from '../api';
 import { ApiResponse } from '../../types/api-response.type';
-import { IBranch } from '../../types/admin/branch.type';
+import { IBranch, QueryBranchParams } from '../../types/admin/branch.type';
 
 export const branchService = {
-  getBranches: async (params?: { page?: number; limit?: number }): Promise<ApiResponse<IBranch[]>> => {
+  getBranches: async (params?: QueryBranchParams): Promise<ApiResponse<IBranch[]>> => {
     return await apiClient.get('/restaurants/branches', { params });
   },
 

@@ -23,6 +23,7 @@ const MenuItems: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('ALL');
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('ALL');
+  const [activeFilter, setActiveFilter] = useState<string>('ALL');
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,7 +40,7 @@ const MenuItems: React.FC = () => {
 
   useEffect(() => {
     fetchMenuItems();
-  }, [page, limit, search, selectedCategoryId, availabilityFilter]);
+  }, [page, limit, search, selectedCategoryId, availabilityFilter, activeFilter]);
 
   const fetchCategories = async () => {
     try {
@@ -51,9 +52,9 @@ const MenuItems: React.FC = () => {
     }
   };
 
-  const fetchMenuItems = async () => {
+  const fetchMenuItems = async (showSpinner = true) => {
     try {
-      setLoading(true);
+      if (showSpinner) setLoading(true);
       const params: any = {
         page,
         limit,
@@ -74,6 +75,12 @@ const MenuItems: React.FC = () => {
         params.isAvailable = false;
       }
 
+      if (activeFilter === 'ACTIVE') {
+        params.isActive = true;
+      } else if (activeFilter === 'INACTIVE') {
+        params.isActive = false;
+      }
+
       const res = await menuItemService.getAll(params);
       const list = Array.isArray(res) ? res : res.data || [];
       setItems(list);
@@ -82,7 +89,7 @@ const MenuItems: React.FC = () => {
       console.error('Error fetching menu items:', error);
       toast.error('Lỗi khi tải danh sách món ăn');
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
     }
   };
 
@@ -110,6 +117,11 @@ const MenuItems: React.FC = () => {
     setPage(1);
   };
 
+  const handleActiveFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setActiveFilter(e.target.value);
+    setPage(1);
+  };
+
   const handleOpenModal = (item?: MenuItem) => {
     setSelectedItem(item || null);
     setIsModalOpen(true);
@@ -124,14 +136,22 @@ const MenuItems: React.FC = () => {
     try {
       setIsSubmitting(true);
       if (selectedItem) {
-        await menuItemService.update(selectedItem.id, formData);
+        const res = await menuItemService.update(selectedItem.id, formData);
+        const updated = (res as any)?.data || res;
+        const matchedCategory = categories.find(c => c.id === (updated.categoryId || selectedItem.categoryId));
+        setItems(prev => prev.map(it => it.id === selectedItem.id ? { 
+          ...it, 
+          ...updated, 
+          category: matchedCategory || it.category 
+        } : it));
         toast.success('Cập nhật món ăn thành công!');
+        handleCloseModal();
       } else {
         await menuItemService.create(formData);
         toast.success('Thêm món ăn mới thành công!');
+        handleCloseModal();
+        fetchMenuItems(false);
       }
-      handleCloseModal();
-      fetchMenuItems();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi lưu món ăn!');
       console.error(error);
@@ -159,13 +179,23 @@ const MenuItems: React.FC = () => {
     try {
       setIsDeleting(true);
       await menuItemService.delete(deleteItem.id);
+      setItems(prev => prev.map(it => it.id === deleteItem.id ? { ...it, isActive: false } : it));
       toast.success(`Đã ẩn món "${deleteItem.name}" thành công!`);
       setDeleteItem(null);
-      fetchMenuItems();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Ẩn món ăn thất bại!');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleRestore = async (item: MenuItem) => {
+    try {
+      await menuItemService.update(item.id, { isActive: true });
+      setItems(prev => prev.map(it => it.id === item.id ? { ...it, isActive: true } : it));
+      toast.success(`Đã hiển thị lại món "${item.name}" trên thực đơn!`);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Khôi phục hiển thị thất bại!');
     }
   };
 
@@ -193,7 +223,7 @@ const MenuItems: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
         <div className="relative">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -221,15 +251,27 @@ const MenuItems: React.FC = () => {
           </select>
         </div>
 
-        <div>
+        <div className="flex items-center gap-2">
           <select
             value={availabilityFilter}
             onChange={handleAvailabilityFilterChange}
             className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
           >
             <option value="ALL">Tất cả trạng thái phục vụ</option>
-            <option value="AVAILABLE">Đang còn món</option>
-            <option value="UNAVAILABLE">Đang hết món</option>
+            <option value="AVAILABLE">Còn món</option>
+            <option value="UNAVAILABLE">Hết món</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={activeFilter}
+            onChange={handleActiveFilterChange}
+            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
+          >
+            <option value="ALL">Tất cả hiển thị</option>
+            <option value="ACTIVE">Đang hiển thị</option>
+            <option value="INACTIVE">Đang ẩn</option>
           </select>
         </div>
       </div>
@@ -330,11 +372,13 @@ const MenuItems: React.FC = () => {
                         </button>
                       </td>
                       <td className="p-3 text-center">
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-                          item.isActive ? 'text-green-600' : 'text-gray-400 line-through'
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                          item.isActive 
+                            ? 'text-green-700 bg-green-50 border border-green-200' 
+                            : 'text-gray-500 bg-gray-100 border border-gray-200 line-through'
                         }`}>
-                          {item.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
-                          {item.isActive ? 'Hiện' : 'Ẩn'}
+                          {item.isActive ? <Eye size={13} /> : <EyeOff size={13} />}
+                          {item.isActive ? 'Hiện' : 'Đang ẩn'}
                         </span>
                       </td>
                       <td className="p-3 text-center">
@@ -345,12 +389,23 @@ const MenuItems: React.FC = () => {
                           >
                             Sửa
                           </button>
-                          <button
-                            onClick={() => handleDeleteClick(item)}
-                            className="text-error hover:text-red-700 font-medium text-xs px-2 py-1 bg-red-50 rounded hover:bg-red-100 transition-colors"
-                          >
-                            Ẩn
-                          </button>
+                          {item.isActive ? (
+                            <button
+                              onClick={() => handleDeleteClick(item)}
+                              className="text-error hover:text-red-700 font-medium text-xs px-2 py-1 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                              title="Ẩn món ăn khỏi thực đơn"
+                            >
+                              Ẩn
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleRestore(item)}
+                              className="text-green-600 hover:text-green-700 font-medium text-xs px-2 py-1 bg-green-50 rounded hover:bg-green-100 transition-colors"
+                              title="Khôi phục hiển thị món ăn"
+                            >
+                              Hiện lại
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
