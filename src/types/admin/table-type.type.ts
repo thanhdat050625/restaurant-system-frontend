@@ -4,3 +4,10 @@ export interface ITableType {
   capacity: number;
   description?: string;
 }
+
+export interface QueryTableTypeParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  capacity?: number;
+}

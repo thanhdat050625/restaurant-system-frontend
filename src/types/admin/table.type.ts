@@ -12,3 +12,13 @@ export interface ITable {
   branch?: IBranch;
   tableType?: ITableType;
 }
+
+export interface QueryRestaurantTableParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  branchId?: string;
+  tableTypeId?: string;
+  status?: string;
+  floor?: number;
+}

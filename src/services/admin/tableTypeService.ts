@@ -1,10 +1,10 @@
 import apiClient from '../api';
 import { ApiResponse } from '../../types/api-response.type';
-import { ITableType } from '../../types/admin/table-type.type';
+import { ITableType, QueryTableTypeParams } from '../../types/admin/table-type.type';
 
 export const tableTypeService = {
-  getTableTypes: async (): Promise<ApiResponse<ITableType[]>> => {
-    return await apiClient.get('/tables/types');
+  getTableTypes: async (params?: QueryTableTypeParams): Promise<ApiResponse<ITableType[]>> => {
+    return await apiClient.get('/tables/types', { params });
   },
 
   getTableTypeById: async (id: string): Promise<ApiResponse<ITableType>> => {
