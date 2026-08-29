@@ -18,3 +18,9 @@ export interface CreateMenuCategoryInput {
 }
 
 export interface UpdateMenuCategoryInput extends Partial<CreateMenuCategoryInput> {}
+
+export interface QueryMenuCategoriesParams {
+  page?: number;
+  limit?: number;
+  includeInactive?: boolean;
+}

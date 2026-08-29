@@ -1,28 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { tableTypeService } from '../../../services/admin/tableTypeService';
 import { ITableType } from '../../../types/admin/table-type.type';
+import { PaginationMeta } from '../../../types/api-response.type';
 import Modal from '../../../components/ui/Modal';
 import TableTypeForm, { TableTypeFormData } from './TableTypeForm';
+import Pagination from '../../../components/common/Pagination';
 import toast from 'react-hot-toast';
 
 const TableTypes: React.FC = () => {
   const [tableTypes, setTableTypes] = useState<ITableType[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
+  // Pagination state
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTableType, setSelectedTableType] = useState<ITableType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchTableTypes();
-  }, []);
+  }, [page, limit]);
 
   const fetchTableTypes = async () => {
     try {
       setLoading(true);
-      const res = await tableTypeService.getTableTypes();
-      if (res?.data) {
-        setTableTypes(res.data);
+      const res = await tableTypeService.getTableTypes({ page, limit });
+      if (Array.isArray(res)) {
+        setTableTypes(res);
+        setMeta(null);
+      } else {
+        setTableTypes(res?.data || []);
+        setMeta(res?.meta || null);
       }
     } catch (error) {
       console.error('Error fetching table types:', error);
@@ -30,6 +41,15 @@ const TableTypes: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
   };
 
   const handleOpenModal = (type?: ITableType) => {
@@ -77,7 +97,10 @@ const TableTypes: React.FC = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-gray-800">Danh sách Loại Bàn</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">Danh sách Loại Bàn</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Quản lý các loại bàn và sức chứa</p>
+        </div>
         <button 
           onClick={() => handleOpenModal()}
           className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors text-sm font-medium"
@@ -91,49 +114,58 @@ const TableTypes: React.FC = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                <th className="p-3 font-medium">Tên loại bàn</th>
-                <th className="p-3 font-medium">Số chỗ ngồi</th>
-                <th className="p-3 font-medium">Mô tả</th>
-                <th className="p-3 font-medium text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableTypes.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="p-4 text-center text-gray-500">
-                    Chưa có loại bàn nào
-                  </td>
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                  <th className="p-3 font-medium">Tên loại bàn</th>
+                  <th className="p-3 font-medium">Số chỗ ngồi</th>
+                  <th className="p-3 font-medium">Mô tả</th>
+                  <th className="p-3 font-medium text-center">Thao tác</th>
                 </tr>
-              ) : (
-                tableTypes.map((type) => (
-                  <tr key={type.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="p-3 text-sm font-medium text-gray-900">{type.name}</td>
-                    <td className="p-3 text-sm text-gray-600">{type.capacity}</td>
-                    <td className="p-3 text-sm text-gray-600">{type.description}</td>
-                    <td className="p-3 text-sm text-center">
-                      <button 
-                        onClick={() => handleOpenModal(type)}
-                        className="text-info hover:text-blue-700 mr-3"
-                      >
-                        Sửa
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(type.id)}
-                        className="text-error hover:text-red-700"
-                      >
-                        Xóa
-                      </button>
+              </thead>
+              <tbody>
+                {tableTypes.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-4 text-center text-gray-500">
+                      Chưa có loại bàn nào
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  tableTypes.map((type) => (
+                    <tr key={type.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="p-3 text-sm font-medium text-gray-900">{type.name}</td>
+                      <td className="p-3 text-sm text-gray-600">{type.capacity}</td>
+                      <td className="p-3 text-sm text-gray-600">{type.description}</td>
+                      <td className="p-3 text-sm text-center">
+                        <button 
+                          onClick={() => handleOpenModal(type)}
+                          className="text-info hover:text-blue-700 mr-3"
+                        >
+                          Sửa
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(type.id)}
+                          className="text-error hover:text-red-700"
+                        >
+                          Xóa
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination UI */}
+          <Pagination
+            meta={meta}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+          />
+        </>
       )}
 
       {/* Form Modal */}

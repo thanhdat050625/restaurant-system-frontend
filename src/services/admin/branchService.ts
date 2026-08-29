@@ -3,8 +3,8 @@ import { ApiResponse } from '../../types/api-response.type';
 import { IBranch } from '../../types/admin/branch.type';
 
 export const branchService = {
-  getBranches: async (): Promise<ApiResponse<IBranch[]>> => {
-    return await apiClient.get('/restaurants/branches');
+  getBranches: async (params?: { page?: number; limit?: number }): Promise<ApiResponse<IBranch[]>> => {
+    return await apiClient.get('/restaurants/branches', { params });
   },
 
   getBranchById: async (id: string): Promise<ApiResponse<IBranch>> => {

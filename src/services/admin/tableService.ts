@@ -3,8 +3,8 @@ import { ApiResponse } from '../../types/api-response.type';
 import { ITable } from '../../types/admin/table.type';
 
 export const tableService = {
-  getTables: async (): Promise<ApiResponse<ITable[]>> => {
-    return await apiClient.get('/tables');
+  getTables: async (params?: { page?: number; limit?: number }): Promise<ApiResponse<ITable[]>> => {
+    return await apiClient.get('/tables', { params });
   },
 
   getTablesByBranch: async (branchId: string): Promise<ApiResponse<ITable[]>> => {

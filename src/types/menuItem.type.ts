@@ -4,7 +4,7 @@ export interface MenuItem {
   id: string;
   name: string;
   description?: string | null;
-  price: number | string; // Serialized as number or string from Decimal
+  price: number | string;
   originalPrice?: number | string | null;
   imageUrl?: string | null;
   isAvailable: boolean;
@@ -33,6 +33,8 @@ export interface CreateMenuItemInput {
 export interface UpdateMenuItemInput extends Partial<CreateMenuItemInput> {}
 
 export interface QueryMenuItemsParams {
+  page?: number;
+  limit?: number;
   categoryId?: string;
   search?: string;
   isAvailable?: boolean;

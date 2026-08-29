@@ -1,24 +1,36 @@
 import apiClient from '../api';
-import { MenuCategory, CreateMenuCategoryInput, UpdateMenuCategoryInput } from '../../types/menuCategory.type';
+import { ApiResponse } from '../../types/api-response.type';
+import {
+  MenuCategory,
+  CreateMenuCategoryInput,
+  UpdateMenuCategoryInput,
+  QueryMenuCategoriesParams,
+} from '../../types/menuCategory.type';
 
 export const menuCategoryService = {
-  getAll: (includeInactive = false) => {
-    return apiClient.get<MenuCategory[]>(`/menu-categories${includeInactive ? '?includeInactive=true' : ''}`);
+  getAll: (params?: QueryMenuCategoriesParams | boolean): Promise<ApiResponse<MenuCategory[]>> => {
+    let queryParams: QueryMenuCategoriesParams = {};
+    if (typeof params === 'boolean') {
+      queryParams = { includeInactive: params };
+    } else if (params) {
+      queryParams = params;
+    }
+    return apiClient.get('/menu-categories', { params: queryParams });
   },
 
-  getById: (id: string) => {
-    return apiClient.get<MenuCategory>(`/menu-categories/${id}`);
+  getById: (id: string): Promise<ApiResponse<MenuCategory>> => {
+    return apiClient.get(`/menu-categories/${id}`);
   },
 
-  create: (data: CreateMenuCategoryInput) => {
-    return apiClient.post<MenuCategory>('/menu-categories', data);
+  create: (data: CreateMenuCategoryInput): Promise<ApiResponse<MenuCategory>> => {
+    return apiClient.post('/menu-categories', data);
   },
 
-  update: (id: string, data: UpdateMenuCategoryInput) => {
-    return apiClient.patch<MenuCategory>(`/menu-categories/${id}`, data);
+  update: (id: string, data: UpdateMenuCategoryInput): Promise<ApiResponse<MenuCategory>> => {
+    return apiClient.patch(`/menu-categories/${id}`, data);
   },
 
-  delete: (id: string) => {
-    return apiClient.delete<MenuCategory>(`/menu-categories/${id}`);
+  delete: (id: string): Promise<ApiResponse<MenuCategory>> => {
+    return apiClient.delete(`/menu-categories/${id}`);
   },
 };

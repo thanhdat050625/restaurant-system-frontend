@@ -1,19 +1,24 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { menuItemService } from '../../../services/admin/menuItem.service';
 import { menuCategoryService } from '../../../services/admin/menuCategory.service';
 import { MenuItem } from '../../../types/menuItem.type';
 import { MenuCategory } from '../../../types/menuCategory.type';
+import { PaginationMeta } from '../../../types/api-response.type';
 import Modal from '../../../components/ui/Modal';
 import MenuItemForm from './MenuItemForm';
+import Pagination from '../../../components/common/Pagination';
 import { Search, Plus, Star, Clock, Filter, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const MenuItems: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
-  // Filters
+  // Pagination & Filters state
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
   const [search, setSearch] = useState<string>('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('ALL');
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('ALL');
@@ -25,13 +30,16 @@ const MenuItems: React.FC = () => {
 
   useEffect(() => {
     fetchCategories();
-    fetchMenuItems();
   }, []);
+
+  useEffect(() => {
+    fetchMenuItems();
+  }, [page, limit, search, selectedCategoryId, availabilityFilter]);
 
   const fetchCategories = async () => {
     try {
-      const res = await menuCategoryService.getAll(true);
-      const list = Array.isArray(res) ? res : (res as any)?.data || [];
+      const res = await menuCategoryService.getAll({ includeInactive: true, limit: 100 });
+      const list = Array.isArray(res) ? res : res.data || [];
       setCategories(list);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -41,15 +49,60 @@ const MenuItems: React.FC = () => {
   const fetchMenuItems = async () => {
     try {
       setLoading(true);
-      const res = await menuItemService.getAll({ includeInactive: true });
-      const list = Array.isArray(res) ? res : (res as any)?.data || [];
+      const params: any = {
+        page,
+        limit,
+        includeInactive: true,
+      };
+
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+
+      if (selectedCategoryId !== 'ALL') {
+        params.categoryId = selectedCategoryId;
+      }
+
+      if (availabilityFilter === 'AVAILABLE') {
+        params.isAvailable = true;
+      } else if (availabilityFilter === 'UNAVAILABLE') {
+        params.isAvailable = false;
+      }
+
+      const res = await menuItemService.getAll(params);
+      const list = Array.isArray(res) ? res : res.data || [];
       setItems(list);
+      setMeta(res.meta || null);
     } catch (error) {
       console.error('Error fetching menu items:', error);
       toast.error('Lỗi khi tải danh sách món ăn');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
+
+  const handleCategoryFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCategoryId(e.target.value);
+    setPage(1);
+  };
+
+  const handleAvailabilityFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setAvailabilityFilter(e.target.value);
+    setPage(1);
   };
 
   const handleOpenModal = (item?: MenuItem) => {
@@ -110,28 +163,6 @@ const MenuItems: React.FC = () => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
   };
 
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      // Search by name or description
-      const matchSearch =
-        search.trim() === '' ||
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        (item.description && item.description.toLowerCase().includes(search.toLowerCase()));
-
-      // Filter by category
-      const matchCategory =
-        selectedCategoryId === 'ALL' || item.categoryId === selectedCategoryId;
-
-      // Filter by availability
-      const matchAvailability =
-        availabilityFilter === 'ALL' ||
-        (availabilityFilter === 'AVAILABLE' && item.isAvailable) ||
-        (availabilityFilter === 'UNAVAILABLE' && !item.isAvailable);
-
-      return matchSearch && matchCategory && matchAvailability;
-    });
-  }, [items, search, selectedCategoryId, availabilityFilter]);
-
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 space-y-6">
       {/* Header */}
@@ -156,7 +187,7 @@ const MenuItems: React.FC = () => {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             placeholder="Tìm theo tên hoặc mô tả..."
             className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
           />
@@ -166,7 +197,7 @@ const MenuItems: React.FC = () => {
           <Filter size={18} className="text-gray-400 shrink-0" />
           <select
             value={selectedCategoryId}
-            onChange={(e) => setSelectedCategoryId(e.target.value)}
+            onChange={handleCategoryFilterChange}
             className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
           >
             <option value="ALL">Tất cả danh mục</option>
@@ -181,7 +212,7 @@ const MenuItems: React.FC = () => {
         <div>
           <select
             value={availabilityFilter}
-            onChange={(e) => setAvailabilityFilter(e.target.value)}
+            onChange={handleAvailabilityFilterChange}
             className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
           >
             <option value="ALL">Tất cả trạng thái phục vụ</option>
@@ -198,123 +229,132 @@ const MenuItems: React.FC = () => {
           <p className="text-sm text-gray-500 mt-2">Đang tải danh sách món ăn...</p>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-gray-100 rounded-lg">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-xs uppercase tracking-wider">
-                <th className="p-3 font-semibold">Món ăn</th>
-                <th className="p-3 font-semibold">Danh mục</th>
-                <th className="p-3 font-semibold text-right">Giá bán</th>
-                <th className="p-3 font-semibold text-center">Thời gian</th>
-                <th className="p-3 font-semibold text-center">Trạng thái phục vụ</th>
-                <th className="p-3 font-semibold text-center">Hiển thị</th>
-                <th className="p-3 font-semibold text-center">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
-              {filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-500">
-                    Không tìm thấy món ăn nào phù hợp
-                  </td>
+        <>
+          <div className="overflow-x-auto border border-gray-100 rounded-lg">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-xs uppercase tracking-wider">
+                  <th className="p-3 font-semibold">Món ăn</th>
+                  <th className="p-3 font-semibold">Danh mục</th>
+                  <th className="p-3 font-semibold text-right">Giá bán</th>
+                  <th className="p-3 font-semibold text-center">Thời gian</th>
+                  <th className="p-3 font-semibold text-center">Trạng thái phục vụ</th>
+                  <th className="p-3 font-semibold text-center">Hiển thị</th>
+                  <th className="p-3 font-semibold text-center">Thao tác</th>
                 </tr>
-              ) : (
-                filteredItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-3">
-                      <div className="flex items-center gap-3">
-                        {item.imageUrl ? (
-                          <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            className="w-12 h-12 rounded-lg object-cover border border-gray-200 shrink-0"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-xs shrink-0 font-medium">
-                            No img
-                          </div>
-                        )}
-                        <div>
-                          <div className="font-semibold text-gray-900 flex items-center gap-1.5">
-                            {item.name}
-                            {item.isFeatured && (
-                              <span className="inline-flex items-center gap-0.5 text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-medium">
-                                <Star size={12} className="fill-amber-500 text-amber-500" />
-                                Nổi bật
-                              </span>
-                            )}
-                          </div>
-                          {item.description && (
-                            <p className="text-xs text-gray-500 truncate max-w-xs">{item.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                        {item.category?.name || 'Chưa phân loại'}
-                      </span>
-                    </td>
-                    <td className="p-3 text-right">
-                      <div className="font-bold text-gray-900">{formatVND(item.price)}</div>
-                      {item.originalPrice && (
-                        <div className="text-xs text-gray-400 line-through">
-                          {formatVND(item.originalPrice)}
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-3 text-center">
-                      {item.preparationTime ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-600">
-                          <Clock size={13} /> {item.preparationTime}p
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="p-3 text-center">
-                      <button
-                        onClick={() => handleToggleAvailability(item)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
-                          item.isAvailable
-                            ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                            : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
-                        }`}
-                        title="Click để đổi trạng thái"
-                      >
-                        {item.isAvailable ? 'Còn món' : 'Hết món'}
-                      </button>
-                    </td>
-                    <td className="p-3 text-center">
-                      <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-                        item.isActive ? 'text-green-600' : 'text-gray-400 line-through'
-                      }`}>
-                        {item.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
-                        {item.isActive ? 'Hiện' : 'Ẩn'}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenModal(item)}
-                          className="text-info hover:text-blue-700 font-medium text-xs px-2 py-1 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
-                        >
-                          Sửa
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="text-error hover:text-red-700 font-medium text-xs px-2 py-1 bg-red-50 rounded hover:bg-red-100 transition-colors"
-                        >
-                          Ẩn
-                        </button>
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm">
+                {items.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-gray-500">
+                      Không tìm thấy món ăn nào phù hợp
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  items.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-12 h-12 rounded-lg object-cover border border-gray-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-xs shrink-0 font-medium">
+                              No img
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                              {item.name}
+                              {item.isFeatured && (
+                                <span className="inline-flex items-center gap-0.5 text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-medium">
+                                  <Star size={12} className="fill-amber-500 text-amber-500" />
+                                  Nổi bật
+                                </span>
+                              )}
+                            </div>
+                            {item.description && (
+                              <p className="text-xs text-gray-500 truncate max-w-xs">{item.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                          {item.category?.name || 'Chưa phân loại'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right">
+                        <div className="font-bold text-gray-900">{formatVND(item.price)}</div>
+                        {item.originalPrice && (
+                          <div className="text-xs text-gray-400 line-through">
+                            {formatVND(item.originalPrice)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3 text-center">
+                        {item.preparationTime ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-gray-600">
+                            <Clock size={13} /> {item.preparationTime}p
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleToggleAvailability(item)}
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
+                            item.isAvailable
+                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                              : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
+                          }`}
+                          title="Click để đổi trạng thái"
+                        >
+                          {item.isAvailable ? 'Còn món' : 'Hết món'}
+                        </button>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium ${
+                          item.isActive ? 'text-green-600' : 'text-gray-400 line-through'
+                        }`}>
+                          {item.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
+                          {item.isActive ? 'Hiện' : 'Ẩn'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleOpenModal(item)}
+                            className="text-info hover:text-blue-700 font-medium text-xs px-2 py-1 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                          >
+                            Sửa
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="text-error hover:text-red-700 font-medium text-xs px-2 py-1 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                          >
+                            Ẩn
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination UI */}
+          <Pagination
+            meta={meta}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+          />
+        </>
       )}
 
       {/* Form Dialog Modal */}
