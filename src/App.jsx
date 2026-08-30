@@ -21,6 +21,10 @@ import OrderTracking from './pages/OrderTracking/OrderTracking';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
 
+// Staff Imports
+import StaffRoute from './components/common/StaffRoute';
+import StaffDashboard from './pages/Staff/StaffDashboard';
+
 // Admin Imports
 import AdminRoute from './components/common/AdminRoute';
 import AdminLayout from './layouts/admin/AdminLayout';
@@ -32,13 +36,15 @@ import MenuCategories from './pages/Admin/MenuCategories/MenuCategories';
 import MenuItems from './pages/Admin/MenuItems/MenuItems';
 
 const GuestRoute = ({ children }) => {
-  const { isAuthenticated, isCheckingAuth } = useAuth();
+  const { user, isAuthenticated, isCheckingAuth } = useAuth();
 
   if (isCheckingAuth) {
     return null;
   }
 
   if (isAuthenticated) {
+    if (user?.role === 'ADMIN') return <Navigate to="/admin" replace />;
+    if (user?.role === 'STAFF') return <Navigate to="/staff" replace />;
     return <Navigate to="/" replace />;
   }
   return children;
@@ -48,8 +54,8 @@ const GuestRoute = ({ children }) => {
 const Layout = () => {
   const location = useLocation();
   const noLayoutPages = ['/login', '/register', '/forgot-password'];
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const showLayout = !noLayoutPages.includes(location.pathname) && !isAdminRoute;
+  const isDashboardRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/staff');
+  const showLayout = !noLayoutPages.includes(location.pathname) && !isDashboardRoute;
 
   return (
     <>
@@ -70,6 +76,9 @@ const Layout = () => {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           
+          {/* Staff Route */}
+          <Route path="/staff" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
+
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<Dashboard />} />

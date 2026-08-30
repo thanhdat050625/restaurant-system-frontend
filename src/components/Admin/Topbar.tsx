@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 const Topbar: React.FC = () => {
   const location = useLocation();
-  
+
   const getPageTitle = () => {
     switch (location.pathname) {
       case '/admin':

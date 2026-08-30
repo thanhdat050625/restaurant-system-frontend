@@ -141,7 +141,11 @@ const Header = () => {
                       : 'hover:bg-white/10'
                   }`}
                 >
-                  <img src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=random`} alt={user.fullName || user.username} className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/50" />
+                  <img 
+                    src={user?.avatar || user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || user?.username || 'User')}&background=FF6B35&color=fff&bold=true`} 
+                    alt={user?.fullName || user?.username || 'User'} 
+                    className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/50" 
+                  />
                   <ChevronDown size={16} className={isSolidHeader ? 'text-text-primary dark:text-white' : 'text-white'} />
                 </button>
 
@@ -159,6 +163,11 @@ const Header = () => {
                       {user?.role === 'ADMIN' && (
                         <Link to="/admin" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                           <Shield size={16} /> Trang quản trị
+                        </Link>
+                      )}
+                      {user?.role === 'STAFF' && (
+                        <Link to="/staff" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                          <Shield size={16} /> Cổng nhân viên
                         </Link>
                       )}
                       <button
@@ -228,6 +237,11 @@ const Header = () => {
                     {user?.role === 'ADMIN' && (
                       <Link to="/admin" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                         Trang quản trị
+                      </Link>
+                    )}
+                    {user?.role === 'STAFF' && (
+                      <Link to="/staff" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                        Cổng nhân viên
                       </Link>
                     )}
                     <button onClick={logout} className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-error hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">

@@ -24,8 +24,11 @@ const Login = () => {
       });
 
       if (response?.success) {
-        if (response.data?.user?.role === 'ADMIN') {
+        const role = response.data?.user?.role;
+        if (role === 'ADMIN') {
           navigate('/admin');
+        } else if (role === 'STAFF') {
+          navigate('/staff');
         } else {
           navigate('/');
         }

@@ -6,7 +6,6 @@ export const menuItemService = {
     const query = new URLSearchParams();
     if (params?.categoryId) query.append('categoryId', params.categoryId);
     if (params?.search) query.append('search', params.search);
-    if (params?.isAvailable !== undefined) query.append('isAvailable', String(params.isAvailable));
     if (params?.isFeatured !== undefined) query.append('isFeatured', String(params.isFeatured));
     if (params?.includeInactive !== undefined) query.append('includeInactive', String(params.includeInactive));
 
