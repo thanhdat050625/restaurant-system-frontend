@@ -5,6 +5,7 @@ import { staffService } from '../../../services/admin/staffService';
 import { branchService } from '../../../services/admin/branchService';
 import { StaffModal } from './StaffModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 import Pagination from '../../../components/common/Pagination';
 import { PaginationMeta } from '../../../types/api-response.type';
 import {
@@ -39,6 +40,8 @@ const Staff: React.FC = () => {
   const [staffToEdit, setStaffToEdit] = useState<IStaff | null>(null);
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState<boolean>(false);
   const [staffToReset, setStaffToReset] = useState<IStaff | null>(null);
+  const [staffToToggle, setStaffToToggle] = useState<IStaff | null>(null);
+  const [isToggling, setIsToggling] = useState<boolean>(false);
 
   useEffect(() => {
     fetchBranches();
@@ -113,18 +116,20 @@ const Staff: React.FC = () => {
     setPage(1);
   };
 
-  const handleToggleStatus = async (staff: IStaff) => {
-    const actionName = staff.isActive ? 'khóa' : 'mở khóa';
-    if (!window.confirm(`Bạn có chắc chắn muốn ${actionName} tài khoản của nhân viên "${staff.fullName}"?`)) {
-      return;
-    }
+  const handleConfirmToggleStatus = async () => {
+    if (!staffToToggle) return;
+    const actionName = staffToToggle.isActive ? 'khóa' : 'mở khóa';
 
     try {
-      await staffService.toggleStaffStatus(staff.id);
+      setIsToggling(true);
+      await staffService.toggleStaffStatus(staffToToggle.id);
       toast.success(`Đã ${actionName} tài khoản thành công`);
+      setStaffToToggle(null);
       fetchStaffs(false);
     } catch (error: any) {
       toast.error(error.response?.data?.message || `Không thể ${actionName} tài khoản`);
+    } finally {
+      setIsToggling(false);
     }
   };
 
@@ -330,7 +335,7 @@ const Staff: React.FC = () => {
 
                             {/* Khóa / Mở khóa */}
                             <button
-                              onClick={() => handleToggleStatus(staff)}
+                              onClick={() => setStaffToToggle(staff)}
                               title={staff.isActive ? 'Khóa tài khoản' : 'Kích hoạt lại'}
                               className={`font-medium text-xs px-2.5 py-1 rounded transition-colors inline-flex items-center gap-1 ${
                                 staff.isActive
@@ -377,6 +382,25 @@ const Staff: React.FC = () => {
         isOpen={isResetPasswordOpen}
         onClose={() => setIsResetPasswordOpen(false)}
         staff={staffToReset}
+      />
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!staffToToggle}
+        onClose={() => setStaffToToggle(null)}
+        onConfirm={handleConfirmToggleStatus}
+        title={staffToToggle?.isActive ? 'Xác nhận khóa tài khoản' : 'Xác nhận kích hoạt tài khoản'}
+        message={`Bạn có chắc chắn muốn ${
+          staffToToggle?.isActive ? 'khóa' : 'mở khóa'
+        } tài khoản của nhân viên "${staffToToggle?.fullName}"?\n\n${
+          staffToToggle?.isActive
+            ? 'Nhân viên này sẽ bị đăng xuất ngay lập tức và không thể truy cập hệ thống.'
+            : 'Nhân viên này sẽ có thể đăng nhập lại vào hệ thống bình thường.'
+        }`}
+        confirmText={staffToToggle?.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+        cancelText="Hủy"
+        type={staffToToggle?.isActive ? 'danger' : 'warning'}
+        isLoading={isToggling}
       />
     </div>
   );
