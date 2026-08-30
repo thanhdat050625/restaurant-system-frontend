@@ -199,7 +199,11 @@ const Branches: React.FC = () => {
                   branches.map((branch) => (
                     <tr key={branch.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="p-3 text-sm font-medium text-gray-900">{branch.name}</td>
-                      <td className="p-3 text-sm text-gray-600">{branch.address}</td>
+                      <td className="p-3 text-sm text-gray-600">
+                        {branch.streetAddress}
+                        {branch.ward?.name ? `, ${branch.ward.name}` : ''}
+                        {branch.province?.name ? `, ${branch.province.name}` : ''}
+                      </td>
                       <td className="p-3 text-sm text-gray-600">{branch.phone}</td>
                       <td className="p-3 text-sm text-center">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${

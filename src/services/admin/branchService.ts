@@ -21,5 +21,13 @@ export const branchService = {
 
   deleteBranch: async (id: string): Promise<ApiResponse<null>> => {
     return await apiClient.delete(`/restaurants/branches/${id}`);
+  },
+
+  getProvinces: async (): Promise<ApiResponse<any>> => {
+    return await apiClient.get('/restaurants/branches/locations/provinces');
+  },
+
+  getWardsByProvince: async (code: string): Promise<ApiResponse<any>> => {
+    return await apiClient.get(`/restaurants/branches/locations/provinces/${code}/wards`);
   }
 };
