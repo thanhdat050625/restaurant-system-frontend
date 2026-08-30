@@ -15,8 +15,8 @@ const menuItemSchema = z.object({
   description: z.string().optional().nullable(),
   imageUrl: z.string().url('URL ảnh không hợp lệ').optional().or(z.literal('')).nullable(),
   preparationTime: z.number().int().min(0, 'Thời gian chế biến không hợp lệ').optional().nullable(),
-  isAvailable: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
+  isActive: z.boolean().default(true),
 });
 
 export type MenuItemFormData = z.infer<typeof menuItemSchema>;
@@ -46,8 +46,8 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
       description: '',
       imageUrl: '',
       preparationTime: 15,
-      isAvailable: true,
       isFeatured: false,
+      isActive: true,
     },
   });
 
@@ -79,8 +79,8 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
         description: initialData.description || '',
         imageUrl: initialData.imageUrl || '',
         preparationTime: initialData.preparationTime ?? 15,
-        isAvailable: initialData.isAvailable,
         isFeatured: initialData.isFeatured,
+        isActive: initialData.isActive,
       });
     } else {
       reset({
@@ -91,8 +91,8 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
         description: '',
         imageUrl: '',
         preparationTime: 15,
-        isAvailable: true,
         isFeatured: false,
+        isActive: true,
       });
     }
   }, [initialData, categories, reset]);
@@ -195,15 +195,6 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
       </div>
 
       <div className="flex flex-wrap gap-6 pt-2">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            {...register('isAvailable')}
-            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-          />
-          <span className="text-sm font-medium text-gray-700">Đang còn món (Phục vụ ngay)</span>
-        </label>
-
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"

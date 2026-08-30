@@ -22,7 +22,6 @@ const MenuItems: React.FC = () => {
   const [limit, setLimit] = useState<number>(10);
   const [search, setSearch] = useState<string>('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('ALL');
-  const [availabilityFilter, setAvailabilityFilter] = useState<string>('ALL');
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
 
   // Modal state
@@ -40,12 +39,12 @@ const MenuItems: React.FC = () => {
 
   useEffect(() => {
     fetchMenuItems();
-  }, [page, limit, search, selectedCategoryId, availabilityFilter, activeFilter]);
+  }, [page, limit, search, selectedCategoryId, activeFilter]);
 
   const fetchCategories = async () => {
     try {
       const res = await menuCategoryService.getAll({ includeInactive: true, limit: 100 });
-      const list = Array.isArray(res) ? res : res.data || [];
+      const list = Array.isArray(res) ? res : (res as any)?.data || [];
       setCategories(list);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -69,12 +68,6 @@ const MenuItems: React.FC = () => {
         params.categoryId = selectedCategoryId;
       }
 
-      if (availabilityFilter === 'AVAILABLE') {
-        params.isAvailable = true;
-      } else if (availabilityFilter === 'UNAVAILABLE') {
-        params.isAvailable = false;
-      }
-
       if (activeFilter === 'ACTIVE') {
         params.isActive = true;
       } else if (activeFilter === 'INACTIVE') {
@@ -82,9 +75,9 @@ const MenuItems: React.FC = () => {
       }
 
       const res = await menuItemService.getAll(params);
-      const list = Array.isArray(res) ? res : res.data || [];
+      const list = Array.isArray(res) ? res : (res as any)?.data || [];
       setItems(list);
-      setMeta(res.meta || null);
+      setMeta((res as any)?.meta || null);
     } catch (error) {
       console.error('Error fetching menu items:', error);
       toast.error('Lỗi khi tải danh sách món ăn');
@@ -109,11 +102,6 @@ const MenuItems: React.FC = () => {
 
   const handleCategoryFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCategoryId(e.target.value);
-    setPage(1);
-  };
-
-  const handleAvailabilityFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setAvailabilityFilter(e.target.value);
     setPage(1);
   };
 
@@ -160,16 +148,6 @@ const MenuItems: React.FC = () => {
     }
   };
 
-  const handleToggleAvailability = async (item: MenuItem) => {
-    try {
-      await menuItemService.update(item.id, { isAvailable: !item.isAvailable });
-      toast.success(item.isAvailable ? 'Đã chuyển sang Hết món' : 'Đã chuyển sang Còn món');
-      setItems(prev => prev.map(it => it.id === item.id ? { ...it, isAvailable: !it.isAvailable } : it));
-    } catch (error: any) {
-      toast.error('Cập nhật trạng thái thất bại');
-    }
-  };
-
   const handleDeleteClick = (item: MenuItem) => {
     setDeleteItem(item);
   };
@@ -210,8 +188,8 @@ const MenuItems: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Quản lý Món Ăn</h2>
-          <p className="text-sm text-gray-500 mt-1">Danh sách tất cả món ăn trong thực đơn nhà hàng</p>
+          <h2 className="text-xl font-bold text-gray-800">Danh Mục Món Ăn Toàn Chuỗi</h2>
+          <p className="text-sm text-gray-500 mt-1">Quản lý danh mục món ăn mẫu chung cho toàn bộ chuỗi nhà hàng</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
@@ -223,7 +201,7 @@ const MenuItems: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
         <div className="relative">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -253,24 +231,12 @@ const MenuItems: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <select
-            value={availabilityFilter}
-            onChange={handleAvailabilityFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả trạng thái phục vụ</option>
-            <option value="AVAILABLE">Còn món</option>
-            <option value="UNAVAILABLE">Hết món</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <select
             value={activeFilter}
             onChange={handleActiveFilterChange}
             className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
           >
-            <option value="ALL">Tất cả hiển thị</option>
-            <option value="ACTIVE">Đang hiển thị</option>
+            <option value="ALL">Tất cả trạng thái</option>
+            <option value="ACTIVE">Đang kinh doanh</option>
             <option value="INACTIVE">Đang ẩn</option>
           </select>
         </div>
@@ -290,17 +256,16 @@ const MenuItems: React.FC = () => {
                 <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-xs uppercase tracking-wider">
                   <th className="p-3 font-semibold">Món ăn</th>
                   <th className="p-3 font-semibold">Danh mục</th>
-                  <th className="p-3 font-semibold text-right">Giá bán</th>
-                  <th className="p-3 font-semibold text-center">Thời gian</th>
-                  <th className="p-3 font-semibold text-center">Trạng thái phục vụ</th>
-                  <th className="p-3 font-semibold text-center">Hiển thị</th>
+                  <th className="p-3 font-semibold text-right">Giá niêm yết</th>
+                  <th className="p-3 font-semibold text-center">Thời gian nấu</th>
+                  <th className="p-3 font-semibold text-center">Trạng thái</th>
                   <th className="p-3 font-semibold text-center">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm">
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-gray-500">
+                    <td colSpan={6} className="p-8 text-center text-gray-500">
                       Không tìm thấy món ăn nào phù hợp
                     </td>
                   </tr>
@@ -359,26 +324,13 @@ const MenuItems: React.FC = () => {
                         )}
                       </td>
                       <td className="p-3 text-center">
-                        <button
-                          onClick={() => handleToggleAvailability(item)}
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
-                            item.isAvailable
-                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                              : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
-                          }`}
-                          title="Click để đổi trạng thái"
-                        >
-                          {item.isAvailable ? 'Còn món' : 'Hết món'}
-                        </button>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
                           item.isActive 
-                            ? 'text-green-700 bg-green-50 border border-green-200' 
+                            ? 'text-emerald-800 bg-emerald-100 border border-emerald-200' 
                             : 'text-gray-500 bg-gray-100 border border-gray-200 line-through'
                         }`}>
                           {item.isActive ? <Eye size={13} /> : <EyeOff size={13} />}
-                          {item.isActive ? 'Hiện' : 'Đang ẩn'}
+                          {item.isActive ? 'Đang kinh doanh' : 'Đang ẩn'}
                         </span>
                       </td>
                       <td className="p-3 text-center">
@@ -424,12 +376,11 @@ const MenuItems: React.FC = () => {
         </>
       )}
 
-      {/* Form Dialog Modal */}
+      {/* Create / Edit Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedItem ? 'Sửa thông tin món ăn' : 'Thêm món ăn mới vào thực đơn'}
-        maxWidth="max-w-2xl"
+        title={selectedItem ? 'Chỉnh sửa món ăn chuỗi' : 'Thêm món ăn mới toàn chuỗi'}
       >
         <MenuItemForm
           initialData={selectedItem}
@@ -438,16 +389,15 @@ const MenuItems: React.FC = () => {
         />
       </Modal>
 
-      {/* Custom Confirm Modal */}
+      {/* Confirm Delete / Hide Modal */}
       <ConfirmModal
         isOpen={!!deleteItem}
-        onClose={() => setDeleteItem(null)}
+        title="Ẩn món ăn"
+        message={`Bạn có chắc chắn muốn ẩn món "${deleteItem?.name}" khỏi thực đơn toàn hệ thống không?`}
+        confirmLabel="Ẩn món"
+        cancelLabel="Hủy"
         onConfirm={handleConfirmDelete}
-        title="Xác nhận ẩn món ăn"
-        message={`Bạn có chắc chắn muốn ẩn món "${deleteItem?.name}" khỏi thực đơn?\n\nMón ăn này sẽ tạm thời không xuất hiện trên thực đơn dành cho khách hàng.`}
-        confirmText="Ẩn món ăn"
-        cancelText="Hủy"
-        type="danger"
+        onCancel={() => setDeleteItem(null)}
         isLoading={isDeleting}
       />
     </div>

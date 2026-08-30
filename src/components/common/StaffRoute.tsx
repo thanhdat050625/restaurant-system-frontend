@@ -2,11 +2,11 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
 
-interface AdminRouteProps {
+interface StaffRouteProps {
   children: React.ReactNode;
 }
 
-const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
+const StaffRoute: React.FC<StaffRouteProps> = ({ children }) => {
   const { isAuthenticated, isCheckingAuth, user } = useAuth();
 
   if (isCheckingAuth) {
@@ -17,22 +17,15 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     );
   }
 
-  // Nếu chưa đăng nhập -> login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // Nếu là STAFF truy cập nhầm /admin -> chuyển đúng về /staff
-  if (user?.role === 'STAFF') {
-    return <Navigate to="/staff" replace />;
-  }
-
-  // Nếu không phải ADMIN -> về trang chủ
-  if (user?.role !== 'ADMIN') {
+  if (user?.role !== 'STAFF' && user?.role !== 'ADMIN') {
     return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
 };
 
-export default AdminRoute;
+export default StaffRoute;

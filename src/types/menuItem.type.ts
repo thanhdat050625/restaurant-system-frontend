@@ -7,7 +7,6 @@ export interface MenuItem {
   price: number | string;
   originalPrice?: number | string | null;
   imageUrl?: string | null;
-  isAvailable: boolean;
   isFeatured: boolean;
   preparationTime?: number | null;
   isActive: boolean;
@@ -23,7 +22,6 @@ export interface CreateMenuItemInput {
   price: number;
   originalPrice?: number;
   imageUrl?: string;
-  isAvailable?: boolean;
   isFeatured?: boolean;
   preparationTime?: number;
   categoryId: string;
@@ -37,7 +35,18 @@ export interface QueryMenuItemsParams {
   limit?: number;
   categoryId?: string;
   search?: string;
-  isAvailable?: boolean;
   isFeatured?: boolean;
   includeInactive?: boolean;
+}
+
+export interface BranchMenuItem {
+  id: string;
+  branchId: string;
+  menuItemId: string;
+  isAvailable: boolean;
+  isActive: boolean;
+  priceOverride?: number | string | null;
+  menuItem?: MenuItem;
+  createdAt: string;
+  updatedAt: string;
 }
