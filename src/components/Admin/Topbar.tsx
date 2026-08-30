@@ -10,10 +10,16 @@ const Topbar: React.FC = () => {
         return 'Dashboard';
       case '/admin/branches':
         return 'Quản lý Chi nhánh';
+      case '/admin/staff':
+        return 'Quản lý Nhân viên';
       case '/admin/table-types':
         return 'Quản lý Loại bàn';
       case '/admin/tables':
         return 'Quản lý Bàn';
+      case '/admin/menu-categories':
+        return 'Quản lý Danh mục Món';
+      case '/admin/menu-items':
+        return 'Quản lý Món ăn';
       default:
         return 'Admin Portal';
     }

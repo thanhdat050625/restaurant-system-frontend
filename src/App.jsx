@@ -30,6 +30,7 @@ import AdminRoute from './components/common/AdminRoute';
 import AdminLayout from './layouts/admin/AdminLayout';
 import Dashboard from './pages/Admin/Dashboard/Dashboard';
 import Branches from './pages/Admin/Branches/Branches';
+import Staff from './pages/Admin/Staff/Staff';
 import TableTypes from './pages/Admin/TableTypes/TableTypes';
 import Tables from './pages/Admin/Tables/Tables';
 import MenuCategories from './pages/Admin/MenuCategories/MenuCategories';
@@ -83,6 +84,7 @@ const Layout = () => {
           <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="branches" element={<Branches />} />
+            <Route path="staff" element={<Staff />} />
             <Route path="table-types" element={<TableTypes />} />
             <Route path="tables" element={<Tables />} />
             <Route path="menu-categories" element={<MenuCategories />} />
