@@ -15,19 +15,25 @@ const Slide = ({ item, isActive, isPrev, onAddToCart, onOpenDetail, isAdding }) 
       <motion.div
         className="absolute inset-0 z-0"
         animate={{
-          scale: isActive ? 1.0 : 1.06,
-          filter: isActive ? 'brightness(0.9) blur(0px)' : 'brightness(0.5) blur(6px)',
+          scale: isActive ? 1.0 : 1.05,
+          filter: isActive ? 'brightness(0.95) blur(0px)' : 'brightness(0.4) blur(8px)',
         }}
-        transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       >
         <img
           src={item.image} alt={item.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center"
           loading="lazy"
         />
       </motion.div>
 
-      {/* Gradient */}
+      {/* Vignette Overlay (Darkens edges to hide blur/crop and focus on center) */}
+      <div 
+        className="absolute inset-0 z-[5] pointer-events-none" 
+        style={{ background: 'radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.6) 100%)' }} 
+      />
+
+      {/* Gradient for text readability */}
       <div
         className="absolute inset-0 z-10 pointer-events-none"
         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.0) 80%)' }}
@@ -35,7 +41,7 @@ const Slide = ({ item, isActive, isPrev, onAddToCart, onOpenDetail, isAdding }) 
 
       {/* Content — slides in from bottom when active */}
       <motion.div
-        className="relative z-20 w-full px-8 md:px-20 pb-20 md:pb-24 text-white"
+        className="relative z-20 w-full px-8 md:px-20 pb-16 md:pb-24 text-white"
         animate={{
           opacity: isActive ? 1 : 0,
           y: isActive ? 0 : 32,
@@ -117,22 +123,32 @@ const DetailPanel = ({ item, onClose, onAdd }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   return (
     <motion.div
-      className="absolute inset-y-0 right-0 z-40 w-full sm:w-[400px] flex flex-col overflow-y-auto scrollbar-hide border-l border-white/10"
-      style={{ background: 'rgba(10,6,3,0.92)', backdropFilter: 'blur(20px)' }}
+      className="fixed right-0 bottom-0 z-[200] w-full sm:w-[420px] flex flex-col overflow-y-auto scrollbar-hide border-l border-white/10"
+      style={{
+        top: '64px', // clear the app fixed header (~64px tall)
+        background: 'rgba(8,5,2,0.96)',
+        backdropFilter: 'blur(24px)',
+      }}
       initial={{ x: '100%' }}
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="relative h-60 shrink-0">
-        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,6,3,0.95), transparent 60%)' }} />
+      {/* Panel header bar with X button — always visible, never covered */}
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10 shrink-0 bg-black/30">
+        <span className="text-white/60 text-xs uppercase tracking-widest font-light">Chi tiết món</span>
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+          className="w-8 h-8 rounded-full bg-white/10 text-white/80 flex items-center justify-center hover:bg-white/25 hover:text-white transition-all"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
+      </div>
+
+      {/* Image */}
+      <div className="relative h-52 shrink-0">
+        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(8,5,2,0.9), transparent 55%)' }} />
         <div className="absolute bottom-4 left-5 right-5">
           <h3 className="text-xl font-black text-white leading-tight" style={{ fontFamily: 'Georgia, serif' }}>{item.name}</h3>
         </div>
@@ -227,7 +243,10 @@ const ParallaxMenu = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [activeIndex, goTo]);
 
-  // Wheel listener
+  // Auto-close detail panel when user scrolls to a different slide
+  useEffect(() => {
+    setDetailItem(null);
+  }, [activeIndex]);
   const containerRef = useRef(null);
   useEffect(() => {
     const el = containerRef.current;
@@ -266,6 +285,7 @@ const ParallaxMenu = () => {
             key={item.id}
             className="absolute inset-0"
             style={{ pointerEvents: offset === 0 ? 'auto' : 'none' }}
+            initial={{ y: `${offset * 100}%` }}
             animate={{ y: `${offset * 100}%` }}
             transition={slideTransition}
           >
@@ -293,13 +313,13 @@ const ParallaxMenu = () => {
         ))}
       </div>
 
-      {/* Up arrow */}
-      {activeIndex > 0 && (
+      {/* Scroll to Top Arrow */}
+      {activeIndex > 0 && !detailItem && (
         <button
-          onClick={() => goTo(activeIndex - 1)}
-          className="absolute top-5 left-1/2 -translate-x-1/2 z-30 w-10 h-10 rounded-full bg-white/8 backdrop-blur-sm text-white/60 flex items-center justify-center hover:bg-white/15 hover:text-white transition-all"
+          onClick={() => goTo(0)}
+          className="absolute bottom-8 right-20 z-30 w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary-dark hover:scale-110 shadow-lg shadow-primary/40 transition-all"
         >
-          <ChevronUp size={20} />
+          <ChevronUp size={22} />
         </button>
       )}
 
@@ -331,12 +351,25 @@ const ParallaxMenu = () => {
       {/* Detail panel */}
       <AnimatePresence>
         {detailItem && (
-          <DetailPanel
-            key="detail"
-            item={detailItem}
-            onClose={() => setDetailItem(null)}
-            onAdd={handleAddToCart}
-          />
+          <>
+            {/* Backdrop — click to close */}
+            <motion.div
+              key="backdrop"
+              className="fixed inset-0 z-[199] bg-black/40 backdrop-blur-[2px]"
+              style={{ top: '64px' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => setDetailItem(null)}
+            />
+            <DetailPanel
+              key="detail"
+              item={detailItem}
+              onClose={() => setDetailItem(null)}
+              onAdd={handleAddToCart}
+            />
+          </>
         )}
       </AnimatePresence>
     </div>
