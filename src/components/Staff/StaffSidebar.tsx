@@ -7,6 +7,7 @@ import {
   LogOut,
   ExternalLink,
   Building2,
+  Clock,
 } from 'lucide-react';
 
 const StaffSidebar: React.FC = () => {
@@ -44,6 +45,7 @@ const StaffSidebar: React.FC = () => {
 
   const navItems = [
     { name: 'Menu chi nhánh', path: '/staff/menu', icon: <BookOpenCheck size={18} /> },
+    { name: 'Giờ & Sức chứa', path: '/staff/operating-hours', icon: <Clock size={18} /> },
   ];
 
   const displayName = branchName || 'Đang tải cơ sở...';
@@ -56,13 +58,13 @@ const StaffSidebar: React.FC = () => {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm">
       {/* Brand Header - Matching Admin exactly */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
+      <div className="h-16 shrink-0 flex items-center px-6 border-b border-gray-200">
         <h1 className="text-xl font-bold text-primary">FoodHub Staff</h1>
       </div>
 
       {/* Navigation Menu */}
-      <div className="p-4 flex-1">
-        <div className="mb-6 px-2">
+      <div className="p-4 flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+        <div className="mb-4 px-2">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
             Menu Quản Lý
           </p>
@@ -89,7 +91,7 @@ const StaffSidebar: React.FC = () => {
       </div>
 
       {/* Staff Profile & Logout */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 shrink-0">
         <div className="px-3 py-2.5 mb-2 bg-gray-50/80 rounded-xl border border-gray-100 space-y-2">
           <div className="flex items-center gap-3">
             <img

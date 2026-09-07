@@ -24,6 +24,7 @@ import Contact from './pages/Contact/Contact';
 // Staff Imports
 import StaffRoute from './components/common/StaffRoute';
 import StaffLayout from './layouts/staff/StaffLayout';
+import StaffOperatingHours from './pages/Staff/StaffOperatingHours';
 
 // Admin Imports
 import AdminRoute from './components/common/AdminRoute';
@@ -36,6 +37,7 @@ import Tables from './pages/Admin/Tables/Tables';
 import MenuCategories from './pages/Admin/MenuCategories/MenuCategories';
 import MenuItems from './pages/Admin/MenuItems/MenuItems';
 import BranchMenu from './pages/Admin/BranchMenu/BranchMenu';
+import BranchOperatingHours from './pages/Admin/BranchOperatingHours/BranchOperatingHours';
 
 const GuestRoute = ({ children }) => {
   const { user, isAuthenticated, isCheckingAuth } = useAuth();
@@ -89,6 +91,7 @@ const Layout = () => {
           >
             <Route index element={<Navigate to="/staff/menu" replace />} />
             <Route path="menu" element={<BranchMenu />} />
+            <Route path="operating-hours" element={<StaffOperatingHours />} />
           </Route>
 
           {/* Admin Routes */}
@@ -101,6 +104,7 @@ const Layout = () => {
             <Route path="menu-categories" element={<MenuCategories />} />
             <Route path="menu-items" element={<MenuItems />} />
             <Route path="branch-menu" element={<BranchMenu />} />
+            <Route path="operating-hours" element={<BranchOperatingHours />} />
           </Route>
         </Routes>
       </AnimatePresence>
