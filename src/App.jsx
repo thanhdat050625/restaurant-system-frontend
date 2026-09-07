@@ -22,6 +22,7 @@ import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
 
 // Staff Imports
+import ProtectedRoute from './components/common/ProtectedRoute';
 import StaffRoute from './components/common/StaffRoute';
 import StaffLayout from './layouts/staff/StaffLayout';
 import StaffOperatingHours from './pages/Staff/StaffOperatingHours';
@@ -75,7 +76,7 @@ const Layout = () => {
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
           <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/order/:id" element={<OrderTracking />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
