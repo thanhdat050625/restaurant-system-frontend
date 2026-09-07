@@ -8,6 +8,9 @@ import CategoryCard from '../../components/common/CategoryCard';
 import Modal from '../../components/ui/Modal';
 import { menuItems } from '../../assets/data/menuData';
 import { categories } from '../../assets/data/categoryData';
+import FlipbookMenu from './components/FlipbookMenu';
+import ParallaxMenu from './components/ParallaxMenu';
+import BentoMenu from './components/BentoMenu';
 import { useCart } from '../../features/menu/CartContext';
 import { formatPrice } from '../../utils/helpers';
 
@@ -18,6 +21,7 @@ const Menu = () => {
   const [sortBy, setSortBy] = useState('popular');
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [viewMode, setViewMode] = useState('classic'); // 'classic', 'flipbook', 'parallax', 'bento'
   const { addItem } = useCart();
 
   const filteredItems = useMemo(() => {
@@ -118,10 +122,11 @@ const Menu = () => {
       </section>
 
       {/* Categories + Menu */}
-      <section className="py-12 bg-light dark:bg-dark">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Category Filters */}
-          <div className="flex gap-3 overflow-x-auto py-4 px-2 -mx-2 mb-8 scrollbar-hide">
+      {viewMode === 'classic' && (
+        <section className="py-12 bg-light dark:bg-dark">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Category Filters */}
+            <div className="flex gap-3 overflow-x-auto py-4 px-2 -mx-2 mb-8 scrollbar-hide">
             <CategoryCard
               category={{ icon: '🍽️', name: 'Tất cả', itemCount: menuItems.length }}
               isActive={activeCategory === 'all'}
@@ -159,32 +164,79 @@ const Menu = () => {
 
           {/* Menu Grid */}
           <AnimatePresence mode="wait">
-            {filteredItems.length > 0 ? (
-              <motion.div
-                key={activeCategory + sortBy}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-              >
-                {filteredItems.map(item => (
-                  <MenuCard key={item.id} item={item} onQuickView={setSelectedItem} />
-                ))}
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20"
-              >
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-semibold text-text-primary dark:text-white mb-2">Không tìm thấy món ăn</h3>
-                <p className="text-text-secondary dark:text-text-light">Thử tìm kiếm với từ khóa khác</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              {filteredItems.length > 0 ? (
+                <motion.div
+                  key={activeCategory + sortBy}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                >
+                  {filteredItems.map(item => (
+                    <MenuCard key={item.id} item={item} onQuickView={setSelectedItem} />
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-20"
+                >
+                  <div className="text-6xl mb-4">🔍</div>
+                  <h3 className="text-xl font-semibold text-text-primary dark:text-white mb-2">Không tìm thấy món ăn</h3>
+                  <p className="text-text-secondary dark:text-text-light">Thử tìm kiếm với từ khóa khác</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </section>
+      )}
+
+      {viewMode === 'flipbook' && (
+        <section className="bg-light dark:bg-dark">
+          <FlipbookMenu />
+        </section>
+      )}
+
+      {viewMode === 'bento' && (
+        <section className="bg-light dark:bg-dark">
+          <BentoMenu />
+        </section>
+      )}
+
+      {viewMode === 'parallax' && (
+        <div className="absolute inset-0 z-40 bg-black">
+          <ParallaxMenu />
         </div>
-      </section>
+      )}
+
+      {/* View Mode Switcher */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 bg-white dark:bg-dark-surface p-2 rounded-xl shadow-2xl border border-light-border dark:border-dark-border">
+        <button 
+          onClick={() => setViewMode('classic')}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === 'classic' ? 'bg-primary text-white' : 'hover:bg-primary/10 text-text-primary dark:text-white'}`}
+        >
+          Classic
+        </button>
+        <button 
+          onClick={() => setViewMode('flipbook')}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === 'flipbook' ? 'bg-primary text-white' : 'hover:bg-primary/10 text-text-primary dark:text-white'}`}
+        >
+          Flipbook
+        </button>
+        <button 
+          onClick={() => setViewMode('parallax')}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === 'parallax' ? 'bg-primary text-white' : 'hover:bg-primary/10 text-text-primary dark:text-white'}`}
+        >
+          Parallax
+        </button>
+        <button 
+          onClick={() => setViewMode('bento')}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${viewMode === 'bento' ? 'bg-primary text-white' : 'hover:bg-primary/10 text-text-primary dark:text-white'}`}
+        >
+          Bento Grid
+        </button>
+      </div>
 
       {/* Quick View Modal */}
       <Modal isOpen={!!selectedItem} onClose={() => { setSelectedItem(null); setSelectedOption(null); }} title={selectedItem?.name} size="md">
