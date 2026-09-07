@@ -38,8 +38,10 @@ const Profile = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('info');
 
-  const avatarSrc = user?.avatarUrl ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || user?.username || 'User')}&background=FF6B35&color=fff&bold=true&size=128`;
+  const avatarName = user?.fullName ? user.fullName : (user?.username ? user.username : 'User');
+  const avatarSrc = user?.avatarUrl
+    ? user.avatarUrl
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=FF6B35&color=fff&bold=true&size=128`;
 
   const handleLogout = () => {
     logout();
@@ -55,7 +57,7 @@ const Profile = () => {
       <div className="min-w-0">
         <p className="text-xs font-medium text-text-light uppercase tracking-wide mb-0.5">{label}</p>
         <p className={`text-sm font-semibold text-text-primary dark:text-white break-words ${mono ? 'font-mono' : ''}`}>
-          {value || <span className="text-text-light font-normal italic">Chưa cập nhật</span>}
+          {value ? value : <span className="text-text-light font-normal italic">Chưa cập nhật</span>}
         </p>
       </div>
     </div>
@@ -93,7 +95,7 @@ const Profile = () => {
             label="Vai trò"
             value={
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                {user?.role || 'USER'}
+                {user?.role ? user.role : 'USER'}
               </span>
             }
           />
@@ -174,9 +176,11 @@ const Profile = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-heading)] truncate">
-                  {user?.fullName || 'Khách'}
+                  {user?.fullName ? user.fullName : user?.email}
                 </h1>
-                <p className="text-white/70 text-sm mt-0.5">@{user?.username || '---'}</p>
+                {user?.username ? (
+                  <p className="text-white/70 text-sm mt-0.5">@{user.username}</p>
+                ) : null}
                 <p className="text-white/60 text-xs mt-1">{user?.email}</p>
               </div>
               <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl text-white text-sm font-medium">

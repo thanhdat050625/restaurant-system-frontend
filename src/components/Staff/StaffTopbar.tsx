@@ -8,9 +8,8 @@ const StaffTopbar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
 
-  const [branchName, setBranchName] = useState<string>(
-    (user as any)?.branch?.name || (user as any)?.branchName || ''
-  );
+  const initialBranchName = (user as any)?.branch?.name ? (user as any).branch.name : ((user as any)?.branchName ? (user as any).branchName : '');
+  const [branchName, setBranchName] = useState<string>(initialBranchName);
 
   useEffect(() => {
     if ((user as any)?.branch?.name) {
@@ -23,7 +22,7 @@ const StaffTopbar: React.FC = () => {
       branchService
         .getBranchById(bId)
         .then((res: any) => {
-          const b = res?.data || res;
+          const b = (res as any)?.data !== undefined ? (res as any).data : res;
           if (b?.name) {
             setBranchName(b.name);
           }
@@ -44,7 +43,7 @@ const StaffTopbar: React.FC = () => {
     }
   };
 
-  const displayName = branchName || 'Đang tải cơ sở...';
+  const displayName = branchName ? branchName : 'Đang tải cơ sở...';
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">

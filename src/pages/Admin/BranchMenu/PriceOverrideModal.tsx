@@ -9,10 +9,6 @@ import {
   Building2,
   TrendingUp,
   TrendingDown,
-  Store,
-  Layers,
-  Percent,
-  Info,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -35,7 +31,7 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
   const [customPrice, setCustomPrice] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  const chainPrice = Number(item?.menuItem?.price || 0);
+  const chainPrice = item?.menuItem?.price ? Number(item.menuItem.price) : 0;
 
   // Prevent background scroll
   useEffect(() => {
@@ -72,7 +68,7 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
 
   if (!item) return null;
 
-  const currentEnteredPrice = Number(customPrice) || 0;
+  const currentEnteredPrice = customPrice ? Number(customPrice) : 0;
   const priceDiff = currentEnteredPrice - chainPrice;
   const percentDiff = chainPrice > 0 ? ((priceDiff / chainPrice) * 100).toFixed(1) : '0';
 
@@ -110,7 +106,8 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
       );
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Không thể cập nhật giá món');
+      const resMsg = error.response?.data?.message;
+      toast.error(resMsg ? resMsg : 'Không thể cập nhật giá món');
     } finally {
       setLoading(false);
     }
@@ -171,14 +168,14 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
               {/* Card thông tin món ăn */}
               <div className="flex items-center gap-3.5 p-3.5 bg-gray-50/80 rounded-xl border border-gray-200/80">
                 <img
-                  src={item.menuItem?.imageUrl || 'https://placehold.co/100x100?text=Food'}
+                  src={item.menuItem?.imageUrl ? item.menuItem.imageUrl : 'https://placehold.co/100x100?text=Food'}
                   alt={item.menuItem?.name}
                   className="w-16 h-16 rounded-xl object-cover ring-2 ring-white shadow-xs shrink-0"
                 />
                 <div className="min-w-0 flex-1 font-sans">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white text-orange-600 border border-orange-200/60 uppercase tracking-wide">
-                      {item.menuItem?.category?.name || 'Món Ăn'}
+                      {item.menuItem?.category?.name ? item.menuItem.category.name : 'Món Ăn'}
                     </span>
                     <span className="text-[11px] font-semibold text-gray-600 flex items-center gap-1">
                       <Building2 size={13} className="text-gray-400" />

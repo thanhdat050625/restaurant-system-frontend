@@ -60,7 +60,7 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, onCa
     try {
       setLoadingCategories(true);
       const res = await menuCategoryService.getAll(false);
-      const list = Array.isArray(res) ? res : (res as any)?.data || [];
+      const list = Array.isArray(res) ? res : (Array.isArray((res as any)?.data) ? (res as any).data : []);
       setCategories(list);
     } catch (error) {
       console.error('Error fetching categories for dropdown:', error);
@@ -75,18 +75,18 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, onCa
       reset({
         name: initialData.name,
         categoryId: initialData.categoryId,
-        price: Number(initialData.price) || 0,
+        price: Number(initialData.price),
         originalPrice: initialData.originalPrice ? Number(initialData.originalPrice) : null,
-        description: initialData.description || '',
-        imageUrl: initialData.imageUrl || '',
-        preparationTime: initialData.preparationTime ?? 15,
+        description: initialData.description ? initialData.description : '',
+        imageUrl: initialData.imageUrl ? initialData.imageUrl : '',
+        preparationTime: initialData.preparationTime !== undefined && initialData.preparationTime !== null ? initialData.preparationTime : 15,
         isFeatured: initialData.isFeatured,
         isActive: initialData.isActive,
       });
     } else {
       reset({
         name: '',
-        categoryId: categories[0]?.id || '',
+        categoryId: categories.length > 0 ? categories[0].id : '',
         price: 0,
         originalPrice: null,
         description: '',

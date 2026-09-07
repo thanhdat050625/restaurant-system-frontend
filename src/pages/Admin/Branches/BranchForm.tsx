@@ -57,7 +57,7 @@ const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, onCancel
 
   useEffect(() => {
     branchService.getProvinces().then(res => {
-      const data = (res as any).data || res;
+      const data = (res as any)?.data !== undefined ? (res as any).data : res;
       setProvinces(Array.isArray(data) ? data : []);
     }).catch(console.error);
   }, []);
@@ -65,7 +65,7 @@ const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, onCancel
   useEffect(() => {
     if (selectedProvinceCode) {
       branchService.getWardsByProvince(selectedProvinceCode).then(res => {
-        const data = (res as any).data || res;
+        const data = (res as any)?.data !== undefined ? (res as any).data : res;
         setWards(Array.isArray(data) ? data : []);
       }).catch(console.error);
     } else {
@@ -79,9 +79,9 @@ const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, onCancel
       reset({
         name: initialData.name,
         address: {
-          provinceCode: initialData.provinceCode || '',
-          wardCode: initialData.wardCode || '',
-          detail: initialData.streetAddress || '',
+          provinceCode: initialData.provinceCode ? initialData.provinceCode : '',
+          wardCode: initialData.wardCode ? initialData.wardCode : '',
+          detail: initialData.streetAddress ? initialData.streetAddress : '',
         },
         phone: initialData.phone,
         latitude: initialData.latitude,

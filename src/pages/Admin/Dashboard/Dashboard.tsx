@@ -56,11 +56,11 @@ const Dashboard: React.FC = () => {
         menuItemService.getAll({ includeInactive: true, limit: 1000 }).catch(() => ({ data: [] }))
       ]);
 
-      const branchList = Array.isArray(branchesRes) ? branchesRes : (branchesRes as any)?.data || [];
-      const tableList = Array.isArray(tablesRes) ? tablesRes : (tablesRes as any)?.data || [];
-      const tableTypeList = Array.isArray(tableTypesRes) ? tableTypesRes : (tableTypesRes as any)?.data || [];
-      const categoryList = Array.isArray(categoriesRes) ? categoriesRes : (categoriesRes as any)?.data || [];
-      const menuItemList = Array.isArray(menuItemsRes) ? menuItemsRes : (menuItemsRes as any)?.data || [];
+      const branchList = Array.isArray(branchesRes) ? branchesRes : (Array.isArray((branchesRes as any)?.data) ? (branchesRes as any).data : []);
+      const tableList = Array.isArray(tablesRes) ? tablesRes : (Array.isArray((tablesRes as any)?.data) ? (tablesRes as any).data : []);
+      const tableTypeList = Array.isArray(tableTypesRes) ? tableTypesRes : (Array.isArray((tableTypesRes as any)?.data) ? (tableTypesRes as any).data : []);
+      const categoryList = Array.isArray(categoriesRes) ? categoriesRes : (Array.isArray((categoriesRes as any)?.data) ? (categoriesRes as any).data : []);
+      const menuItemList = Array.isArray(menuItemsRes) ? menuItemsRes : (Array.isArray((menuItemsRes as any)?.data) ? (menuItemsRes as any).data : []);
 
       setBranches(branchList);
       setTables(tableList);
@@ -360,7 +360,7 @@ const Dashboard: React.FC = () => {
                     <div className="min-w-0">
                       <h4 className="text-xs font-bold text-gray-900 truncate">{item.name}</h4>
                       <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
-                        <Clock size={11} /> {item.preparationTime || 15}p nấu
+                        <Clock size={11} /> {item.preparationTime ? item.preparationTime : 15}p nấu
                       </p>
                     </div>
                   </div>

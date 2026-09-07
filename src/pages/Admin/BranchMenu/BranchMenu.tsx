@@ -17,7 +17,6 @@ import {
   Building2,
   Search,
   Filter,
-  RefreshCw,
   CheckCircle2,
   AlertTriangle,
   Edit3,
@@ -83,14 +82,25 @@ const BranchMenu: React.FC = () => {
         menuCategoryService.getAll({ includeInactive: true, limit: 100 }),
       ]);
 
-      const branchList = Array.isArray(branchesRes)
-        ? branchesRes
-        : (branchesRes as any)?.data?.items || (branchesRes as any)?.data || [];
-      const catList = Array.isArray(categoriesRes)
-        ? categoriesRes
-        : (categoriesRes as any)?.data?.items || (categoriesRes as any)?.data || [];
+      let branchList: IBranch[] = [];
+      if (Array.isArray(branchesRes)) {
+        branchList = branchesRes;
+      } else if (Array.isArray((branchesRes as any)?.data?.items)) {
+        branchList = (branchesRes as any).data.items;
+      } else if (Array.isArray((branchesRes as any)?.data)) {
+        branchList = (branchesRes as any).data;
+      }
 
-      const staffBranchId = (user as any)?.branchId || (user as any)?.branch?.id;
+      let catList: any[] = [];
+      if (Array.isArray(categoriesRes)) {
+        catList = categoriesRes;
+      } else if (Array.isArray((categoriesRes as any)?.data?.items)) {
+        catList = (categoriesRes as any).data.items;
+      } else if (Array.isArray((categoriesRes as any)?.data)) {
+        catList = (categoriesRes as any).data;
+      }
+
+      const staffBranchId = user?.branchId ? user.branchId : (user?.branch?.id ? user.branch.id : undefined);
       if (isStaff && staffBranchId) {
         const myBranch = branchList.filter((b) => b.id === staffBranchId);
         setBranches(
@@ -126,7 +136,8 @@ const BranchMenu: React.FC = () => {
       };
 
       const res = await branchMenuService.getBranchMenu(selectedBranchId, params);
-      const rawData = (res as any)?.data ?? res;
+      const resData = (res as any)?.data;
+      const rawData = resData !== undefined ? resData : res;
       let itemList: IBranchMenuItem[] = [];
       let statsData: IBranchMenuStats | null = null;
       let branchData: IBranchInfo | null = null;
@@ -150,7 +161,8 @@ const BranchMenu: React.FC = () => {
       if (statsData) {
         setStats(statsData);
       } else {
-        const total = (res as any)?.meta?.totalItems ?? itemList.length;
+        const metaTotal = (res as any)?.meta?.totalItems;
+        const total = metaTotal !== undefined ? metaTotal : itemList.length;
         const inStock = itemList.filter((i) => i.isAvailable && i.isActive).length;
         const outOfStock = itemList.filter((i) => !i.isAvailable && i.isActive).length;
         const inactive = itemList.filter((i) => !i.isActive).length;
@@ -166,13 +178,16 @@ const BranchMenu: React.FC = () => {
         setCurrentBranchInfo(branchData);
       }
 
-      const paginationMeta = (res as any)?.meta ?? rawData?.meta ?? null;
+      const resMeta = (res as any)?.meta;
+      const rawMeta = rawData?.meta;
+      const paginationMeta = resMeta !== undefined ? resMeta : (rawMeta !== undefined ? rawMeta : null);
       if (paginationMeta) {
         setMeta(paginationMeta);
       }
     } catch (error: any) {
       console.error('Error fetching branch menu:', error);
-      toast.error(error.response?.data?.message || 'Lỗi khi tải thực đơn chi nhánh');
+      const resMsg = error.response?.data?.message;
+      toast.error(resMsg ? resMsg : 'Lỗi khi tải thực đơn chi nhánh');
     } finally {
       if (showSpinner) setLoading(false);
     }
@@ -204,7 +219,8 @@ const BranchMenu: React.FC = () => {
           i.menuItemId === item.menuItemId ? { ...i, isAvailable: item.isAvailable } : i
         )
       );
-      toast.error(error.response?.data?.message || 'Không thể cập nhật tình trạng món');
+      const resMsg = error.response?.data?.message;
+      toast.error(resMsg ? resMsg : 'Không thể cập nhật tình trạng món');
     }
   };
 
@@ -234,7 +250,8 @@ const BranchMenu: React.FC = () => {
           i.menuItemId === item.menuItemId ? { ...i, isActive: item.isActive } : i
         )
       );
-      toast.error(error.response?.data?.message || 'Không thể thay đổi trạng thái món');
+      const resMsg = error.response?.data?.message;
+      toast.error(resMsg ? resMsg : 'Không thể thay đổi trạng thái món');
     }
   };
 
@@ -250,7 +267,8 @@ const BranchMenu: React.FC = () => {
     try {
       setSyncing(true);
       const res = await branchMenuService.syncBranchMenu(selectedBranchId);
-      const count = (res as any)?.data?.syncedCount ?? 0;
+      const syncedCount = (res as any)?.data?.syncedCount;
+      const count = typeof syncedCount === 'number' ? syncedCount : 0;
       toast.success(
         count > 0
           ? `Đã đồng bộ bổ sung ${count} món mới từ chuỗi vào chi nhánh!`
@@ -258,7 +276,8 @@ const BranchMenu: React.FC = () => {
       );
       fetchBranchMenu(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Lỗi khi đồng bộ thực đơn');
+      const resMsg = error.response?.data?.message;
+      toast.error(resMsg ? resMsg : 'Lỗi khi đồng bộ thực đơn');
     } finally {
       setSyncing(false);
     }
@@ -293,7 +312,8 @@ const BranchMenu: React.FC = () => {
       setSelectedItemIds([]);
       fetchBranchMenu(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật hàng loạt');
+      const resMsg = error.response?.data?.message;
+      toast.error(resMsg ? resMsg : 'Lỗi khi cập nhật hàng loạt');
     } finally {
       setIsBulkUpdating(false);
     }
@@ -496,7 +516,7 @@ const BranchMenu: React.FC = () => {
                 ) : (
                   items.map((item) => {
                     const isSelected = selectedItemIds.includes(item.menuItemId);
-                    const defaultPrice = Number(item.menuItem?.price || 0);
+                    const defaultPrice = item.menuItem?.price ? Number(item.menuItem.price) : 0;
                     const hasPriceOverride =
                       item.priceOverride !== null && item.priceOverride !== undefined;
                     const currentPrice = hasPriceOverride
@@ -560,7 +580,7 @@ const BranchMenu: React.FC = () => {
                         {/* Danh mục */}
                         <td className="p-3">
                           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                            {item.menuItem?.category?.name || 'Chưa phân loại'}
+                            {item.menuItem?.category?.name ? item.menuItem.category.name : 'Chưa phân loại'}
                           </span>
                         </td>
 

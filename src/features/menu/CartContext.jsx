@@ -10,10 +10,12 @@ const cartReducer = (state, action) => {
       );
       if (existingIndex >= 0) {
         const newItems = [...state.items];
-        newItems[existingIndex].quantity += action.payload.quantity || 1;
+        const addedQty = typeof action.payload.quantity === 'number' ? action.payload.quantity : 1;
+        newItems[existingIndex].quantity += addedQty;
         return { ...state, items: newItems };
       }
-      return { ...state, items: [...state.items, { ...action.payload, quantity: action.payload.quantity || 1 }] };
+      const initialQty = typeof action.payload.quantity === 'number' ? action.payload.quantity : 1;
+      return { ...state, items: [...state.items, { ...action.payload, quantity: initialQty }] };
     }
     case 'REMOVE_ITEM':
       return { ...state, items: state.items.filter((_, index) => index !== action.payload) };
@@ -46,7 +48,7 @@ export const CartProvider = ({ children }) => {
 
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = state.items.reduce((sum, item) => {
-    const optionPrice = item.selectedOptionPrice || 0;
+    const optionPrice = item.selectedOptionPrice ? item.selectedOptionPrice : 0;
     return sum + (item.price + optionPrice) * item.quantity;
   }, 0);
   const deliveryFee = state.deliveryType === 'delivery' ? (subtotal >= 200000 ? 0 : 25000) : 0;
