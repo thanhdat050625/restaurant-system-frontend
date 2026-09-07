@@ -42,8 +42,8 @@ const MenuCategoryForm: React.FC<MenuCategoryFormProps> = ({ initialData, onSubm
     if (initialData) {
       reset({
         name: initialData.name,
-        description: initialData.description || '',
-        imageUrl: initialData.imageUrl || '',
+        description: initialData.description ? initialData.description : '',
+        imageUrl: initialData.imageUrl ? initialData.imageUrl : '',
         isActive: initialData.isActive,
         order: initialData.order,
       });

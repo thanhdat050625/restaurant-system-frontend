@@ -14,9 +14,8 @@ const StaffSidebar: React.FC = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
-  const [branchName, setBranchName] = useState<string>(
-    (user as any)?.branch?.name || (user as any)?.branchName || ''
-  );
+  const initialBranchName = (user as any)?.branch?.name ? (user as any).branch.name : ((user as any)?.branchName ? (user as any).branchName : '');
+  const [branchName, setBranchName] = useState<string>(initialBranchName);
 
   useEffect(() => {
     if ((user as any)?.branch?.name) {
@@ -29,7 +28,7 @@ const StaffSidebar: React.FC = () => {
       branchService
         .getBranchById(bId)
         .then((res: any) => {
-          const b = res?.data || res;
+          const b = (res as any)?.data !== undefined ? (res as any).data : res;
           if (b?.name) {
             setBranchName(b.name);
           }
@@ -48,12 +47,13 @@ const StaffSidebar: React.FC = () => {
     { name: 'Giờ & Sức chứa', path: '/staff/operating-hours', icon: <Clock size={18} /> },
   ];
 
-  const displayName = branchName || 'Đang tải cơ sở...';
+  const displayName = branchName ? branchName : 'Đang tải cơ sở...';
 
-  const avatarSrc =
-    (user as any)?.avatar ||
-    (user as any)?.avatarUrl ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Staff')}&background=3B82F6&color=fff&bold=true`;
+  const staffName = user?.fullName ? user.fullName : 'Staff';
+  const rawAvatar = (user as any)?.avatar ? (user as any).avatar : (user as any)?.avatarUrl;
+  const avatarSrc = rawAvatar
+    ? rawAvatar
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(staffName)}&background=3B82F6&color=fff&bold=true`;
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm">
@@ -96,15 +96,15 @@ const StaffSidebar: React.FC = () => {
           <div className="flex items-center gap-3">
             <img
               src={avatarSrc}
-              alt={user?.fullName || 'Staff'}
+              alt={user?.fullName ? user.fullName : 'Staff'}
               className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/40 shadow-sm shrink-0"
             />
             <div className="flex-1 overflow-hidden">
               <p className="text-sm font-semibold text-gray-900 truncate">
-                {user?.fullName || 'Nhân viên'}
+                {user?.fullName ? user.fullName : 'Nhân viên'}
               </p>
               <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                {user?.role || 'STAFF'}
+                {user?.role ? user.role : 'STAFF'}
               </span>
             </div>
           </div>

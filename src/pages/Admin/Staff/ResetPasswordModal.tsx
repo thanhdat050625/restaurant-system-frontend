@@ -42,7 +42,8 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       setConfirmPassword('');
       onClose();
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Không thể đặt lại mật khẩu';
+      const resMsg = error?.response?.data?.message;
+      const msg = resMsg ? resMsg : 'Không thể đặt lại mật khẩu';
       toast.error(msg);
     } finally {
       setLoading(false);

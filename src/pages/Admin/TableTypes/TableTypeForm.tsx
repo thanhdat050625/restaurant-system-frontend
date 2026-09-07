@@ -39,7 +39,7 @@ const TableTypeForm: React.FC<TableTypeFormProps> = ({ initialData, onSubmit, on
       reset({
         name: initialData.name,
         capacity: initialData.capacity,
-        description: initialData.description || '',
+        description: initialData.description ? initialData.description : '',
       });
     } else {
       reset({

@@ -142,7 +142,7 @@ const Checkout = () => {
                         <p className="text-sm font-medium text-text-primary dark:text-white line-clamp-1">{item.name}</p>
                         <p className="text-xs text-text-light">x{item.quantity}</p>
                       </div>
-                      <p className="text-sm font-medium text-text-primary dark:text-white shrink-0">{formatPrice((item.price + (item.selectedOptionPrice || 0)) * item.quantity)}</p>
+                      <p className="text-sm font-medium text-text-primary dark:text-white shrink-0">{formatPrice((item.price + (item.selectedOptionPrice ? item.selectedOptionPrice : 0)) * item.quantity)}</p>
                     </div>
                   ))}
                 </div>

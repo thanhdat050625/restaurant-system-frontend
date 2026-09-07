@@ -64,7 +64,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     },
   };
 
-  const currentType = typeConfig[type] || typeConfig.danger;
+  const currentType = typeConfig[type] ? typeConfig[type] : typeConfig.danger;
 
   return (
     <AnimatePresence>

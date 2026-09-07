@@ -45,8 +45,8 @@ const BulkTableForm: React.FC<BulkTableFormProps> = ({
   } = useForm<BulkTableFormData>({
     resolver: zodResolver(bulkTableSchema),
     defaultValues: {
-      branchId: selectedBranchId || branches[0]?.id || '',
-      tableTypeId: tableTypes[0]?.id || '',
+      branchId: selectedBranchId ? selectedBranchId : (branches.length > 0 ? branches[0].id : ''),
+      tableTypeId: tableTypes.length > 0 ? tableTypes[0].id : '',
       quantity: 1,
       startNumber: 1,
       prefix: 'T',
@@ -58,8 +58,8 @@ const BulkTableForm: React.FC<BulkTableFormProps> = ({
 
   useEffect(() => {
     reset({
-      branchId: selectedBranchId || branches[0]?.id || '',
-      tableTypeId: tableTypes[0]?.id || '',
+      branchId: selectedBranchId ? selectedBranchId : (branches.length > 0 ? branches[0].id : ''),
+      tableTypeId: tableTypes.length > 0 ? tableTypes[0].id : '',
       quantity: 1,
       startNumber: 1,
       prefix: 'T',

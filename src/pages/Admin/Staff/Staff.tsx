@@ -54,7 +54,7 @@ const Staff: React.FC = () => {
   const fetchBranches = async () => {
     try {
       const res = await branchService.getBranches({ limit: 100 });
-      const branchList = Array.isArray(res) ? res : (res as any)?.data || [];
+      const branchList = Array.isArray(res) ? res : (Array.isArray((res as any)?.data) ? (res as any).data : []);
       setBranches(branchList);
     } catch (error) {
       console.error('Error fetching branches:', error);
@@ -74,7 +74,7 @@ const Staff: React.FC = () => {
       };
 
       const res = await staffService.getStaffs(params);
-      const data = res.data || (res as any);
+      const data = res.data ? res.data : (res as any);
 
       if (data && data.items) {
         setStaffs(data.items);
@@ -127,7 +127,8 @@ const Staff: React.FC = () => {
       setStaffToToggle(null);
       fetchStaffs(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || `Không thể ${actionName} tài khoản`);
+      const resMsg = error.response?.data?.message;
+      toast.error(resMsg ? resMsg : `Không thể ${actionName} tài khoản`);
     } finally {
       setIsToggling(false);
     }
@@ -239,9 +240,9 @@ const Staff: React.FC = () => {
                   </tr>
                 ) : (
                   staffs.map((staff) => {
-                    const avatarSrc =
-                      staff.avatar ||
-                      `https://ui-avatars.com/api/?name=${encodeURIComponent(staff.fullName)}&background=3B82F6&color=fff&bold=true`;
+                    const avatarSrc = staff.avatar
+                      ? staff.avatar
+                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(staff.fullName)}&background=3B82F6&color=fff&bold=true`;
 
                     return (
                       <tr key={staff.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">

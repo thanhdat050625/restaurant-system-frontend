@@ -34,9 +34,9 @@ const Login = () => {
         }
       }
     } catch (error) {
+      const resMsg = error?.response?.data?.message;
       setError(
-        error?.response?.data?.message ||
-        'Email hoặc mật khẩu không chính xác.',
+        resMsg ? resMsg : 'Email hoặc mật khẩu không chính xác.'
       );
     }
   };

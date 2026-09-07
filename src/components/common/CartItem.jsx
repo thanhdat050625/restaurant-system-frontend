@@ -3,7 +3,8 @@ import { Minus, Plus, Trash2 } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 
 const CartItem = ({ item, index, onUpdateQuantity, onRemove }) => {
-  const itemTotal = (item.price + (item.selectedOptionPrice || 0)) * item.quantity;
+  const optionPrice = item.selectedOptionPrice ? item.selectedOptionPrice : 0;
+  const itemTotal = (item.price + optionPrice) * item.quantity;
 
   return (
     <motion.div
@@ -31,7 +32,7 @@ const CartItem = ({ item, index, onUpdateQuantity, onRemove }) => {
           </p>
         )}
         <p className="text-primary font-bold mt-1">
-          {formatPrice(item.price + (item.selectedOptionPrice || 0))}
+          {formatPrice(item.price + optionPrice)}
         </p>
 
         {/* Controls */}

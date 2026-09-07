@@ -49,7 +49,7 @@ const Modal: React.FC<ModalProps> = ({
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
-  const effectiveMaxWidth = maxWidth || sizeClasses[size] || 'max-w-lg';
+  const effectiveMaxWidth = maxWidth ? maxWidth : (sizeClasses[size] ? sizeClasses[size] : 'max-w-lg');
 
   return (
     <AnimatePresence>

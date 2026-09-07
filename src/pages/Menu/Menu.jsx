@@ -14,7 +14,8 @@ import { formatPrice } from '../../utils/helpers';
 const Menu = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
+  const categoryParam = searchParams.get('category');
+  const [activeCategory, setActiveCategory] = useState(categoryParam ? categoryParam : 'all');
   const [sortBy, setSortBy] = useState('popular');
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -49,7 +50,7 @@ const Menu = () => {
   }, [activeCategory, search, sortBy]);
 
   const handleCategoryClick = (cat) => {
-    const slug = cat?.slug || 'all';
+    const slug = cat?.slug ? cat.slug : 'all';
     setActiveCategory(slug);
     if (slug === 'all') {
       searchParams.delete('category');
@@ -62,7 +63,11 @@ const Menu = () => {
   const handleAddFromModal = () => {
     if (selectedItem) {
       const opt = selectedOption !== null ? selectedItem.options[selectedOption] : null;
-      addItem({ ...selectedItem, selectedOption: opt?.name || null, selectedOptionPrice: opt?.priceAdd || 0 });
+      addItem({
+        ...selectedItem,
+        selectedOption: opt ? opt.name : null,
+        selectedOptionPrice: opt ? opt.priceAdd : 0,
+      });
       setSelectedItem(null);
       setSelectedOption(null);
     }

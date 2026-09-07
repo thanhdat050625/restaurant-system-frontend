@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { IBranch } from '../../../types/admin/branch.type';
 import {
   IDailyOperatingHour,
-  IBranchOperatingHours,
   IBranchCapacityStats,
 } from '../../../types/admin/branch-operating-hours.type';
 import { branchService } from '../../../services/admin/branchService';
@@ -12,10 +11,8 @@ import {
   Users,
   LayoutGrid,
   Save,
-  CheckCircle2,
   Sparkles,
   Building2,
-  AlertCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -74,13 +71,13 @@ export const BranchOperatingHoursModal: React.FC<BranchOperatingHoursModalProps>
         branchService.getCapacity(branch.id),
       ]);
 
-      const hoursData = (hoursRes as any)?.data || hoursRes;
-      const capData = (capRes as any)?.data || capRes;
+      const hoursData = (hoursRes as any)?.data !== undefined ? (hoursRes as any).data : hoursRes;
+      const capData = (capRes as any)?.data !== undefined ? (capRes as any).data : capRes;
 
       if (hoursData) {
-        setOpeningTime(hoursData.openingTime || '08:00');
-        setClosingTime(hoursData.closingTime || '22:00');
-        setSlotDurationMinutes(hoursData.slotDurationMinutes || 90);
+        if (hoursData.openingTime) setOpeningTime(hoursData.openingTime);
+        if (hoursData.closingTime) setClosingTime(hoursData.closingTime);
+        if (hoursData.slotDurationMinutes) setSlotDurationMinutes(hoursData.slotDurationMinutes);
 
         if (Array.isArray(hoursData.dailyHours)) {
           setDailyHours(hoursData.dailyHours);
@@ -92,7 +89,8 @@ export const BranchOperatingHoursModal: React.FC<BranchOperatingHoursModalProps>
       }
     } catch (error: any) {
       console.error('Error fetching operating hours & capacity:', error);
-      toast.error(error?.response?.data?.message || 'Không thể tải dữ liệu giờ hoạt động');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Không thể tải dữ liệu giờ hoạt động');
     } finally {
       setLoading(false);
     }
@@ -140,22 +138,24 @@ export const BranchOperatingHoursModal: React.FC<BranchOperatingHoursModalProps>
       onClose();
     } catch (error: any) {
       console.error('Error updating operating hours:', error);
-      toast.error(error?.response?.data?.message || 'Lỗi khi lưu cấu hình');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Lỗi khi lưu cấu hình');
     } finally {
       setSaving(false);
     }
   };
 
   // Sắp xếp danh sách hiển thị Thứ 2 -> Chủ Nhật
-  const sortedDailyHours = DISPLAY_ORDER.map(
-    (day) =>
-      dailyHours.find((d) => d.dayOfWeek === day) || {
-        dayOfWeek: day,
-        openTime: openingTime,
-        closeTime: closingTime,
-        isOpen: true,
-      }
-  );
+  const sortedDailyHours = DISPLAY_ORDER.map((day) => {
+    const found = dailyHours.find((d) => d.dayOfWeek === day);
+    if (found) return found;
+    return {
+      dayOfWeek: day,
+      openTime: openingTime,
+      closeTime: closingTime,
+      isOpen: true,
+    };
+  });
 
   return (
     <Modal
@@ -213,7 +213,7 @@ export const BranchOperatingHoursModal: React.FC<BranchOperatingHoursModalProps>
                   <div>
                     <span className="text-xs font-semibold text-blue-600 uppercase">Tổng Bàn Ăn</span>
                     <p className="text-xl font-black text-gray-900">
-                      {capacity?.totalTables ?? 0}{' '}
+                      {capacity ? capacity.totalTables : 0}{' '}
                       <span className="text-xs font-medium text-gray-500">bàn</span>
                     </p>
                   </div>
@@ -228,7 +228,7 @@ export const BranchOperatingHoursModal: React.FC<BranchOperatingHoursModalProps>
                       Tổng Chỗ Ngồi (Ghế)
                     </span>
                     <p className="text-xl font-black text-gray-900">
-                      {capacity?.totalSeats ?? 0}{' '}
+                      {capacity ? capacity.totalSeats : 0}{' '}
                       <span className="text-xs font-medium text-gray-500">chỗ tối đa</span>
                     </p>
                   </div>

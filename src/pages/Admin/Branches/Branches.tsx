@@ -50,8 +50,8 @@ const Branches: React.FC = () => {
         setBranches(res);
         setMeta(null);
       } else {
-        setBranches(res?.data || []);
-        setMeta(res?.meta || null);
+        setBranches(res?.data ? res.data : []);
+        setMeta(res?.meta ? res.meta : null);
       }
     } catch (error) {
       console.error('Error fetching branches:', error);
@@ -81,7 +81,7 @@ const Branches: React.FC = () => {
   };
 
   const handleOpenModal = (branch?: IBranch) => {
-    setSelectedBranch(branch || null);
+    setSelectedBranch(branch ? branch : null);
     setIsModalOpen(true);
   };
 
@@ -95,7 +95,8 @@ const Branches: React.FC = () => {
       setIsSubmitting(true);
       if (selectedBranch) {
         const res = await branchService.updateBranch(selectedBranch.id, data);
-        const updated = (res as any)?.data || res;
+        const resData = (res as any)?.data;
+        const updated = resData !== undefined ? resData : res;
         setBranches(prev => prev.map(b => b.id === selectedBranch.id ? { ...b, ...updated } : b));
         toast.success('Cập nhật chi nhánh thành công!');
         handleCloseModal();
@@ -106,7 +107,8 @@ const Branches: React.FC = () => {
         fetchBranches(false);
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra!');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Có lỗi xảy ra!');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -126,7 +128,8 @@ const Branches: React.FC = () => {
       toast.success(`Đã xóa chi nhánh "${deleteBranch.name}" thành công!`);
       setDeleteBranch(null);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Xóa chi nhánh thất bại!');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Xóa chi nhánh thất bại!');
     } finally {
       setIsDeleting(false);
     }

@@ -33,12 +33,12 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   useEffect(() => {
     if (staffToEdit) {
       setFormData({
-        fullName: staffToEdit.fullName || '',
-        email: staffToEdit.email || '',
+        fullName: staffToEdit.fullName ? staffToEdit.fullName : '',
+        email: staffToEdit.email ? staffToEdit.email : '',
         password: '',
-        phone: staffToEdit.phone || '',
-        gender: (staffToEdit.gender as any) || 'MALE',
-        branchId: staffToEdit.branchId || (branches[0]?.id || ''),
+        phone: staffToEdit.phone ? staffToEdit.phone : '',
+        gender: staffToEdit.gender ? (staffToEdit.gender as any) : 'MALE',
+        branchId: staffToEdit.branchId ? staffToEdit.branchId : (branches.length > 0 ? branches[0].id : ''),
       });
     } else {
       setFormData({
@@ -47,7 +47,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
         password: '',
         phone: '',
         gender: 'MALE',
-        branchId: branches[0]?.id || '',
+        branchId: branches.length > 0 ? branches[0].id : '',
       });
     }
   }, [staffToEdit, branches, isOpen]);
@@ -79,10 +79,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
     try {
       setLoading(true);
+      const trimmedPhone = formData.phone.trim();
       if (staffToEdit) {
         const updatePayload: IUpdateStaffDto = {
           fullName: formData.fullName.trim(),
-          phone: formData.phone.trim() || undefined,
+          phone: trimmedPhone.length > 0 ? trimmedPhone : undefined,
           gender: formData.gender,
           branchId: formData.branchId,
         };
@@ -93,7 +94,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           fullName: formData.fullName.trim(),
           email: formData.email.trim(),
           password: formData.password,
-          phone: formData.phone.trim() || undefined,
+          phone: trimmedPhone.length > 0 ? trimmedPhone : undefined,
           gender: formData.gender,
           branchId: formData.branchId,
         };
@@ -104,7 +105,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       onSuccess();
       onClose();
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại';
+      const resMsg = error.response?.data?.message;
+      const msg = resMsg ? resMsg : 'Có lỗi xảy ra, vui lòng thử lại';
       toast.error(msg);
     } finally {
       setLoading(false);

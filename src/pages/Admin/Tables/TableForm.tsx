@@ -59,7 +59,7 @@ const TableForm: React.FC<TableFormProps> = ({
         tableNumber: initialData.tableNumber,
         floor: initialData.floor,
         status: initialData.status,
-        note: initialData.note || '',
+        note: initialData.note ? initialData.note : '',
         branchId: initialData.branchId,
         tableTypeId: initialData.tableTypeId,
       });
@@ -69,8 +69,8 @@ const TableForm: React.FC<TableFormProps> = ({
         floor: 1,
         status: 'AVAILABLE',
         note: '',
-        branchId: selectedBranchId || branches[0]?.id || '',
-        tableTypeId: tableTypes[0]?.id || '',
+        branchId: selectedBranchId ? selectedBranchId : (branches.length > 0 ? branches[0].id : ''),
+        tableTypeId: tableTypes.length > 0 ? tableTypes[0].id : '',
       });
     }
   }, [initialData, branches, tableTypes, selectedBranchId, reset]);

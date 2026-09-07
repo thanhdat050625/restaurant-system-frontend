@@ -58,8 +58,8 @@ const MenuCategories: React.FC = () => {
         setCategories(res);
         setMeta(null);
       } else {
-        setCategories(res.data || []);
-        setMeta(res.meta || null);
+        setCategories(res.data ? res.data : []);
+        setMeta(res.meta ? res.meta : null);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -89,7 +89,7 @@ const MenuCategories: React.FC = () => {
   };
 
   const handleOpenModal = (category?: MenuCategory) => {
-    setSelectedCategory(category || null);
+    setSelectedCategory(category ? category : null);
     setIsModalOpen(true);
   };
 
@@ -103,7 +103,8 @@ const MenuCategories: React.FC = () => {
       setIsSubmitting(true);
       if (selectedCategory) {
         const res = await menuCategoryService.update(selectedCategory.id, data);
-        const updated = (res as any)?.data || res;
+        const resData = (res as any)?.data;
+        const updated = resData !== undefined ? resData : res;
         setCategories(prev => prev.map(c => c.id === selectedCategory.id ? { ...c, ...updated } : c));
         toast.success('Cập nhật danh mục thành công!');
         handleCloseModal();
@@ -114,7 +115,8 @@ const MenuCategories: React.FC = () => {
         fetchCategories(false);
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra!');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Có lỗi xảy ra!');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -134,7 +136,8 @@ const MenuCategories: React.FC = () => {
       toast.success(`Đã ẩn danh mục "${deleteCategory.name}" thành công!`);
       setDeleteCategory(null);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Ẩn danh mục thất bại!');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Ẩn danh mục thất bại!');
     } finally {
       setIsDeleting(false);
     }
@@ -146,7 +149,8 @@ const MenuCategories: React.FC = () => {
       setCategories(prev => prev.map(c => c.id === category.id ? { ...c, isActive: true } : c));
       toast.success(`Đã hiển thị lại danh mục "${category.name}"!`);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Khôi phục hiển thị thất bại!');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Khôi phục hiển thị thất bại!');
     }
   };
 

@@ -24,7 +24,11 @@ const Sidebar: React.FC = () => {
     { name: 'Giờ & Sức chứa', path: '/admin/operating-hours', icon: <Clock size={18} /> },
   ];
 
-  const avatarSrc = (user as any)?.avatar || (user as any)?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Admin')}&background=FF6B35&color=fff&bold=true`;
+  const adminName = user?.fullName ? user.fullName : 'Admin';
+  const rawAdminAvatar = (user as any)?.avatar ? (user as any).avatar : (user as any)?.avatarUrl;
+  const avatarSrc = rawAdminAvatar
+    ? rawAdminAvatar
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=FF6B35&color=fff&bold=true`;
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm">
@@ -60,13 +64,13 @@ const Sidebar: React.FC = () => {
         <div className="flex items-center gap-3 px-3 py-2 mb-2 bg-gray-50/80 rounded-xl border border-gray-100">
           <img
             src={avatarSrc}
-            alt={user?.fullName || 'Admin'}
+            alt={user?.fullName ? user.fullName : 'Admin'}
             className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/40 shadow-sm shrink-0"
           />
           <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-semibold text-gray-900 truncate">{user?.fullName || 'Administrator'}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{user?.fullName ? user.fullName : 'Administrator'}</p>
             <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-              {user?.role || 'ADMIN'}
+              {user?.role ? user.role : 'ADMIN'}
             </span>
           </div>
         </div>

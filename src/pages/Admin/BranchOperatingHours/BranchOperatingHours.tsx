@@ -10,11 +10,8 @@ import {
   Clock,
   Users,
   LayoutGrid,
-  Save,
   Building2,
   Sparkles,
-  CheckCircle2,
-  AlertCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -67,11 +64,16 @@ const BranchOperatingHours: React.FC = () => {
   const fetchInitialBranches = async () => {
     try {
       const res = await branchService.getBranches({ limit: 100 });
-      const branchList = Array.isArray(res)
-        ? res
-        : (res as any)?.data?.items || (res as any)?.data || [];
+      let branchList: IBranch[] = [];
+      if (Array.isArray(res)) {
+        branchList = res;
+      } else if (Array.isArray((res as any)?.data?.items)) {
+        branchList = (res as any).data.items;
+      } else if (Array.isArray((res as any)?.data)) {
+        branchList = (res as any).data;
+      }
 
-      const staffBranchId = (user as any)?.branchId || (user as any)?.branch?.id;
+      const staffBranchId = user?.branchId ? user.branchId : (user?.branch?.id ? user.branch.id : undefined);
       if (isStaff && staffBranchId) {
         const myBranch = branchList.filter((b: IBranch) => b.id === staffBranchId);
         setBranches(
@@ -99,13 +101,13 @@ const BranchOperatingHours: React.FC = () => {
         branchService.getCapacity(selectedBranchId),
       ]);
 
-      const hoursData = (hoursRes as any)?.data || hoursRes;
-      const capData = (capRes as any)?.data || capRes;
+      const hoursData = (hoursRes as any)?.data !== undefined ? (hoursRes as any).data : hoursRes;
+      const capData = (capRes as any)?.data !== undefined ? (capRes as any).data : capRes;
 
       if (hoursData) {
-        setOpeningTime(hoursData.openingTime || '08:00');
-        setClosingTime(hoursData.closingTime || '22:00');
-        setSlotDurationMinutes(hoursData.slotDurationMinutes || 90);
+        if (hoursData.openingTime) setOpeningTime(hoursData.openingTime);
+        if (hoursData.closingTime) setClosingTime(hoursData.closingTime);
+        if (hoursData.slotDurationMinutes) setSlotDurationMinutes(hoursData.slotDurationMinutes);
 
         if (Array.isArray(hoursData.dailyHours)) {
           setDailyHours(hoursData.dailyHours);
@@ -117,7 +119,8 @@ const BranchOperatingHours: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error fetching operating hours & capacity:', error);
-      toast.error(error?.response?.data?.message || 'Lỗi khi tải thông tin giờ hoạt động');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Lỗi khi tải thông tin giờ hoạt động');
     } finally {
       setLoading(false);
     }
@@ -137,10 +140,10 @@ const BranchOperatingHours: React.FC = () => {
     try {
       setSaving(true);
       const payload = {
-        openingTime: updates.openingTime ?? openingTime,
-        closingTime: updates.closingTime ?? closingTime,
-        slotDurationMinutes: updates.slotDurationMinutes ?? slotDurationMinutes,
-        dailyHours: updates.dailyHours ?? dailyHours,
+        openingTime: updates.openingTime !== undefined ? updates.openingTime : openingTime,
+        closingTime: updates.closingTime !== undefined ? updates.closingTime : closingTime,
+        slotDurationMinutes: updates.slotDurationMinutes !== undefined ? updates.slotDurationMinutes : slotDurationMinutes,
+        dailyHours: updates.dailyHours !== undefined ? updates.dailyHours : dailyHours,
       };
       await branchService.updateOperatingHours(selectedBranchId, payload);
       if (message) {
@@ -148,7 +151,8 @@ const BranchOperatingHours: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error auto-saving operating hours:', error);
-      toast.error(error?.response?.data?.message || 'Lỗi khi tự động lưu');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Lỗi khi tự động lưu');
     } finally {
       setSaving(false);
     }
@@ -294,7 +298,7 @@ const BranchOperatingHours: React.FC = () => {
                 <div>
                   <span className="text-xs font-semibold text-blue-600 uppercase">Tổng Bàn Hoạt Động</span>
                   <p className="text-2xl font-black text-gray-900">
-                    {capacity?.totalTables ?? 0}{' '}
+                    {capacity ? capacity.totalTables : 0}{' '}
                     <span className="text-xs font-medium text-gray-500">bàn</span>
                   </p>
                 </div>
@@ -309,7 +313,7 @@ const BranchOperatingHours: React.FC = () => {
                     Tổng Sức Chứa (Ghế Ngồi)
                   </span>
                   <p className="text-2xl font-black text-gray-900">
-                    {capacity?.totalSeats ?? 0}{' '}
+                    {capacity ? capacity.totalSeats : 0}{' '}
                     <span className="text-xs font-medium text-gray-500">khách tối đa</span>
                   </p>
                 </div>
@@ -443,16 +447,14 @@ const BranchOperatingHours: React.FC = () => {
                     return (
                       <tr
                         key={item.dayOfWeek}
-                        className={`hover:bg-gray-50/80 transition-colors ${
-                          !item.isOpen ? 'bg-gray-50/50 text-gray-400' : ''
-                        }`}
+                        className={`hover:bg-gray-50/80 transition-colors ${!item.isOpen ? 'bg-gray-50/50 text-gray-400' : ''
+                          }`}
                       >
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`font-bold ${
-                                isWeekend ? 'text-primary' : 'text-gray-900'
-                              }`}
+                              className={`font-bold ${isWeekend ? 'text-primary' : 'text-gray-900'
+                                }`}
                             >
                               {DAY_NAMES[item.dayOfWeek]}
                             </span>
@@ -468,11 +470,10 @@ const BranchOperatingHours: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleToggleDay(item.dayOfWeek)}
-                            className={`px-3 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer ${
-                              item.isOpen
+                            className={`px-3 py-1 rounded-full text-xs font-bold transition-colors cursor-pointer ${item.isOpen
                                 ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                                 : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                            }`}
+                              }`}
                           >
                             {item.isOpen ? 'Mở cửa' : 'Nghỉ đóng'}
                           </button>
@@ -489,11 +490,10 @@ const BranchOperatingHours: React.FC = () => {
                             onBlur={(e) =>
                               handleDailyTimeBlur(item.dayOfWeek, 'openTime', e.target.value)
                             }
-                            className={`px-2.5 py-1.5 rounded-lg border text-sm font-semibold outline-none transition-colors ${
-                              item.isOpen
+                            className={`px-2.5 py-1.5 rounded-lg border text-sm font-semibold outline-none transition-colors ${item.isOpen
                                 ? 'border-gray-300 bg-white text-gray-900 focus:border-primary'
                                 : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                            }`}
+                              }`}
                           />
                         </td>
 
@@ -508,11 +508,10 @@ const BranchOperatingHours: React.FC = () => {
                             onBlur={(e) =>
                               handleDailyTimeBlur(item.dayOfWeek, 'closeTime', e.target.value)
                             }
-                            className={`px-2.5 py-1.5 rounded-lg border text-sm font-semibold outline-none transition-colors ${
-                              item.isOpen
+                            className={`px-2.5 py-1.5 rounded-lg border text-sm font-semibold outline-none transition-colors ${item.isOpen
                                 ? 'border-gray-300 bg-white text-gray-900 focus:border-primary'
                                 : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                            }`}
+                              }`}
                           />
                         </td>
 
