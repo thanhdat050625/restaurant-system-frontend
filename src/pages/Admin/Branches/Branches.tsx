@@ -272,6 +272,7 @@ const Branches: React.FC = () => {
         <BranchForm 
           initialData={selectedBranch}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
         />
       </Modal>

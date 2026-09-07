@@ -381,10 +381,12 @@ const MenuItems: React.FC = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         title={selectedItem ? 'Chỉnh sửa món ăn chuỗi' : 'Thêm món ăn mới toàn chuỗi'}
+        maxWidth="max-w-2xl"
       >
         <MenuItemForm
           initialData={selectedItem}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
         />
       </Modal>

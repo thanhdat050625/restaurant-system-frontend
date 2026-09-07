@@ -240,10 +240,12 @@ const TableTypes: React.FC = () => {
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
         title={selectedTableType ? "Sửa loại bàn" : "Thêm loại bàn mới"}
+        maxWidth="max-w-lg"
       >
         <TableTypeForm 
           initialData={selectedTableType}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
         />
       </Modal>

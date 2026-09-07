@@ -294,6 +294,7 @@ const MenuCategories: React.FC = () => {
         <MenuCategoryForm 
           initialData={selectedCategory}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
         />
       </Modal>

@@ -4,6 +4,16 @@ import StaffSidebar from '../../components/Staff/StaffSidebar';
 import StaffTopbar from '../../components/Staff/StaffTopbar';
 
 const StaffLayout: React.FC = () => {
+  React.useEffect(() => {
+    const wasDark = document.documentElement.classList.contains('dark');
+    document.documentElement.classList.remove('dark');
+    return () => {
+      if (wasDark || localStorage.getItem('foodhub-theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    };
+  }, []);
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-body">
       {/* Staff Sidebar */}

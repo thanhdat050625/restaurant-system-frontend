@@ -4,6 +4,16 @@ import Sidebar from '../../components/Admin/Sidebar';
 import Topbar from '../../components/Admin/Topbar';
 
 const AdminLayout: React.FC = () => {
+  React.useEffect(() => {
+    const wasDark = document.documentElement.classList.contains('dark');
+    document.documentElement.classList.remove('dark');
+    return () => {
+      if (wasDark || localStorage.getItem('foodhub-theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    };
+  }, []);
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-body">
       {/* Sidebar */}

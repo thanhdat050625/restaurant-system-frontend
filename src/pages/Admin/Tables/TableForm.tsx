@@ -22,11 +22,20 @@ interface TableFormProps {
   branches: IBranch[];
   tableTypes: ITableType[];
   onSubmit: (data: TableFormData) => Promise<void>;
+  onCancel?: () => void;
   isLoading?: boolean;
   selectedBranchId?: string;
 }
 
-const TableForm: React.FC<TableFormProps> = ({ initialData, branches, tableTypes, onSubmit, isLoading = false, selectedBranchId = '' }) => {
+const TableForm: React.FC<TableFormProps> = ({
+  initialData,
+  branches,
+  tableTypes,
+  onSubmit,
+  onCancel,
+  isLoading = false,
+  selectedBranchId = '',
+}) => {
   const {
     register,
     handleSubmit,
@@ -67,91 +76,113 @@ const TableForm: React.FC<TableFormProps> = ({ initialData, branches, tableTypes
   }, [initialData, branches, tableTypes, selectedBranchId, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 font-sans">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Số/Tên Bàn *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Số/Tên Bàn <span className="text-red-500">*</span>
+          </label>
           <input
             {...register('tableNumber')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
             placeholder="VD: B01, T1-01..."
           />
-          {errors.tableNumber && <p className="mt-1 text-sm text-red-600">{errors.tableNumber.message}</p>}
+          {errors.tableNumber && <p className="mt-1 text-xs text-red-600 font-medium">{errors.tableNumber.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tầng *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Tầng <span className="text-red-500">*</span>
+          </label>
           <input
             type="number"
             min="0"
             {...register('floor', { valueAsNumber: true })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           />
-          {errors.floor && <p className="mt-1 text-sm text-red-600">{errors.floor.message}</p>}
+          {errors.floor && <p className="mt-1 text-xs text-red-600 font-medium">{errors.floor.message}</p>}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Chi nhánh *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Chi nhánh <span className="text-red-500">*</span>
+          </label>
           <select
             {...register('branchId')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors bg-white"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           >
             <option value="">Chọn chi nhánh</option>
             {branches.map(b => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
           </select>
-          {errors.branchId && <p className="mt-1 text-sm text-red-600">{errors.branchId.message}</p>}
+          {errors.branchId && <p className="mt-1 text-xs text-red-600 font-medium">{errors.branchId.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Loại bàn *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Loại bàn <span className="text-red-500">*</span>
+          </label>
           <select
             {...register('tableTypeId')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors bg-white"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           >
             <option value="">Chọn loại bàn</option>
             {tableTypes.map(t => (
               <option key={t.id} value={t.id}>{t.name} ({t.capacity} chỗ)</option>
             ))}
           </select>
-          {errors.tableTypeId && <p className="mt-1 text-sm text-red-600">{errors.tableTypeId.message}</p>}
+          {errors.tableTypeId && <p className="mt-1 text-xs text-red-600 font-medium">{errors.tableTypeId.message}</p>}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Trạng thái
+        </label>
         <select
           {...register('status')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors bg-white"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
         >
           <option value="AVAILABLE">Bàn trống (Available)</option>
           <option value="OCCUPIED">Đang phục vụ (Occupied)</option>
           <option value="MAINTENANCE">Đang bảo trì (Maintenance)</option>
           <option value="DIRTY">Cần dọn dẹp (Dirty)</option>
         </select>
-        {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>}
+        {errors.status && <p className="mt-1 text-xs text-red-600 font-medium">{errors.status.message}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú (Note)</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Ghi chú (Note)
+        </label>
         <textarea
           {...register('note')}
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors custom-scrollbar"
-          placeholder="Ghi chú thêm..."
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs custom-scrollbar resize-none"
+          placeholder="Ghi chú thêm về bàn này..."
         />
-        {errors.note && <p className="mt-1 text-sm text-red-600">{errors.note.message}</p>}
+        {errors.note && <p className="mt-1 text-xs text-red-600 font-medium">{errors.note.message}</p>}
       </div>
 
-      <div className="pt-4 flex justify-end gap-3 border-t mt-6 border-gray-100">
+      <div className="pt-4 flex items-center justify-end gap-3 border-t mt-6 border-gray-100">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            Hủy
+          </button>
+        )}
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-2 bg-primary text-white font-medium rounded-md hover:bg-primary-dark transition-colors disabled:opacity-70 flex items-center gap-2"
+          className="px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer"
         >
           {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-          {initialData ? 'Cập nhật' : 'Thêm mới'}
+          <span>{initialData ? 'Lưu thay đổi' : 'Thêm mới'}</span>
         </button>
       </div>
     </form>

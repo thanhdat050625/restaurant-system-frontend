@@ -15,10 +15,11 @@ export type TableTypeFormData = z.infer<typeof tableTypeSchema>;
 interface TableTypeFormProps {
   initialData?: ITableType | null;
   onSubmit: (data: TableTypeFormData) => Promise<void>;
+  onCancel?: () => void;
   isLoading?: boolean;
 }
 
-const TableTypeForm: React.FC<TableTypeFormProps> = ({ initialData, onSubmit, isLoading = false }) => {
+const TableTypeForm: React.FC<TableTypeFormProps> = ({ initialData, onSubmit, onCancel, isLoading = false }) => {
   const {
     register,
     handleSubmit,
@@ -50,47 +51,63 @@ const TableTypeForm: React.FC<TableTypeFormProps> = ({ initialData, onSubmit, is
   }, [initialData, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 font-sans">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Tên loại bàn *</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Tên loại bàn <span className="text-red-500">*</span>
+        </label>
         <input
           {...register('name')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           placeholder="VD: Bàn VIP, Bàn ngoài trời..."
         />
-        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+        {errors.name && <p className="mt-1 text-xs text-red-600 font-medium">{errors.name.message}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Số chỗ ngồi (Capacity) *</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Số chỗ ngồi (Capacity) <span className="text-red-500">*</span>
+        </label>
         <input
           type="number"
           min="1"
           {...register('capacity', { valueAsNumber: true })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
         />
-        {errors.capacity && <p className="mt-1 text-sm text-red-600">{errors.capacity.message}</p>}
+        {errors.capacity && <p className="mt-1 text-xs text-red-600 font-medium">{errors.capacity.message}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Mô tả
+        </label>
         <textarea
           {...register('description')}
           rows={3}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors custom-scrollbar"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs custom-scrollbar resize-none"
           placeholder="Mô tả thêm về loại bàn này..."
         />
-        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
+        {errors.description && <p className="mt-1 text-xs text-red-600 font-medium">{errors.description.message}</p>}
       </div>
 
-      <div className="pt-4 flex justify-end gap-3 border-t mt-6 border-gray-100">
+      <div className="pt-4 flex items-center justify-end gap-3 border-t mt-6 border-gray-100">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            Hủy
+          </button>
+        )}
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-2 bg-primary text-white font-medium rounded-md hover:bg-primary-dark transition-colors disabled:opacity-70 flex items-center gap-2"
+          className="px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer"
         >
           {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-          {initialData ? 'Cập nhật' : 'Thêm mới'}
+          <span>{initialData ? 'Lưu thay đổi' : 'Thêm mới'}</span>
         </button>
       </div>
     </form>

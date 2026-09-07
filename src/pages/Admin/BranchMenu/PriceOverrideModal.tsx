@@ -137,19 +137,19 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 16 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.28 }}
-            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-10 flex flex-col font-sans"
+            className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-10 flex flex-col font-sans"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 bg-white">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-orange-50 border border-orange-100/80 flex items-center justify-center text-primary shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100/80 flex items-center justify-center text-primary shadow-xs">
                   <Tag size={19} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-extrabold text-gray-900 tracking-tight">
+                  <h3 className="text-lg font-bold text-gray-900 tracking-tight font-sans">
                     Thiết Lập Giá Riêng Chi Nhánh
                   </h3>
-                  <p className="text-xs text-gray-500 font-medium">
+                  <p className="text-xs text-gray-500 font-medium mt-0.5 font-sans">
                     Tùy chỉnh giá bán áp dụng riêng theo cơ sở phục vụ
                   </p>
                 </div>
@@ -159,7 +159,8 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-50 cursor-pointer"
+                title="Đóng"
               >
                 <X size={18} />
               </button>
@@ -168,13 +169,13 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
             {/* Modal Body */}
             <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[calc(85vh-130px)]">
               {/* Card thông tin món ăn */}
-              <div className="flex items-center gap-3.5 p-3.5 bg-gradient-to-r from-orange-50/60 via-amber-50/40 to-transparent rounded-2xl border border-orange-100/80">
+              <div className="flex items-center gap-3.5 p-3.5 bg-gray-50/80 rounded-xl border border-gray-200/80">
                 <img
                   src={item.menuItem?.imageUrl || 'https://placehold.co/100x100?text=Food'}
                   alt={item.menuItem?.name}
                   className="w-16 h-16 rounded-xl object-cover ring-2 ring-white shadow-xs shrink-0"
                 />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 font-sans">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white text-orange-600 border border-orange-200/60 uppercase tracking-wide">
                       {item.menuItem?.category?.name || 'Món Ăn'}
@@ -184,12 +185,12 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
                       <strong className="text-gray-800 font-bold">{branchName}</strong>
                     </span>
                   </div>
-                  <h4 className="font-extrabold text-gray-900 text-base mt-1 truncate">
+                  <h4 className="font-bold text-gray-900 text-base mt-1 truncate font-sans">
                     {item.menuItem?.name}
                   </h4>
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
                     <span>Giá niêm yết toàn chuỗi:</span>
-                    <span className="font-extrabold text-gray-900">
+                    <span className="font-bold text-gray-900 font-sans">
                       {chainPrice.toLocaleString('vi-VN')} đ
                     </span>
                   </div>
@@ -197,15 +198,15 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
               </div>
 
               {/* Tùy chọn chính sách giá */}
-              <div className="space-y-3">
-                <label className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block">
+              <div className="space-y-3 font-sans">
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 font-sans">
                   Chọn Chính Sách Giá
                 </label>
 
                 {/* Option 1: Áp dụng giá chuỗi */}
                 <div
                   onClick={() => setIsCustomPrice(false)}
-                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3.5 ${
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3.5 ${
                     !isCustomPrice
                       ? 'border-primary bg-primary/[0.03] shadow-xs'
                       : 'border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/50'
@@ -223,14 +224,14 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-sm text-gray-900">
+                      <span className="font-bold text-sm text-gray-900 font-sans">
                         Áp dụng giá niêm yết chuỗi
                       </span>
-                      <span className="text-xs font-black text-gray-900 bg-gray-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-md font-sans">
                         {chainPrice.toLocaleString('vi-VN')} đ
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed font-sans">
                       Giá tự động đồng bộ theo toàn bộ hệ thống FoodHub khi có khuyến mãi hoặc cập nhật menu chung.
                     </p>
                   </div>
@@ -239,7 +240,7 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
                 {/* Option 2: Giá riêng chi nhánh */}
                 <div
                   onClick={() => setIsCustomPrice(true)}
-                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3.5 ${
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3.5 ${
                     isCustomPrice
                       ? 'border-primary bg-primary/[0.03] shadow-xs'
                       : 'border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/50'
@@ -257,17 +258,17 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
+                      <span className="font-bold text-sm text-gray-900 flex items-center gap-1.5 font-sans">
                         Thiết lập giá riêng cho cơ sở này
                         <Sparkles size={14} className="text-amber-500" />
                       </span>
                       {isCustomPrice && currentEnteredPrice > 0 && (
-                        <span className="text-xs font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md font-sans">
                           {currentEnteredPrice.toLocaleString('vi-VN')} đ
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed font-sans">
                       Áp dụng mức giá đặc thù cho cơ sở {branchName} (ví dụ vị trí trung tâm, khu du lịch, v.v.).
                     </p>
                   </div>
@@ -283,14 +284,14 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
                   transition={{ duration: 0.2 }}
                   className="space-y-4 pt-1"
                 >
-                  <div className="p-4 bg-gray-50/80 rounded-2xl border border-gray-200/80 space-y-3">
+                  <div className="p-4 bg-gray-50/80 rounded-xl border border-gray-200/80 space-y-3 font-sans">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-extrabold text-gray-800">
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider font-sans">
                         Giá Bán Riêng Tại Chi Nhánh (VNĐ)
                       </label>
                       {currentEnteredPrice > 0 && priceDiff !== 0 && (
                         <span
-                          className={`text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-md flex items-center gap-1 font-sans ${
                             priceDiff > 0
                               ? 'bg-amber-100 text-amber-800'
                               : 'bg-emerald-100 text-emerald-800'
@@ -313,16 +314,16 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
                         value={currentEnteredPrice > 0 ? currentEnteredPrice.toLocaleString('vi-VN') : customPrice}
                         onChange={handlePriceInput}
                         placeholder="Nhập giá bán riêng..."
-                        className="w-full pl-4 pr-12 py-3 bg-white border-2 border-gray-200 rounded-xl text-lg font-black text-gray-900 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-gray-300"
+                        className="w-full pl-4 pr-14 py-2.5 bg-white border border-gray-300 rounded-xl text-base font-bold text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-hidden transition-all placeholder:text-gray-400 font-sans shadow-2xs"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-extrabold text-gray-400">
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 font-sans">
                         VNĐ
                       </span>
                     </div>
 
                     {/* Quick percentage chips */}
                     <div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
+                      <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block mb-2 font-sans">
                         Điều Chỉnh Nhanh Theo % Giá Chuỗi:
                       </span>
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -337,7 +338,7 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
                             key={chip.label}
                             type="button"
                             onClick={() => applyPercentage(chip.val)}
-                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-primary/10 hover:text-primary hover:border-primary/40 border border-gray-200 text-gray-700 transition-all shadow-2xs cursor-pointer active:scale-95"
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-primary/10 hover:text-primary hover:border-primary/40 border border-gray-200 text-gray-700 transition-all shadow-2xs cursor-pointer active:scale-95 font-sans"
                           >
                             {chip.label}
                           </button>
@@ -347,7 +348,7 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
                           onClick={() => {
                             setCustomPrice(String(chainPrice));
                           }}
-                          className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-gray-100 border border-gray-200 text-gray-500 transition-colors shadow-2xs cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-gray-100 border border-gray-200 text-gray-600 transition-colors shadow-2xs cursor-pointer font-sans"
                         >
                           Bằng giá chuỗi
                         </button>
@@ -363,14 +364,14 @@ const PriceOverrideModal: React.FC<PriceOverrideModalProps> = ({
                   type="button"
                   onClick={onClose}
                   disabled={loading}
-                  className="px-5 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+                  className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  Hủy Bỏ
+                  Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2.5 bg-primary hover:bg-primary-dark active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2 disabled:opacity-70 cursor-pointer"
+                  className="px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors disabled:opacity-70 flex items-center gap-2 cursor-pointer"
                 >
                   {loading && (
                     <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />

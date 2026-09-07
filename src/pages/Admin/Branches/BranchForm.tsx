@@ -23,10 +23,11 @@ export type BranchFormData = z.infer<typeof branchSchema>;
 interface BranchFormProps {
   initialData?: IBranch | null;
   onSubmit: (data: BranchFormData) => Promise<void>;
+  onCancel?: () => void;
   isLoading?: boolean;
 }
 
-const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, isLoading = false }) => {
+const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, onCancel, isLoading = false }) => {
   const {
     register,
     handleSubmit,
@@ -56,7 +57,6 @@ const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, isLoadin
 
   useEffect(() => {
     branchService.getProvinces().then(res => {
-      // API might return standard wrapper depending on backend interceptor
       const data = (res as any).data || res;
       setProvinces(Array.isArray(data) ? data : []);
     }).catch(console.error);
@@ -105,115 +105,141 @@ const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, isLoadin
   }, [initialData, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 font-sans">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Tên chi nhánh *</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Tên chi nhánh <span className="text-red-500">*</span>
+        </label>
         <input
           {...register('name')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           placeholder="Nhập tên chi nhánh..."
         />
-        {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+        {errors.name && <p className="mt-1 text-xs text-red-600 font-medium">{errors.name.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành phố *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Tỉnh/Thành phố <span className="text-red-500">*</span>
+          </label>
           <select
             {...register('address.provinceCode')}
             onChange={(e) => {
               register('address.provinceCode').onChange(e);
               setValue('address.wardCode', '');
             }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors bg-white"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           >
             <option value="">Chọn Tỉnh/Thành phố</option>
             {provinces.map(p => (
               <option key={p.code} value={p.code}>{p.name}</option>
             ))}
           </select>
-          {errors.address?.provinceCode && <p className="mt-1 text-sm text-red-600">{errors.address.provinceCode.message}</p>}
+          {errors.address?.provinceCode && <p className="mt-1 text-xs text-red-600 font-medium">{errors.address.provinceCode.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phường/Xã *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Phường/Xã <span className="text-red-500">*</span>
+          </label>
           <select
             {...register('address.wardCode')}
             disabled={!selectedProvinceCode}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors bg-white disabled:bg-gray-100"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs disabled:bg-gray-100 disabled:text-gray-400"
           >
             <option value="">Chọn Phường/Xã</option>
             {wards.map(w => (
               <option key={w.code} value={w.code}>{w.name}</option>
             ))}
           </select>
-          {errors.address?.wardCode && <p className="mt-1 text-sm text-red-600">{errors.address.wardCode.message}</p>}
+          {errors.address?.wardCode && <p className="mt-1 text-xs text-red-600 font-medium">{errors.address.wardCode.message}</p>}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ chi tiết (Số nhà, đường) *</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Địa chỉ chi tiết (Số nhà, đường) <span className="text-red-500">*</span>
+        </label>
         <input
           {...register('address.detail')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           placeholder="Nhập địa chỉ chi tiết..."
         />
-        {errors.address?.detail && <p className="mt-1 text-sm text-red-600">{errors.address.detail.message}</p>}
+        {errors.address?.detail && <p className="mt-1 text-xs text-red-600 font-medium">{errors.address.detail.message}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại *</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Số điện thoại <span className="text-red-500">*</span>
+        </label>
         <input
           {...register('phone')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
-          placeholder="Nhập số điện thoại..."
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
+          placeholder="Nhập số điện thoại liên hệ..."
         />
-        {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>}
+        {errors.phone && <p className="mt-1 text-xs text-red-600 font-medium">{errors.phone.message}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Vĩ độ (Latitude)</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Vĩ độ (Latitude)
+          </label>
           <input
             type="number"
             step="any"
             {...register('latitude', { valueAsNumber: true })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           />
-          {errors.latitude && <p className="mt-1 text-sm text-red-600">{errors.latitude.message}</p>}
+          {errors.latitude && <p className="mt-1 text-xs text-red-600 font-medium">{errors.latitude.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Kinh độ (Longitude)</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Kinh độ (Longitude)
+          </label>
           <input
             type="number"
             step="any"
             {...register('longitude', { valueAsNumber: true })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           />
-          {errors.longitude && <p className="mt-1 text-sm text-red-600">{errors.longitude.message}</p>}
+          {errors.longitude && <p className="mt-1 text-xs text-red-600 font-medium">{errors.longitude.message}</p>}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Trạng thái
+        </label>
         <select
           {...register('status')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors bg-white"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
         >
           <option value="ACTIVE">Hoạt động</option>
           <option value="INACTIVE">Ngừng hoạt động</option>
         </select>
-        {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>}
+        {errors.status && <p className="mt-1 text-xs text-red-600 font-medium">{errors.status.message}</p>}
       </div>
 
-      <div className="pt-4 flex justify-end gap-3 border-t mt-6 border-gray-100">
+      <div className="pt-4 flex items-center justify-end gap-3 border-t mt-6 border-gray-100">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            Hủy
+          </button>
+        )}
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-2 bg-primary text-white font-medium rounded-md hover:bg-primary-dark transition-colors disabled:opacity-70 flex items-center gap-2"
+          className="px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer"
         >
           {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-          {initialData ? 'Cập nhật' : 'Thêm mới'}
+          <span>{initialData ? 'Lưu thay đổi' : 'Thêm mới'}</span>
         </button>
       </div>
     </form>
