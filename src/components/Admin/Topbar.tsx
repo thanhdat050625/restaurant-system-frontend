@@ -20,6 +20,8 @@ const Topbar: React.FC = () => {
         return 'Quản lý Danh mục Món';
       case '/admin/menu-items':
         return 'Quản lý Món ăn';
+      case '/admin/branch-menu':
+        return 'Quản lý Menu Chi nhánh';
       default:
         return 'Admin Portal';
     }

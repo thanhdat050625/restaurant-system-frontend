@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
-import { Home, MapPin, Layers, LayoutGrid, LogOut, ExternalLink, UtensilsCrossed, Utensils, Users } from 'lucide-react';
+import { Home, MapPin, Layers, LayoutGrid, LogOut, ExternalLink, UtensilsCrossed, Utensils, Users, BookOpenCheck } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
@@ -20,6 +20,7 @@ const Sidebar: React.FC = () => {
     { name: 'Bàn', path: '/admin/tables', icon: <LayoutGrid size={18} /> },
     { name: 'Danh mục món', path: '/admin/menu-categories', icon: <UtensilsCrossed size={18} /> },
     { name: 'Món ăn', path: '/admin/menu-items', icon: <Utensils size={18} /> },
+    { name: 'Menu chi nhánh', path: '/admin/branch-menu', icon: <BookOpenCheck size={18} /> },
   ];
 
   const avatarSrc = (user as any)?.avatar || (user as any)?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Admin')}&background=FF6B35&color=fff&bold=true`;

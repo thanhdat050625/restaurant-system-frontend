@@ -23,7 +23,7 @@ import Contact from './pages/Contact/Contact';
 
 // Staff Imports
 import StaffRoute from './components/common/StaffRoute';
-import StaffDashboard from './pages/Staff/StaffDashboard';
+import StaffLayout from './layouts/staff/StaffLayout';
 
 // Admin Imports
 import AdminRoute from './components/common/AdminRoute';
@@ -35,6 +35,7 @@ import TableTypes from './pages/Admin/TableTypes/TableTypes';
 import Tables from './pages/Admin/Tables/Tables';
 import MenuCategories from './pages/Admin/MenuCategories/MenuCategories';
 import MenuItems from './pages/Admin/MenuItems/MenuItems';
+import BranchMenu from './pages/Admin/BranchMenu/BranchMenu';
 
 const GuestRoute = ({ children }) => {
   const { user, isAuthenticated, isCheckingAuth } = useAuth();
@@ -77,8 +78,18 @@ const Layout = () => {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           
-          {/* Staff Route */}
-          <Route path="/staff" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
+          {/* Staff Routes */}
+          <Route
+            path="/staff"
+            element={
+              <StaffRoute>
+                <StaffLayout />
+              </StaffRoute>
+            }
+          >
+            <Route index element={<Navigate to="/staff/menu" replace />} />
+            <Route path="menu" element={<BranchMenu />} />
+          </Route>
 
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
@@ -89,6 +100,7 @@ const Layout = () => {
             <Route path="tables" element={<Tables />} />
             <Route path="menu-categories" element={<MenuCategories />} />
             <Route path="menu-items" element={<MenuItems />} />
+            <Route path="branch-menu" element={<BranchMenu />} />
           </Route>
         </Routes>
       </AnimatePresence>
