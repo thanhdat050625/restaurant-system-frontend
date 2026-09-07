@@ -62,6 +62,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [checkAuth]);
 
   /**
+   * Lắng nghe sự kiện token hết hạn hoặc phiên bị hủy từ api client interceptor
+   */
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, []);
+
+  /**
    * Login
    */
   const login = useCallback(async (data: any) => {

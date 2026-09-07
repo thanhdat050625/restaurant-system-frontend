@@ -5,8 +5,9 @@ import { PaginationMeta } from '../../../types/api-response.type';
 import Modal from '../../../components/ui/Modal';
 import ConfirmModal from '../../../components/ui/ConfirmModal';
 import BranchForm, { BranchFormData } from './BranchForm';
+import BranchOperatingHoursModal from './BranchOperatingHoursModal';
 import Pagination from '../../../components/common/Pagination';
-import { Search, Filter, Plus } from 'lucide-react';
+import { Search, Filter, Plus, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Branches: React.FC = () => {
@@ -28,6 +29,10 @@ const Branches: React.FC = () => {
   // Confirm delete state
   const [deleteBranch, setDeleteBranch] = useState<IBranch | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Operating hours & capacity modal state
+  const [operatingHoursBranch, setOperatingHoursBranch] = useState<IBranch | null>(null);
+  const [isOperatingHoursModalOpen, setIsOperatingHoursModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     fetchBranches();
@@ -216,15 +221,26 @@ const Branches: React.FC = () => {
                       </td>
                       <td className="p-3 text-sm text-center">
                         <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => {
+                              setOperatingHoursBranch(branch);
+                              setIsOperatingHoursModalOpen(true);
+                            }}
+                            title="Cấu hình giờ mở cửa & sức chứa"
+                            className="text-primary hover:text-primary-dark font-medium text-xs px-2.5 py-1 bg-primary/10 rounded hover:bg-primary/20 transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Clock size={13} />
+                            <span>Giờ & Sức chứa</span>
+                          </button>
                           <button 
                             onClick={() => handleOpenModal(branch)}
-                            className="text-info hover:text-blue-700 font-medium text-xs px-2 py-1 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                            className="text-info hover:text-blue-700 font-medium text-xs px-2 py-1 bg-blue-50 rounded hover:bg-blue-100 transition-colors cursor-pointer"
                           >
                             Sửa
                           </button>
                           <button 
                             onClick={() => handleDeleteClick(branch)}
-                            className="text-error hover:text-red-700 font-medium text-xs px-2 py-1 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                            className="text-error hover:text-red-700 font-medium text-xs px-2 py-1 bg-red-50 rounded hover:bg-red-100 transition-colors cursor-pointer"
                           >
                             Xóa
                           </button>
@@ -256,6 +272,7 @@ const Branches: React.FC = () => {
         <BranchForm 
           initialData={selectedBranch}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
         />
       </Modal>
@@ -271,6 +288,17 @@ const Branches: React.FC = () => {
         cancelText="Hủy"
         type="danger"
         isLoading={isDeleting}
+      />
+
+      {/* Branch Operating Hours & Capacity Modal */}
+      <BranchOperatingHoursModal
+        isOpen={isOperatingHoursModalOpen}
+        onClose={() => {
+          setIsOperatingHoursModalOpen(false);
+          setOperatingHoursBranch(null);
+        }}
+        branch={operatingHoursBranch}
+        onSuccess={() => fetchBranches(false)}
       />
     </div>
   );

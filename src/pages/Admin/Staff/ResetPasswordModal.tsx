@@ -53,23 +53,25 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-gray-100 animate-scaleUp">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-            <KeyRound size={18} className="text-amber-500" />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 font-sans tracking-tight">
+            <KeyRound size={19} className="text-amber-500" />
             Đặt Lại Mật Khẩu
           </h3>
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+            title="Đóng"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="p-3 bg-amber-50/80 border border-amber-200/60 rounded-xl text-xs text-amber-800">
-            Bạn đang đặt lại mật khẩu cho nhân viên: <strong className="font-bold">{staff.fullName}</strong> ({staff.email}). Toàn bộ phiên đăng nhập cũ sẽ tự động đăng xuất.
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 font-sans">
+          <div className="p-3 bg-amber-50/80 border border-amber-200/60 rounded-xl text-xs text-amber-800 leading-relaxed">
+            Bạn đang đặt lại mật khẩu cho nhân viên: <strong className="font-bold text-amber-950">{staff.fullName}</strong> ({staff.email}). Toàn bộ phiên đăng nhập cũ sẽ tự động đăng xuất.
           </div>
 
           <div>
@@ -84,7 +86,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Tối thiểu 6 ký tự"
-                className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-hidden transition-all"
+                className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-hidden transition-all shadow-2xs"
               />
             </div>
           </div>
@@ -101,7 +103,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Nhập lại mật khẩu mới"
-                className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-hidden transition-all"
+                className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-hidden transition-all shadow-2xs"
               />
             </div>
           </div>
@@ -110,16 +112,24 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+              disabled={loading}
+              className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs transition-all disabled:opacity-70 flex items-center gap-2"
+              className="px-5 py-2.5 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs transition-all disabled:opacity-70 flex items-center gap-2 cursor-pointer"
             >
-              {loading ? 'Đang đổi...' : 'Cập Nhật Mật Khẩu'}
+              {loading ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Đang đổi...</span>
+                </>
+              ) : (
+                <span>Cập Nhật Mật Khẩu</span>
+              )}
             </button>
           </div>
         </form>

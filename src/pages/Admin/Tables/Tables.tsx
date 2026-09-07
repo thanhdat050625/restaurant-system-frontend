@@ -379,6 +379,7 @@ const Tables: React.FC = () => {
           branches={branches}
           tableTypes={tableTypes}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
           selectedBranchId={selectedBranchId !== 'ALL' ? selectedBranchId : ''}
         />
@@ -395,6 +396,7 @@ const Tables: React.FC = () => {
           branches={branches}
           tableTypes={tableTypes}
           onSubmit={handleBulkSubmit}
+          onCancel={handleCloseBulkModal}
           isLoading={isSubmitting}
           selectedBranchId={selectedBranchId !== 'ALL' ? selectedBranchId : ''}
         />
