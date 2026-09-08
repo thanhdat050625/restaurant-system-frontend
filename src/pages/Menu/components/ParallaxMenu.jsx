@@ -1,7 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Clock, Plus, ShoppingBag, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { menuItems } from '../../../assets/data/menuData';
+import { categories } from '../../../assets/data/categoryData';
 import { useCart } from '../../../features/menu/CartContext';
 import { formatPrice } from '../../../utils/helpers';
 
@@ -197,12 +199,32 @@ const DetailPanel = ({ item, onClose, onAdd }) => {
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 const ParallaxMenu = () => {
+  const { categorySlug } = useParams();
+  const categoryParam = categorySlug || 'all';
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAddingId, setIsAddingId] = useState(null);
   const [detailItem, setDetailItem] = useState(null);
   const { addItem } = useCart();
 
-  const showcaseItems = [...menuItems].sort((a, b) => b.rating - a.rating).slice(0, 12);
+  // Reset scroll when category changes
+  useEffect(() => {
+    setActiveIndex(0);
+    setDetailItem(null);
+  }, [categoryParam]);
+
+  const showcaseItems = React.useMemo(() => {
+    let items = [...menuItems];
+    if (categoryParam !== 'all') {
+      const cat = categories.find(c => c.slug === categoryParam);
+      if (cat) items = items.filter(item => item.categoryId === cat.id);
+    } else {
+      // Default / 'all' - Show only Best Sellers (isPopular)
+      items = items.filter(item => item.isPopular);
+    }
+    return items.sort((a, b) => b.rating - a.rating);
+  }, [categoryParam]);
+
   const total = showcaseItems.length;
 
   // ── Throttled navigation ────────────────────────────────────────────────────
@@ -302,13 +324,13 @@ const ParallaxMenu = () => {
       })}
 
       {/* Side dot nav */}
-      <div className="absolute right-5 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2.5">
+      <div className="absolute right-5 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2.5 hidden sm:flex">
         {showcaseItems.map((_, i) => (
           <button
             key={i}
             onClick={() => goTo(i)}
-            aria-label={`Món ${i + 1}`}
-            className={`rounded-full transition-all duration-400 bg-white ${i === activeIndex ? 'opacity-90 w-2 h-7' : 'opacity-25 hover:opacity-50 w-2 h-2'}`}
+            className={`w-2.5 rounded-full transition-all duration-300 ${i === activeIndex ? 'h-8 bg-primary shadow-[0_0_10px_rgba(234,88,12,0.6)]' : 'h-2.5 bg-white/30 hover:bg-white/60 hover:scale-125'}`}
+            aria-label={`Go to slide ${i + 1}`}
           />
         ))}
       </div>

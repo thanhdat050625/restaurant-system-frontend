@@ -5,6 +5,7 @@ import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown, Shield } f
 import { useCart } from '../features/menu/CartContext';
 import { useAuth } from '../features/auth/AuthContext';
 import { useTheme } from '../hooks/ThemeContext';
+import { categories } from '../assets/data/categoryData';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -17,8 +18,8 @@ const Header = () => {
 
   // Khai báo các trang có banner tối màu ở trên cùng
   const darkHeroPages = ['/', '/menu', '/reservation', '/about', '/contact', '/login', '/register'];
-  // Kiểm tra xem trang hiện tại có nằm trong danh sách trên không (xử lý luôn cả route động như /order/1)
-  const hasDarkHero = darkHeroPages.includes(location.pathname);
+  // Kiểm tra xem trang hiện tại có nằm trong danh sách trên không hoặc là đường dẫn menu/danh-muc
+  const hasDarkHero = darkHeroPages.includes(location.pathname) || location.pathname.startsWith('/menu/');
   
   // Header sẽ chuyển sang dạng Solid (nền trắng/đen rõ ràng) nếu:
   // 1. Đã cuộn chuột XUỐNG
@@ -66,33 +67,81 @@ const Header = () => {
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-8">
-            {navLinks.map(link => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) =>
-                  `relative text-sm font-medium transition-colors duration-300 py-2 ${
-                    isActive
-                      ? 'text-primary'
-                      : isSolidHeader
-                        ? 'text-text-primary dark:text-white hover:text-primary'
-                        : 'text-white/90 hover:text-white'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {link.label}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeNav"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
-                      />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
+            {navLinks.map(link => {
+              if (link.to === '/menu') {
+                return (
+                  <div key={link.to} className="relative group py-2">
+                    <NavLink
+                      to={link.to}
+                      className={({ isActive }) =>
+                        `relative flex items-center gap-1 text-sm font-medium transition-colors duration-300 ${
+                          isActive
+                            ? 'text-primary'
+                            : isSolidHeader
+                              ? 'text-text-primary dark:text-white hover:text-primary'
+                              : 'text-white/90 hover:text-white'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          {link.label}
+                          <ChevronDown size={14} className="opacity-70 group-hover:rotate-180 transition-transform" />
+                          {isActive && (
+                            <motion.div
+                              layoutId="activeNav"
+                              className="absolute -bottom-2 left-0 right-0 h-0.5 bg-primary rounded-full"
+                            />
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                    {/* Dropdown Menu */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-60 opacity-0 invisible translate-y-3 scale-95 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top z-50">
+                      <div className="bg-white/95 dark:bg-[#1A1A1A]/95 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/5 overflow-hidden p-2">
+                        {categories.map(cat => (
+                          <Link
+                            key={cat.id}
+                            to={`/menu/${cat.slug}`}
+                            className="group/item flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-medium text-text-secondary dark:text-white/70 hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300"
+                          >
+                            <span className="transform group-hover/item:translate-x-2 transition-transform duration-300">{cat.name}</span>
+                            <span className="opacity-0 -translate-x-4 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-300 text-primary">→</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `relative text-sm font-medium transition-colors duration-300 py-2 ${
+                      isActive
+                        ? 'text-primary'
+                        : isSolidHeader
+                          ? 'text-text-primary dark:text-white hover:text-primary'
+                          : 'text-white/90 hover:text-white'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {link.label}
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeNav"
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
+                        />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
           </div>
 
           {/* Right section */}

@@ -211,7 +211,7 @@ const Home = () => {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
               >
-                <Link to={`/menu?category=${cat.slug}`}>
+                <Link to={`/menu/${cat.slug}`}>
                   <CategoryCard category={cat} />
                 </Link>
               </motion.div>
