@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
-import { Home, MapPin, Layers, LayoutGrid, LogOut, ExternalLink, UtensilsCrossed, Utensils, Users } from 'lucide-react';
+import { Home, MapPin, Layers, LayoutGrid, LogOut, ExternalLink, UtensilsCrossed, Utensils, Users, BookOpenCheck, Clock } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
@@ -20,18 +20,24 @@ const Sidebar: React.FC = () => {
     { name: 'Bàn', path: '/admin/tables', icon: <LayoutGrid size={18} /> },
     { name: 'Danh mục món', path: '/admin/menu-categories', icon: <UtensilsCrossed size={18} /> },
     { name: 'Món ăn', path: '/admin/menu-items', icon: <Utensils size={18} /> },
+    { name: 'Menu chi nhánh', path: '/admin/branch-menu', icon: <BookOpenCheck size={18} /> },
+    { name: 'Giờ & Sức chứa', path: '/admin/operating-hours', icon: <Clock size={18} /> },
   ];
 
-  const avatarSrc = (user as any)?.avatar || (user as any)?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Admin')}&background=FF6B35&color=fff&bold=true`;
+  const adminName = user?.fullName ? user.fullName : 'Admin';
+  const rawAdminAvatar = (user as any)?.avatar ? (user as any).avatar : (user as any)?.avatarUrl;
+  const avatarSrc = rawAdminAvatar
+    ? rawAdminAvatar
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=FF6B35&color=fff&bold=true`;
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm">
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
+      <div className="h-16 shrink-0 flex items-center px-6 border-b border-gray-200">
         <h1 className="text-xl font-bold text-primary">FoodHub Admin</h1>
       </div>
 
-      <div className="p-4 flex-1">
-        <div className="mb-6 px-2">
+      <div className="p-4 flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+        <div className="mb-4 px-2">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Menu Quản Lý</p>
         </div>
         <nav className="space-y-1">
@@ -54,17 +60,17 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 shrink-0">
         <div className="flex items-center gap-3 px-3 py-2 mb-2 bg-gray-50/80 rounded-xl border border-gray-100">
           <img
             src={avatarSrc}
-            alt={user?.fullName || 'Admin'}
+            alt={user?.fullName ? user.fullName : 'Admin'}
             className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/40 shadow-sm shrink-0"
           />
           <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-semibold text-gray-900 truncate">{user?.fullName || 'Administrator'}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{user?.fullName ? user.fullName : 'Administrator'}</p>
             <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-              {user?.role || 'ADMIN'}
+              {user?.role ? user.role : 'ADMIN'}
             </span>
           </div>
         </div>

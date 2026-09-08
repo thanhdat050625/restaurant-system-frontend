@@ -25,8 +25,8 @@ const Home = () => {
       const option = selectedOption !== null ? selectedItem.options[selectedOption] : null;
       addItem({
         ...selectedItem,
-        selectedOption: option?.name || null,
-        selectedOptionPrice: option?.priceAdd || 0,
+        selectedOption: option ? option.name : null,
+        selectedOptionPrice: option ? option.priceAdd : 0,
       });
       setSelectedItem(null);
       setSelectedOption(null);

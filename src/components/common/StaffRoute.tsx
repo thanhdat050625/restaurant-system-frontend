@@ -17,11 +17,18 @@ const StaffRoute: React.FC<StaffRouteProps> = ({ children }) => {
     );
   }
 
+  // Chưa đăng nhập -> về trang login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== 'STAFF' && user?.role !== 'ADMIN') {
+  // Nếu là ADMIN cố tình truy cập /staff -> chuyển đúng về /admin
+  if (user?.role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // Nếu không phải STAFF (ví dụ USER thường) -> về trang chủ
+  if (user?.role !== 'STAFF') {
     return <Navigate to="/" replace />;
   }
 

@@ -45,8 +45,8 @@ const TableTypes: React.FC = () => {
         setTableTypes(res);
         setMeta(null);
       } else {
-        setTableTypes(res?.data || []);
-        setMeta(res?.meta || null);
+        setTableTypes(res?.data ? res.data : []);
+        setMeta(res?.meta ? res.meta : null);
       }
     } catch (error) {
       console.error('Error fetching table types:', error);
@@ -76,7 +76,7 @@ const TableTypes: React.FC = () => {
   };
 
   const handleOpenModal = (type?: ITableType) => {
-    setSelectedTableType(type || null);
+    setSelectedTableType(type ? type : null);
     setIsModalOpen(true);
   };
 
@@ -90,7 +90,8 @@ const TableTypes: React.FC = () => {
       setIsSubmitting(true);
       if (selectedTableType) {
         const res = await tableTypeService.updateTableType(selectedTableType.id, data);
-        const updated = (res as any)?.data || res;
+        const resData = (res as any)?.data;
+        const updated = resData !== undefined ? resData : res;
         setTableTypes(prev => prev.map(t => t.id === selectedTableType.id ? { ...t, ...updated } : t));
         toast.success('Cập nhật loại bàn thành công!');
         handleCloseModal();
@@ -101,7 +102,8 @@ const TableTypes: React.FC = () => {
         fetchTableTypes(false);
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra!');
+      const errRes = error?.response?.data?.message;
+      toast.error(errRes ? errRes : 'Có lỗi xảy ra!');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -121,7 +123,8 @@ const TableTypes: React.FC = () => {
       toast.success(`Xóa loại bàn "${deleteTableType.name}" thành công!`);
       setDeleteTableType(null);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Xóa loại bàn thất bại!');
+      const errRes = error?.response?.data?.message;
+      toast.error(errRes ? errRes : 'Xóa loại bàn thất bại!');
     } finally {
       setIsDeleting(false);
     }
@@ -202,7 +205,7 @@ const TableTypes: React.FC = () => {
                     <tr key={type.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="p-3 text-sm font-medium text-gray-900">{type.name}</td>
                       <td className="p-3 text-sm text-gray-600">{type.capacity} chỗ</td>
-                      <td className="p-3 text-sm text-gray-600">{type.description || '-'}</td>
+                      <td className="p-3 text-sm text-gray-600">{type.description ? type.description : '-'}</td>
                       <td className="p-3 text-sm text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button 
@@ -240,10 +243,12 @@ const TableTypes: React.FC = () => {
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
         title={selectedTableType ? "Sửa loại bàn" : "Thêm loại bàn mới"}
+        maxWidth="max-w-lg"
       >
         <TableTypeForm 
           initialData={selectedTableType}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
         />
       </Modal>

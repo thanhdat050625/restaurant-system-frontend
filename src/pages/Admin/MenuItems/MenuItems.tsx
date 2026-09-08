@@ -44,7 +44,7 @@ const MenuItems: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const res = await menuCategoryService.getAll({ includeInactive: true, limit: 100 });
-      const list = Array.isArray(res) ? res : (res as any)?.data || [];
+      const list = Array.isArray(res) ? res : (Array.isArray((res as any)?.data) ? (res as any).data : []);
       setCategories(list);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -75,9 +75,9 @@ const MenuItems: React.FC = () => {
       }
 
       const res = await menuItemService.getAll(params);
-      const list = Array.isArray(res) ? res : (res as any)?.data || [];
+      const list = Array.isArray(res) ? res : (Array.isArray((res as any)?.data) ? (res as any).data : []);
       setItems(list);
-      setMeta((res as any)?.meta || null);
+      setMeta((res as any)?.meta ? (res as any).meta : null);
     } catch (error) {
       console.error('Error fetching menu items:', error);
       toast.error('Lỗi khi tải danh sách món ăn');
@@ -111,7 +111,7 @@ const MenuItems: React.FC = () => {
   };
 
   const handleOpenModal = (item?: MenuItem) => {
-    setSelectedItem(item || null);
+    setSelectedItem(item ? item : null);
     setIsModalOpen(true);
   };
 
@@ -125,12 +125,14 @@ const MenuItems: React.FC = () => {
       setIsSubmitting(true);
       if (selectedItem) {
         const res = await menuItemService.update(selectedItem.id, formData);
-        const updated = (res as any)?.data || res;
-        const matchedCategory = categories.find(c => c.id === (updated.categoryId || selectedItem.categoryId));
+        const resData = (res as any)?.data;
+        const updated = resData !== undefined ? resData : res;
+        const categoryIdToCheck = updated.categoryId ? updated.categoryId : selectedItem.categoryId;
+        const matchedCategory = categories.find(c => c.id === categoryIdToCheck);
         setItems(prev => prev.map(it => it.id === selectedItem.id ? { 
           ...it, 
           ...updated, 
-          category: matchedCategory || it.category 
+          category: matchedCategory ? matchedCategory : it.category 
         } : it));
         toast.success('Cập nhật món ăn thành công!');
         handleCloseModal();
@@ -141,7 +143,8 @@ const MenuItems: React.FC = () => {
         fetchMenuItems(false);
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi lưu món ăn!');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Có lỗi xảy ra khi lưu món ăn!');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -161,7 +164,8 @@ const MenuItems: React.FC = () => {
       toast.success(`Đã ẩn món "${deleteItem.name}" thành công!`);
       setDeleteItem(null);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Ẩn món ăn thất bại!');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Ẩn món ăn thất bại!');
     } finally {
       setIsDeleting(false);
     }
@@ -173,7 +177,8 @@ const MenuItems: React.FC = () => {
       setItems(prev => prev.map(it => it.id === item.id ? { ...it, isActive: true } : it));
       toast.success(`Đã hiển thị lại món "${item.name}" trên thực đơn!`);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Khôi phục hiển thị thất bại!');
+      const errMsg = error?.response?.data?.message;
+      toast.error(errMsg ? errMsg : 'Khôi phục hiển thị thất bại!');
     }
   };
 
@@ -303,7 +308,7 @@ const MenuItems: React.FC = () => {
                       </td>
                       <td className="p-3">
                         <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                          {item.category?.name || 'Chưa phân loại'}
+                          {item.category?.name ? item.category.name : 'Chưa phân loại'}
                         </span>
                       </td>
                       <td className="p-3 text-right">
@@ -381,10 +386,12 @@ const MenuItems: React.FC = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         title={selectedItem ? 'Chỉnh sửa món ăn chuỗi' : 'Thêm món ăn mới toàn chuỗi'}
+        maxWidth="max-w-2xl"
       >
         <MenuItemForm
           initialData={selectedItem}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
         />
       </Modal>

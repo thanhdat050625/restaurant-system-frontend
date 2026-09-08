@@ -89,8 +89,8 @@ const Tables: React.FC = () => {
         setTables(res);
         setMeta(null);
       } else {
-        setTables(res?.data || []);
-        setMeta(res?.meta || null);
+        setTables(res?.data ? res.data : []);
+        setMeta(res?.meta ? res.meta : null);
       }
     } catch (error) {
       console.error('Error fetching tables:', error);
@@ -130,7 +130,7 @@ const Tables: React.FC = () => {
   };
 
   const handleOpenModal = (table?: ITable) => {
-    setSelectedTable(table || null);
+    setSelectedTable(table ? table : null);
     setIsModalOpen(true);
   };
 
@@ -152,14 +152,17 @@ const Tables: React.FC = () => {
       setIsSubmitting(true);
       if (selectedTable) {
         const res = await tableService.updateTable(selectedTable.id, data);
-        const updated = (res as any)?.data || res;
-        const matchedBranch = branches.find(b => b.id === (updated.branchId || selectedTable.branchId));
-        const matchedType = tableTypes.find(tt => tt.id === (updated.tableTypeId || selectedTable.tableTypeId));
+        const resData = (res as any)?.data;
+        const updated = resData !== undefined ? resData : res;
+        const branchIdToCheck = updated.branchId ? updated.branchId : selectedTable.branchId;
+        const tableTypeIdToCheck = updated.tableTypeId ? updated.tableTypeId : selectedTable.tableTypeId;
+        const matchedBranch = branches.find(b => b.id === branchIdToCheck);
+        const matchedType = tableTypes.find(tt => tt.id === tableTypeIdToCheck);
         setTables(prev => prev.map(t => t.id === selectedTable.id ? { 
           ...t, 
           ...updated, 
-          branch: matchedBranch || t.branch, 
-          tableType: matchedType || t.tableType 
+          branch: matchedBranch ? matchedBranch : t.branch, 
+          tableType: matchedType ? matchedType : t.tableType 
         } : t));
         toast.success('Cập nhật bàn thành công!');
         handleCloseModal();
@@ -170,7 +173,8 @@ const Tables: React.FC = () => {
         fetchTablesOnly(false);
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra!');
+      const errRes = error?.response?.data?.message;
+      toast.error(errRes ? errRes : 'Có lỗi xảy ra!');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -180,12 +184,14 @@ const Tables: React.FC = () => {
   const handleBulkSubmit = async (data: BulkTableFormData) => {
     try {
       setIsSubmitting(true);
-      const res = await tableService.bulkCreateTables(data);
-      toast.success(res?.data?.message || 'Tạo hàng loạt bàn thành công!');
+      const res = await tableService.bulkCreate(data);
+      const succMsg = res?.data?.message;
+      toast.success(succMsg ? succMsg : 'Tạo hàng loạt bàn thành công!');
       handleCloseBulkModal();
       fetchTablesOnly(false);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra!');
+      const errRes = error?.response?.data?.message;
+      toast.error(errRes ? errRes : 'Có lỗi xảy ra!');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -205,7 +211,8 @@ const Tables: React.FC = () => {
       toast.success(`Xóa bàn "${deleteTable.tableNumber}" thành công!`);
       setDeleteTable(null);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Xóa bàn thất bại!');
+      const errRes = error?.response?.data?.message;
+      toast.error(errRes ? errRes : 'Xóa bàn thất bại!');
     } finally {
       setIsDeleting(false);
     }
@@ -322,8 +329,8 @@ const Tables: React.FC = () => {
                     <tr key={table.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="p-3 text-sm font-medium text-gray-900">{table.tableNumber}</td>
                       <td className="p-3 text-sm text-gray-600">Tầng {table.floor}</td>
-                      <td className="p-3 text-sm text-gray-600">{table.branch?.name || 'N/A'}</td>
-                      <td className="p-3 text-sm text-gray-600">{table.tableType?.name || 'N/A'}</td>
+                      <td className="p-3 text-sm text-gray-600">{table.branch?.name ? table.branch.name : 'N/A'}</td>
+                      <td className="p-3 text-sm text-gray-600">{table.tableType?.name ? table.tableType.name : 'N/A'}</td>
                       <td className="p-3 text-sm text-center">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${table.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
                           table.status === 'OCCUPIED' ? 'bg-red-100 text-red-800' :
@@ -379,6 +386,7 @@ const Tables: React.FC = () => {
           branches={branches}
           tableTypes={tableTypes}
           onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
           isLoading={isSubmitting}
           selectedBranchId={selectedBranchId !== 'ALL' ? selectedBranchId : ''}
         />
@@ -395,6 +403,7 @@ const Tables: React.FC = () => {
           branches={branches}
           tableTypes={tableTypes}
           onSubmit={handleBulkSubmit}
+          onCancel={handleCloseBulkModal}
           isLoading={isSubmitting}
           selectedBranchId={selectedBranchId !== 'ALL' ? selectedBranchId : ''}
         />

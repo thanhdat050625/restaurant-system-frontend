@@ -24,10 +24,11 @@ export type MenuItemFormData = z.infer<typeof menuItemSchema>;
 interface MenuItemFormProps {
   initialData?: MenuItem | null;
   onSubmit: (data: any) => Promise<void>;
+  onCancel?: () => void;
   isLoading?: boolean;
 }
 
-const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLoading = false }) => {
+const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, onCancel, isLoading = false }) => {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(false);
 
@@ -59,7 +60,7 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
     try {
       setLoadingCategories(true);
       const res = await menuCategoryService.getAll(false);
-      const list = Array.isArray(res) ? res : (res as any)?.data || [];
+      const list = Array.isArray(res) ? res : (Array.isArray((res as any)?.data) ? (res as any).data : []);
       setCategories(list);
     } catch (error) {
       console.error('Error fetching categories for dropdown:', error);
@@ -74,18 +75,18 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
       reset({
         name: initialData.name,
         categoryId: initialData.categoryId,
-        price: Number(initialData.price) || 0,
+        price: Number(initialData.price),
         originalPrice: initialData.originalPrice ? Number(initialData.originalPrice) : null,
-        description: initialData.description || '',
-        imageUrl: initialData.imageUrl || '',
-        preparationTime: initialData.preparationTime ?? 15,
+        description: initialData.description ? initialData.description : '',
+        imageUrl: initialData.imageUrl ? initialData.imageUrl : '',
+        preparationTime: initialData.preparationTime !== undefined && initialData.preparationTime !== null ? initialData.preparationTime : 15,
         isFeatured: initialData.isFeatured,
         isActive: initialData.isActive,
       });
     } else {
       reset({
         name: '',
-        categoryId: categories[0]?.id || '',
+        categoryId: categories.length > 0 ? categories[0].id : '',
         price: 0,
         originalPrice: null,
         description: '',
@@ -98,24 +99,28 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
   }, [initialData, categories, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 font-sans">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tên món ăn *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Tên món ăn <span className="text-red-500">*</span>
+          </label>
           <input
             {...register('name')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
             placeholder="Ví dụ: Bò Wagyu Nướng..."
           />
-          {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+          {errors.name && <p className="mt-1 text-xs text-red-600 font-medium">{errors.name.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Danh mục <span className="text-red-500">*</span>
+          </label>
           <select
             {...register('categoryId')}
             disabled={loadingCategories}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors bg-white"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           >
             <option value="">-- Chọn danh mục --</option>
             {categories.map((cat) => (
@@ -124,74 +129,84 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
               </option>
             ))}
           </select>
-          {errors.categoryId && <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>}
+          {errors.categoryId && <p className="mt-1 text-xs text-red-600 font-medium">{errors.categoryId.message}</p>}
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Giá bán (VND) *</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Giá bán (VND) <span className="text-red-500">*</span>
+          </label>
           <input
             type="number"
             step="1000"
             {...register('price', { valueAsNumber: true })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
             placeholder="65000"
           />
-          {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>}
+          {errors.price && <p className="mt-1 text-xs text-red-600 font-medium">{errors.price.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Giá gốc (nếu có giảm giá)</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Giá gốc (nếu có giảm)
+          </label>
           <input
             type="number"
             step="1000"
             {...register('originalPrice', { 
               setValueAs: (v) => (v === '' || isNaN(v) ? null : Number(v)) 
             })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
             placeholder="85000"
           />
-          {errors.originalPrice && <p className="mt-1 text-sm text-red-600">{errors.originalPrice.message}</p>}
+          {errors.originalPrice && <p className="mt-1 text-xs text-red-600 font-medium">{errors.originalPrice.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian chuẩn bị (phút)</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Thời gian chuẩn bị (phút)
+          </label>
           <input
             type="number"
             {...register('preparationTime', { 
               setValueAs: (v) => (v === '' || isNaN(v) ? null : Number(v)) 
             })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
             placeholder="15"
           />
-          {errors.preparationTime && <p className="mt-1 text-sm text-red-600">{errors.preparationTime.message}</p>}
+          {errors.preparationTime && <p className="mt-1 text-xs text-red-600 font-medium">{errors.preparationTime.message}</p>}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Đường dẫn ảnh (Cloudinary URL)</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Đường dẫn ảnh (Cloudinary URL)
+        </label>
         <input
           {...register('imageUrl', {
             setValueAs: (v) => (v === '' ? null : v)
           })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
           placeholder="https://res.cloudinary.com/..."
         />
-        {errors.imageUrl && <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>}
+        {errors.imageUrl && <p className="mt-1 text-xs text-red-600 font-medium">{errors.imageUrl.message}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả món ăn</label>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Mô tả món ăn
+        </label>
         <textarea
           {...register('description', {
             setValueAs: (v) => (v === '' ? null : v)
           })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"
+          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs custom-scrollbar resize-none"
           placeholder="Mô tả thành phần, hương vị đặc trưng..."
           rows={3}
         />
-        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
+        {errors.description && <p className="mt-1 text-xs text-red-600 font-medium">{errors.description.message}</p>}
       </div>
 
       <div className="flex flex-wrap gap-6 pt-2">
@@ -199,20 +214,30 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, isLo
           <input
             type="checkbox"
             {...register('isFeatured')}
-            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded-md cursor-pointer"
           />
           <span className="text-sm font-medium text-gray-700">Món nổi bật / Bán chạy (Best Seller)</span>
         </label>
       </div>
 
-      <div className="pt-4 flex justify-end gap-3 border-t mt-6 border-gray-100">
+      <div className="pt-4 flex items-center justify-end gap-3 border-t mt-6 border-gray-100">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            Hủy
+          </button>
+        )}
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-2 bg-primary text-white font-medium rounded-md hover:bg-primary-dark transition-colors disabled:opacity-70 flex items-center gap-2"
+          className="px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer"
         >
           {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-          {initialData ? 'Cập nhật món ăn' : 'Thêm món ăn mới'}
+          <span>{initialData ? 'Cập nhật món ăn' : 'Thêm món ăn mới'}</span>
         </button>
       </div>
     </form>

@@ -45,6 +45,12 @@ const Header = () => {
     { to: '/contact', label: 'Liên hệ' },
   ];
 
+  const headerUserName = user?.fullName ? user.fullName : (user?.username ? user.username : 'User');
+  const headerUserAvatar = user?.avatar ? user.avatar : user?.avatarUrl;
+  const headerAvatarSrc = headerUserAvatar
+    ? headerUserAvatar
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(headerUserName)}&background=FF6B35&color=fff&bold=true`;
+
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       isSolidHeader
@@ -191,8 +197,8 @@ const Header = () => {
                   }`}
                 >
                   <img 
-                    src={user?.avatar || user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || user?.username || 'User')}&background=FF6B35&color=fff&bold=true`} 
-                    alt={user?.fullName || user?.username || 'User'} 
+                    src={headerAvatarSrc} 
+                    alt={headerUserName} 
                     className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/50" 
                   />
                   <ChevronDown size={16} className={isSolidHeader ? 'text-text-primary dark:text-white' : 'text-white'} />

@@ -2,15 +2,32 @@ import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
+  subtitle?: string;
   children: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   maxWidth?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidth = 'max-w-md' }) => {
+const sizeClasses: Record<string, string> = {
+  sm: 'max-w-md',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
+};
+
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  children,
+  size = 'md',
+  maxWidth,
+}) => {
   // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -32,46 +49,60 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidt
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
+  const effectiveMaxWidth = maxWidth ? maxWidth : (sizeClasses[size] ? sizeClasses[size] : 'max-w-lg');
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
             onClick={onClose}
           />
 
-          {/* Modal Content */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
-              className={`bg-white rounded-2xl shadow-xl w-full ${maxWidth} pointer-events-auto flex flex-col max-h-[90vh]`}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.28 }}
+            className={`relative w-full ${effectiveMaxWidth} bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh] overflow-hidden font-sans z-10 pointer-events-auto`}
+          >
+            {/* Header */}
+            {title && (
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white shrink-0">
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight font-sans">
+                    {title}
+                  </h3>
+                  {subtitle && (
+                    <p className="text-xs text-gray-500 mt-0.5 font-medium">
+                      {subtitle}
+                    </p>
+                  )}
+                </div>
                 <button
+                  type="button"
                   onClick={onClose}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                  title="Đóng (Esc)"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
+            )}
 
-              {/* Body */}
-              <div className="p-6 overflow-y-auto custom-scrollbar">
-                {children}
-              </div>
-            </motion.div>
-          </div>
-        </>
+            {/* Body */}
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white">
+              {children}
+            </div>
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

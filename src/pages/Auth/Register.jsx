@@ -75,13 +75,13 @@ const Register = () => {
       if (response?.success) {
         setIsOtpSent(true);
         setSuccessMessage(
-          response.message || 'Mã OTP đã được gửi đến email của bạn!',
+          response.message ? response.message : 'Mã OTP đã được gửi đến email của bạn!',
         );
       }
     } catch (error) {
+      const resMsg = error?.response?.data?.message;
       setError(
-        error?.response?.data?.message ||
-        'Không thể gửi mã OTP. Vui lòng thử lại.',
+        resMsg ? resMsg : 'Không thể gửi mã OTP. Vui lòng thử lại.',
       );
     } finally {
       setIsSendingOtp(false);
@@ -118,9 +118,9 @@ const Register = () => {
         }, 2500);
       }
     } catch (error) {
+      const resMsg = error?.response?.data?.message;
       setError(
-        error?.response?.data?.message ||
-        'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
+        resMsg ? resMsg : 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
       );
     }
   };
