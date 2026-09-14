@@ -11,6 +11,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [hoveredCat, setHoveredCat] = useState(categories[0]);
   const { totalItems } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
@@ -102,22 +103,97 @@ const Header = () => {
                         </>
                       )}
                     </NavLink>
-                    {/* Dropdown Menu */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-60 opacity-0 invisible translate-y-3 scale-95 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top z-50">
-                      <div className="bg-white/95 dark:bg-[#1A1A1A]/95 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/5 overflow-hidden p-2">
-                        {categories.map(cat => (
-                          <Link
-                            key={cat.id}
-                            to={`/menu/${cat.slug}`}
-                            className="group/item flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-medium text-text-secondary dark:text-white/70 hover:text-primary dark:hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-300"
-                          >
-                            <span className="transform group-hover/item:translate-x-2 transition-transform duration-300">{cat.name}</span>
-                            <span className="opacity-0 -translate-x-4 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-300 text-primary">→</span>
-                          </Link>
-                        ))}
+
+                    {/* Dropdown — 2 columns */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-5 w-[480px] opacity-0 invisible translate-y-3 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 ease-out origin-top z-50">
+                      <div className={`rounded-2xl overflow-hidden shadow-[0_24px_48px_-8px_rgba(0,0,0,0.2)] dark:shadow-[0_24px_48px_-8px_rgba(0,0,0,0.5)] ${
+                        isSolidHeader
+                          ? 'bg-white/95 dark:bg-[#16213E]/95 backdrop-blur-xl border border-black/5 dark:border-white/5'
+                          : 'bg-dark/90 backdrop-blur-xl border border-white/10'
+                      }`}>
+                        {/* Header label */}
+                        <div className={`px-5 py-3 border-b text-[10px] font-bold uppercase tracking-widest ${
+                          isSolidHeader
+                            ? 'border-black/5 dark:border-white/5 text-text-light dark:text-white/30'
+                            : 'border-white/10 text-white/30'
+                        }`}>
+                          Danh mục
+                        </div>
+
+                        <div className="flex">
+                          {/* Left — category list */}
+                          <div className="flex-1 py-2">
+                            {categories.map(cat => (
+                              <Link
+                                key={cat.id}
+                                to={`/menu/${cat.slug}`}
+                                onMouseEnter={() => setHoveredCat(cat)}
+                                className={`group/item flex items-center justify-between px-5 py-2.5 transition-all duration-200 ${
+                                  isSolidHeader
+                                    ? 'hover:bg-primary/5 dark:hover:bg-primary/10'
+                                    : 'hover:bg-white/8'
+                                }`}
+                              >
+                                <div>
+                                  <p className={`text-sm font-medium transition-colors duration-200 ${
+                                    isSolidHeader
+                                      ? 'text-text-primary dark:text-white/80 group-hover/item:text-primary'
+                                      : 'text-white/80 group-hover/item:text-white'
+                                  }`}>
+                                    {cat.name}
+                                  </p>
+                                  <p className="text-xs text-text-light dark:text-white/30 mt-0.5">
+                                    {cat.itemCount} món
+                                  </p>
+                                </div>
+                                <span className={`text-xs opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-200 ${
+                                  isSolidHeader ? 'text-primary' : 'text-white/60'
+                                }`}>
+                                  →
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+
+                          {/* Right — image preview, updates on category hover */}
+                          <div className={`w-44 shrink-0 border-l ${
+                            isSolidHeader ? 'border-black/5 dark:border-white/5' : 'border-white/10'
+                          }`}>
+                            <div className="relative h-full min-h-[280px] overflow-hidden">
+                              <AnimatePresence mode="wait">
+                                <motion.img
+                                  key={hoveredCat.id}
+                                  src={hoveredCat.image}
+                                  alt={hoveredCat.name}
+                                  initial={{ opacity: 0, scale: 1.05 }}
+                                  animate={{ opacity: 0.75, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.98 }}
+                                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                                  className="absolute inset-0 w-full h-full object-cover"
+                                />
+                              </AnimatePresence>
+                              <div className="absolute inset-0 bg-gradient-to-t from-dark/85 via-dark/20 to-transparent" />
+                              <div className="absolute bottom-4 left-3 right-3">
+                                <AnimatePresence mode="wait">
+                                  <motion.div
+                                    key={hoveredCat.id + '-text'}
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -4 }}
+                                    transition={{ duration: 0.2 }}
+                                  >
+                                    <p className="text-white text-xs font-semibold">{hoveredCat.name}</p>
+                                    <p className="text-white/60 text-[11px] mt-0.5">{hoveredCat.itemCount} món</p>
+                                  </motion.div>
+                                </AnimatePresence>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+
                 );
               }
               return (
