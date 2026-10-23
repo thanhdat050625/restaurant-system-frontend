@@ -1,5 +1,13 @@
 # FRONTEND AGENT RULES (FoodHub / RRMS Frontend)
 
+Tài liệu kiến trúc chi tiết (Source of Truth): `web_architecture/`
+- [README.md](web_architecture/README.md)
+- [design.md](web_architecture/design/design.md)
+- [architecture/](web_architecture/architecture/README.md)
+- [navigation/](web_architecture/navigation/README.md)
+- [localization/](web_architecture/localization/README.md)
+- [feature-development/](web_architecture/feature-development/README.md)
+
 > **BẮT BUỘC TUÂN THỦ ĐỐI VỚI MỌI THAO TÁC CỦA AGENT TRÊN FRONTEND**:
 > 
 > 1. **Không hardcode API Base URL**:

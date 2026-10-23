@@ -1,6 +1,13 @@
 # Frontend Architecture Rules (React + Vite + TypeScript)
 
-Mọi thay đổi mã nguồn Front-end phải tuân thủ nghiêm ngặt các quy định kiến trúc sau:
+Mọi thay đổi mã nguồn Front-end phải tuân thủ nghiêm ngặt các quy định kiến trúc sau.
+Tài liệu kiến trúc chi tiết (Source of Truth): `web_architecture/`
+- [README.md](../../web_architecture/README.md)
+- [design.md](../../web_architecture/design/design.md)
+- [architecture/](../../web_architecture/architecture/README.md)
+- [navigation/](../../web_architecture/navigation/README.md)
+- [localization/](../../web_architecture/localization/README.md)
+- [feature-development/](../../web_architecture/feature-development/README.md)
 
 ## 1. Cấu Trúc Thư Mục & Phân Tầng
 - `src/components/`: Chứa các UI component dùng chung (`common/`, `ui/`, `Admin/`, `Staff/`).

@@ -11,7 +11,7 @@ Không được nhảy thẳng vào viết code hoặc thực hiện thay đổi
 2. **Inspect Repository (Kiểm tra kho lưu trữ)**
    - Kiểm tra trạng thái git hiện tại (`git status`, branch hiện tại).
 3. **Inspect Architecture (Kiểm tra kiến trúc)**
-   - Đọc các tài liệu kiến trúc Frontend trong `fe-architecture-rules.md`, `fe-ui-ux-rules.md` và `AGENTS.md`.
+   - Đọc các tài liệu kiến trúc Frontend trong `fe-architecture-rules.md`, `fe-ui-ux-rules.md`, `AGENTS.md` và chi tiết tại `web_architecture/` (kèm `web_architecture/design/design.md`).
 4. **Inspect Existing Implementation (Kiểm tra mã nguồn hiện tại)**
    - Tìm các component, page, service liên quan trong `src/`.
    - Đánh giá khả năng tái sử dụng component (nút bấm, modal, form input).
