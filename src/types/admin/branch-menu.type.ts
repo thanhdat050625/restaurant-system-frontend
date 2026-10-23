@@ -6,9 +6,9 @@ export interface IBranchMenuItem {
   id: string;
   branchId: string;
   menuItemId: string;
-  isAvailable: boolean; // Còn hàng / Tạm hết hôm nay
-  isActive: boolean; // Chi nhánh có kinh doanh món này không
-  priceOverride?: number | string | null; // Giá riêng của chi nhánh
+  isAvailable: boolean;
+  isActive: boolean;
+  priceOverride?: number | string | null;
   createdAt: string;
   updatedAt: string;
   menuItem: MenuItem & {

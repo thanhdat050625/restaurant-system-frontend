@@ -8,7 +8,7 @@ const StaffTopbar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
 
-  const initialBranchName = (user as any)?.branch?.name ? (user as any).branch.name : ((user as any)?.branchName ? (user as any).branchName : '');
+  const initialBranchName = (user as any)?.branch?.name || (user as any)?.branchName || '';
   const [branchName, setBranchName] = useState<string>(initialBranchName);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const StaffTopbar: React.FC = () => {
             setBranchName(b.name);
           }
         })
-        .catch((err) => console.error('Error fetching branch for topbar:', err));
+        .catch(() => {});
     }
   }, [user]);
 
@@ -43,7 +43,7 @@ const StaffTopbar: React.FC = () => {
     }
   };
 
-  const displayName = branchName ? branchName : 'Đang tải cơ sở...';
+  const displayName = branchName || 'Đang tải cơ sở...';
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
@@ -52,7 +52,6 @@ const StaffTopbar: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Working Branch Badge - Hiển thị đầy đủ tên chi nhánh không bị cắt */}
         <div className="flex items-center gap-2.5 px-3.5 py-1.5 bg-orange-50/80 border border-orange-200/80 rounded-xl shadow-2xs">
           <Building2 size={16} className="text-primary shrink-0" />
           <div className="flex flex-col">
@@ -65,7 +64,6 @@ const StaffTopbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Shift status */}
         <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-xl text-xs font-bold">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>Trong ca trực</span>
