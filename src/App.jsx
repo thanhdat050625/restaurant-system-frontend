@@ -13,6 +13,7 @@ import Menu from './pages/Menu/Menu';
 import Cart from './pages/Cart/Cart';
 import Checkout from './pages/Checkout/Checkout';
 import Reservation from './pages/Reservation/Reservation';
+import BranchesPage from './pages/Branches/BranchesPage';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
@@ -71,6 +72,7 @@ const Layout = () => {
           <Route path="/" element={<Home />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/menu/:categorySlug" element={<Menu />} />
+          <Route path="/branches" element={<BranchesPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/reservation" element={<Reservation />} />
