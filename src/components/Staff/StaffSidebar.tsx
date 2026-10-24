@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Building2,
   Clock,
+  Sparkles,
 } from 'lucide-react';
 
 const StaffSidebar: React.FC = () => {
@@ -44,6 +45,7 @@ const StaffSidebar: React.FC = () => {
 
   const navItems = [
     { name: 'Menu chi nhánh', path: '/staff/menu', icon: <BookOpenCheck size={18} /> },
+    { name: 'Dọn & Xoay vòng bàn', path: '/staff/table-turnover', icon: <Sparkles size={18} /> },
     { name: 'Giờ & Sức chứa', path: '/staff/operating-hours', icon: <Clock size={18} /> },
   ];
 

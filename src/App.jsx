@@ -28,6 +28,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import StaffRoute from './components/common/StaffRoute';
 import StaffLayout from './layouts/staff/StaffLayout';
 import StaffOperatingHours from './pages/Staff/StaffOperatingHours';
+import StaffTableTurnover from './pages/Staff/StaffTableTurnover';
 
 // Admin Imports
 import AdminRoute from './components/common/AdminRoute';
@@ -97,6 +98,7 @@ const Layout = () => {
           >
             <Route index element={<Navigate to="/staff/menu" replace />} />
             <Route path="menu" element={<BranchMenu />} />
+            <Route path="table-turnover" element={<StaffTableTurnover />} />
             <Route path="operating-hours" element={<StaffOperatingHours />} />
           </Route>
 
