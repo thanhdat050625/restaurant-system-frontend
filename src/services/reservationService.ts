@@ -4,6 +4,7 @@ import {
   ICreateReservationDto,
   IReservation,
   IAvailableSlotsResponse,
+  IPreOrderItem,
 } from '../types/reservation.type';
 
 export const reservationService = {
@@ -34,5 +35,16 @@ export const reservationService = {
     reason?: string,
   ): Promise<ApiResponse<IReservation>> => {
     return await apiClient.patch(`/reservations/${id}/cancel`, { reason });
+  },
+
+  getPreOrders: async (reservationId: string): Promise<ApiResponse<any>> => {
+    return await apiClient.get(`/reservations/${reservationId}/pre-orders`);
+  },
+
+  updatePreOrders: async (
+    reservationId: string,
+    items: IPreOrderItem[],
+  ): Promise<ApiResponse<any>> => {
+    return await apiClient.put(`/reservations/${reservationId}/pre-orders`, { items });
   },
 };
