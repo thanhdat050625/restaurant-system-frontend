@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronLeft, CheckCircle2, Phone, Mail, User, FileText, UtensilsCrossed } from 'lucide-react';
 import { IPreOrderItem } from '../../types/reservation.type';
+import { ITable } from '../../types/admin/table.type';
 import { formatPrice } from '../../utils/helpers';
 
 interface ReservationContactStepProps {
@@ -16,6 +17,7 @@ interface ReservationContactStepProps {
   date: string;
   time: string;
   guests: number;
+  selectedTable?: ITable | null;
   preOrders: IPreOrderItem[];
   isSubmitting: boolean;
   onBack: () => void;
@@ -35,6 +37,7 @@ export const ReservationContactStep: React.FC<ReservationContactStepProps> = ({
   date,
   time,
   guests,
+  selectedTable,
   preOrders,
   isSubmitting,
   onBack,
@@ -114,6 +117,17 @@ export const ReservationContactStep: React.FC<ReservationContactStepProps> = ({
             <span>Số lượng khách:</span>
             <strong className="text-slate-800 dark:text-slate-100">{guests} người</strong>
           </div>
+          {selectedTable ? (
+            <div className="flex justify-between py-1.5 text-primary">
+              <span>Bàn đã chọn:</span>
+              <strong className="font-bold">Bàn {selectedTable.tableNumber} (Tầng {selectedTable.floor || 1})</strong>
+            </div>
+          ) : (
+            <div className="flex justify-between py-1.5 text-slate-500">
+              <span>Vị trí bàn:</span>
+              <span>Nhà hàng tự động sắp xếp</span>
+            </div>
+          )}
           {preOrders.length > 0 && (
             <div className="py-2 space-y-1">
               <div className="flex justify-between font-semibold text-primary">

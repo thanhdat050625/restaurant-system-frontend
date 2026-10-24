@@ -21,6 +21,44 @@ export const menuItems = [
   { id: 20, name: 'Cà Phê Sữa Đá', slug: 'ca-phe', categoryId: 7, price: 35000, originalPrice: null, image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefda?w=1920&q=85', description: 'Cà phê phin truyền thống Việt Nam.', rating: 4.9, reviewCount: 321, isPopular: true, isNew: false, dietary: ['Chay'], preparationTime: 5, options: [] },
   { id: 21, name: 'Bún Chay Huế', slug: 'bun-chay', categoryId: 8, price: 75000, originalPrice: null, image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1920&q=85', description: 'Bún chay kiểu Huế với nấm và đậu hũ.', rating: 4.6, reviewCount: 78, isPopular: false, isNew: true, dietary: ['Chay'], preparationTime: 15, options: [] },
   { id: 22, name: 'Salad Quinoa & Bơ', slug: 'salad-quinoa', categoryId: 8, price: 95000, originalPrice: null, image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1920&q=85', description: 'Salad quinoa với bơ tươi và sốt mè rang.', rating: 4.7, reviewCount: 65, isPopular: false, isNew: false, dietary: ['Chay', 'Không Gluten'], preparationTime: 10, options: [] },
+
+  // ===== COMBO ITEMS =====
+  {
+    id: 101, name: 'Set Bò Thượng Hạng', slug: 'set-bo-thuong-hang', categoryId: 2,
+    price: 499000, originalPrice: 620000,
+    image: 'https://images.unsplash.com/photo-1558030006-450675393462?w=1920&q=85',
+    description: 'Trọn bộ thịt bò cao cấp cho 1 người thưởng thức.',
+    comboIncludes: ['Bò Wagyu Nướng Tiêu Đen', 'Soup Bí Đỏ Kem Tươi', 'Cơm Chiên Hải Sản', 'Trà Đào Cam Sả'],
+    rating: 4.9, reviewCount: 312, isPopular: true, isNew: false, isCombo: true,
+    dietary: [], preparationTime: 30, options: []
+  },
+  {
+    id: 102, name: 'Combo Hải Sản Hoàng Gia', slug: 'combo-hai-san-hoang-gia', categoryId: 4,
+    price: 680000, originalPrice: 850000,
+    image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=1920&q=85',
+    description: 'Đặc sản hải sản cao cấp cho 2 người, chuẩn vị Nhật.',
+    comboIncludes: ['Combo Sushi Premium (12 miếng)', 'Sashimi Cá Hồi', 'Súp Miso', 'Trà Xanh Nhật Bản'],
+    rating: 4.8, reviewCount: 187, isPopular: true, isNew: false, isCombo: true,
+    dietary: ['Không Gluten'], preparationTime: 20, options: []
+  },
+  {
+    id: 103, name: 'Family Set Cuối Tuần', slug: 'family-set-cuoi-tuan', categoryId: 2,
+    price: 990000, originalPrice: 1280000,
+    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920&q=85',
+    description: 'Bàn tiệc đầy đủ cho gia đình 4 người, tiết kiệm đến 22%.',
+    comboIncludes: ['Gỏi Cuốn Tôm Thịt', 'Gà Nướng Mật Ong', 'Pizza Hải Sản (L)', 'Cơm Chiên Hải Sản x2', 'Lava Cake Chocolate', 'Sinh Tố Bơ x4'],
+    rating: 4.9, reviewCount: 445, isPopular: true, isNew: false, isCombo: true,
+    dietary: [], preparationTime: 40, options: []
+  },
+  {
+    id: 104, name: 'Set Lãng Mạn Cho Đôi', slug: 'set-lang-man-doi', categoryId: 2,
+    price: 750000, originalPrice: 920000,
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=85',
+    description: 'Bữa tối lãng mạn dành cho 2 người, không gian ấm cúng.',
+    comboIncludes: ['Cá Hồi Áp Chảo', 'Bò Wagyu Nướng Tiêu Đen', 'Tiramisu Truyền Thống x2', 'Rượu vang đỏ / Trà Hoa'],
+    rating: 4.8, reviewCount: 278, isPopular: false, isNew: true, isCombo: true,
+    dietary: [], preparationTime: 35, options: []
+  },
 ];
 
 export default menuItems;

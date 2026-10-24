@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Truck, Clock, Star, UtensilsCrossed, CalendarCheck, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Clock, Star, CalendarCheck, ShoppingBag } from 'lucide-react';
 import PageWrapper from '../../layouts/PageWrapper';
 import MenuCard from '../../components/common/MenuCard';
-import CategoryCard from '../../components/common/CategoryCard';
+import ComboCard from '../../components/common/ComboCard';
 import ReviewCard from '../../components/common/ReviewCard';
 import Modal from '../../components/ui/Modal';
 import { menuItems } from '../../assets/data/menuData';
@@ -19,6 +19,7 @@ const Home = () => {
   const { addItem } = useCart();
 
   const popularItems = menuItems.filter(item => item.isPopular).slice(0, 8);
+  const comboItems = menuItems.filter(item => item.isCombo);
 
   const handleAddFromModal = () => {
     if (selectedItem) {
@@ -132,13 +133,13 @@ const Home = () => {
       </section>
 
       {/* ===== HOW IT WORKS ===== */}
-      <section className="py-20 bg-light dark:bg-dark">
+      <section className="py-20 bg-light dark:bg-dark overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-14"
+            className="text-center mb-16"
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)] mb-4">
               Cách <span className="text-primary">Hoạt Động</span>
@@ -148,11 +149,11 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-light-border dark:divide-dark-border">
             {[
-              { icon: UtensilsCrossed, title: 'Chọn Món', desc: 'Duyệt thực đơn đa dạng và chọn món yêu thích của bạn', color: 'from-primary to-primary-dark' },
-              { icon: ShoppingBag, title: 'Đặt Hàng', desc: 'Xác nhận đơn hàng, chọn giao tận nơi hoặc đặt bàn', color: 'from-secondary to-secondary-dark' },
-              { icon: Truck, title: 'Thưởng Thức', desc: 'Nhận món tại nhà hoặc đến nhà hàng thưởng thức', color: 'from-accent to-accent-dark' },
+              { num: '01', title: 'Chọn Món', desc: 'Duyệt thực đơn đa dạng và chọn món yêu thích của bạn từ hơn 500 lựa chọn.' },
+              { num: '02', title: 'Đặt Hàng', desc: 'Xác nhận đơn hàng, chọn giao tận nơi hoặc đặt bàn trước tại nhà hàng.' },
+              { num: '03', title: 'Thưởng Thức', desc: 'Nhận món tại nhà hoặc đến nhà hàng tận hưởng không gian ẩm thực tuyệt vời.' },
             ].map((step, i) => (
               <motion.div
                 key={i}
@@ -160,18 +161,16 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}
-                className="relative text-center p-8 bg-white dark:bg-dark-surface rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 group hover:-translate-y-2"
+                className="relative px-10 py-12 bg-white dark:bg-dark-surface group hover:bg-primary/2 dark:hover:bg-primary/5 transition-colors duration-300"
               >
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-primary text-white text-sm font-bold rounded-full flex items-center justify-center shadow-lg">
-                  {i + 1}
-                </div>
-                <div className={`w-16 h-16 bg-gradient-to-br ${step.color} rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                  <step.icon size={28} className="text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-text-primary dark:text-white mb-2 font-[family-name:var(--font-heading)]">
+                {/* Big editorial number */}
+                <p className="text-[96px] font-bold leading-none text-primary/8 dark:text-primary/10 font-[family-name:var(--font-heading)] mb-2 group-hover:text-primary/12 transition-colors duration-500 select-none">
+                  {step.num}
+                </p>
+                <h3 className="text-xl font-bold text-text-primary dark:text-white mb-3 font-[family-name:var(--font-heading)]">
                   {step.title}
                 </h3>
-                <p className="text-text-secondary dark:text-text-light text-sm">{step.desc}</p>
+                <p className="text-text-secondary dark:text-text-light text-sm leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -179,7 +178,7 @@ const Home = () => {
       </section>
 
       {/* ===== CATEGORIES ===== */}
-      <section className="py-10 bg-white dark:bg-dark-surface">
+      <section className="py-16 bg-white dark:bg-dark-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -202,17 +201,34 @@ const Home = () => {
             </Link>
           </motion.div>
 
-          <div className="flex gap-4 overflow-x-auto pt-4 pb-4 px-2 -mx-2 scrollbar-hide">
+          {/* Image-based category grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {categories.map((cat, i) => (
               <motion.div
                 key={cat.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
+                transition={{ delay: i * 0.06 }}
               >
-                <Link to={`/menu/${cat.slug}`}>
-                  <CategoryCard category={cat} />
+                <Link
+                  to={`/menu/${cat.slug}`}
+                  className="group relative block aspect-[4/3] rounded-2xl overflow-hidden"
+                >
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark/75 via-dark/20 to-transparent" />
+                  {/* Text */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="text-white font-semibold text-sm leading-tight">{cat.name}</p>
+                    <p className="text-white/60 text-xs mt-0.5">{cat.itemCount} món</p>
+                  </div>
+                  {/* Hover accent line */}
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </Link>
               </motion.div>
             ))}
@@ -220,7 +236,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ===== POPULAR DISHES ===== */}
+      {/* ===== COMBO ĐẶC BIỆT ===== */}
       <section className="py-20 bg-light dark:bg-dark">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -231,35 +247,39 @@ const Home = () => {
           >
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)] mb-2">
-                Món Ăn <span className="text-primary">Phổ Biến</span>
+                Combo <span className="text-secondary">Đặc Biệt</span>
               </h2>
-              <p className="text-text-secondary dark:text-text-light">Được yêu thích nhất bởi khách hàng</p>
+              <p className="text-text-secondary dark:text-text-light">Trọn bộ tốt nhất — tiết kiệm hơn, trải nghiệm hơn</p>
             </div>
             <Link
               to="/menu"
-              className="hidden sm:inline-flex items-center gap-2 text-primary hover:text-primary-dark font-semibold transition-colors group"
+              className="hidden sm:inline-flex items-center gap-2 text-secondary hover:text-secondary-dark font-semibold transition-colors group"
             >
               Xem thực đơn
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularItems.map(item => (
-              <MenuCard
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {comboItems.map((item, i) => (
+              <motion.div
                 key={item.id}
-                item={item}
-                onQuickView={setSelectedItem}
-              />
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <ComboCard item={item} />
+              </motion.div>
             ))}
           </div>
 
           <div className="text-center mt-10 sm:hidden">
             <Link
               to="/menu"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-full transition-all hover:scale-105"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-secondary hover:bg-secondary-dark text-white font-semibold rounded-full transition-all hover:scale-105"
             >
-              Xem thực đơn đầy đủ <ArrowRight size={18} />
+              Xem tất cả combo <ArrowRight size={18} />
             </Link>
           </div>
         </div>

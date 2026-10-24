@@ -1,6 +1,6 @@
 import apiClient from '../api';
 import { ApiResponse } from '../../types/api-response.type';
-import { ITable, QueryRestaurantTableParams } from '../../types/admin/table.type';
+import { ITable, QueryRestaurantTableParams, SearchAvailableTablesParams } from '../../types/admin/table.type';
 
 export interface ITableTurnoverSummary {
   total: number;
@@ -43,6 +43,13 @@ export const tableService = {
 
   getTableById: async (id: string): Promise<ApiResponse<ITable>> => {
     return await apiClient.get(`/tables/${id}`);
+  },
+
+  /**
+   * Tìm kiếm bàn trống theo chi nhánh, số khách, tầng (kèm trạng thái lock thời gian thực)
+   */
+  searchAvailableTables: async (params: SearchAvailableTablesParams): Promise<ApiResponse<ITable[]>> => {
+    return await apiClient.get('/tables/search-available', { params });
   },
 
   createTable: async (data: Partial<ITable>): Promise<ApiResponse<ITable>> => {

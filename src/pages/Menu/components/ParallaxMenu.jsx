@@ -2,8 +2,21 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Clock, Plus, ShoppingBag, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { menuItems } from '../../../assets/data/menuData';
-import { categories } from '../../../assets/data/categoryData';
+import { menuItems as fallbackMenuItems } from '../../../assets/data/menuData';
+import { categories as fallbackCategories } from '../../../assets/data/categoryData';
+import { publicMenuService } from '../../../services/publicMenuService';
+
+const toSlug = (str) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+};
 import { useCart } from '../../../features/menu/CartContext';
 import { formatPrice } from '../../../utils/helpers';
 
@@ -207,23 +220,70 @@ const ParallaxMenu = () => {
   const [detailItem, setDetailItem] = useState(null);
   const { addItem } = useCart();
 
+  const [dbItems, setDbItems] = useState([]);
+  const [dbCategories, setDbCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch real menu from Backend API
+  useEffect(() => {
+    let isMounted = true;
+    const loadMenu = async () => {
+      try {
+        setLoading(true);
+        const [cats, items] = await Promise.all([
+          publicMenuService.getCategories(),
+          publicMenuService.getMenuItems({ limit: 100 }),
+        ]);
+        if (isMounted) {
+          if (cats && cats.length > 0) setDbCategories(cats);
+          if (items && items.length > 0) setDbItems(items);
+        }
+      } catch (err) {
+        console.warn('API error, using fallback menu items:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    loadMenu();
+    return () => { isMounted = false; };
+  }, []);
+
   // Reset scroll when category changes
   useEffect(() => {
     setActiveIndex(0);
     setDetailItem(null);
-  }, [categoryParam]);
+  }, [categoryParam, dbItems, dbCategories]);
 
   const showcaseItems = React.useMemo(() => {
-    let items = [...menuItems];
+    const rawItems = dbItems.length > 0 ? dbItems : fallbackMenuItems;
+    const rawCategories = dbCategories.length > 0 ? dbCategories : fallbackCategories;
+
+    const transformItem = (item) => ({
+      ...item,
+      image: item.imageUrl || item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080',
+      price: Number(item.price) || 0,
+      rating: item.rating || 4.9,
+      reviewCount: item.reviewCount || 88,
+      preparationTime: item.preparationTime || 15,
+      isPopular: item.isFeatured !== undefined ? item.isFeatured : item.isPopular,
+      dietary: item.dietary || [],
+      options: item.options || [],
+    });
+
+    let items = rawItems.map(transformItem);
     if (categoryParam !== 'all') {
-      const cat = categories.find(c => c.slug === categoryParam);
+      const cat = rawCategories.find(c =>
+        c.id === categoryParam ||
+        c.slug === categoryParam ||
+        (c.name && toSlug(c.name) === categoryParam)
+      );
       if (cat) items = items.filter(item => item.categoryId === cat.id);
     } else {
       // Default / 'all' - Show only Best Sellers (isPopular)
       items = items.filter(item => item.isPopular);
     }
     return items.sort((a, b) => b.rating - a.rating);
-  }, [categoryParam]);
+  }, [categoryParam, dbItems, dbCategories]);
 
   const total = showcaseItems.length;
 
@@ -299,6 +359,14 @@ const ParallaxMenu = () => {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Empty State */}
+      {showcaseItems.length === 0 && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white/70 p-6 text-center z-20">
+          <p className="text-xl font-bold mb-2 text-white">Chưa có món ăn trong danh mục này</p>
+          <p className="text-sm text-white/40 max-w-sm">Danh mục hiện đang được cập nhật món mới. Vui lòng chọn danh mục khác.</p>
+        </div>
+      )}
+
       {/* Slides — stacked absolutely, moved by Y translate */}
       {showcaseItems.map((item, i) => {
         const offset = i - activeIndex;

@@ -27,6 +27,7 @@ export interface ICreateReservationDto {
   reservationDate: string; // YYYY-MM-DD
   reservationTime: string; // HH:mm
   tableTypeId?: string;
+  tableId?: string;
   specialNotes?: string;
   preOrders?: IPreOrderItem[];
 }
