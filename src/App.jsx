@@ -13,6 +13,8 @@ import Menu from './pages/Menu/Menu';
 import Cart from './pages/Cart/Cart';
 import Checkout from './pages/Checkout/Checkout';
 import Reservation from './pages/Reservation/Reservation';
+import ReservationHistoryPage from './pages/Reservation/ReservationHistoryPage';
+import BranchesPage from './pages/Branches/BranchesPage';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
@@ -26,6 +28,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import StaffRoute from './components/common/StaffRoute';
 import StaffLayout from './layouts/staff/StaffLayout';
 import StaffOperatingHours from './pages/Staff/StaffOperatingHours';
+import StaffTableTurnover from './pages/Staff/StaffTableTurnover';
 
 // Admin Imports
 import AdminRoute from './components/common/AdminRoute';
@@ -71,9 +74,11 @@ const Layout = () => {
           <Route path="/" element={<Home />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/menu/:categorySlug" element={<Menu />} />
+          <Route path="/branches" element={<BranchesPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/reservation" element={<Reservation />} />
+          <Route path="/reservations/history" element={<ProtectedRoute><ReservationHistoryPage /></ProtectedRoute>} />
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
           <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
@@ -93,6 +98,7 @@ const Layout = () => {
           >
             <Route index element={<Navigate to="/staff/menu" replace />} />
             <Route path="menu" element={<BranchMenu />} />
+            <Route path="table-turnover" element={<StaffTableTurnover />} />
             <Route path="operating-hours" element={<StaffOperatingHours />} />
           </Route>
 
