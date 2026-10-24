@@ -14,7 +14,7 @@ const StaffSidebar: React.FC = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
-  const initialBranchName = (user as any)?.branch?.name ? (user as any).branch.name : ((user as any)?.branchName ? (user as any).branchName : '');
+  const initialBranchName = (user as any)?.branch?.name || (user as any)?.branchName || '';
   const [branchName, setBranchName] = useState<string>(initialBranchName);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const StaffSidebar: React.FC = () => {
             setBranchName(b.name);
           }
         })
-        .catch((err) => console.error('Error fetching branch for sidebar:', err));
+        .catch(() => {});
     }
   }, [user]);
 
@@ -47,22 +47,19 @@ const StaffSidebar: React.FC = () => {
     { name: 'Giờ & Sức chứa', path: '/staff/operating-hours', icon: <Clock size={18} /> },
   ];
 
-  const displayName = branchName ? branchName : 'Đang tải cơ sở...';
-
-  const staffName = user?.fullName ? user.fullName : 'Staff';
-  const rawAvatar = (user as any)?.avatar ? (user as any).avatar : (user as any)?.avatarUrl;
+  const displayName = branchName || 'Đang tải cơ sở...';
+  const staffName = user?.fullName || 'Staff';
+  const rawAvatar = (user as any)?.avatar || (user as any)?.avatarUrl;
   const avatarSrc = rawAvatar
     ? rawAvatar
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(staffName)}&background=3B82F6&color=fff&bold=true`;
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm">
-      {/* Brand Header - Matching Admin exactly */}
       <div className="h-16 shrink-0 flex items-center px-6 border-b border-gray-200">
         <h1 className="text-xl font-bold text-primary">FoodHub Staff</h1>
       </div>
 
-      {/* Navigation Menu */}
       <div className="p-4 flex-1 overflow-y-auto min-h-0 custom-scrollbar">
         <div className="mb-4 px-2">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
@@ -90,26 +87,24 @@ const StaffSidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Staff Profile & Logout */}
       <div className="p-4 border-t border-gray-200 shrink-0">
         <div className="px-3 py-2.5 mb-2 bg-gray-50/80 rounded-xl border border-gray-100 space-y-2">
           <div className="flex items-center gap-3">
             <img
               src={avatarSrc}
-              alt={user?.fullName ? user.fullName : 'Staff'}
+              alt={staffName}
               className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/40 shadow-sm shrink-0"
             />
             <div className="flex-1 overflow-hidden">
               <p className="text-sm font-semibold text-gray-900 truncate">
-                {user?.fullName ? user.fullName : 'Nhân viên'}
+                {staffName}
               </p>
               <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                {user?.role ? user.role : 'STAFF'}
+                {user?.role || 'STAFF'}
               </span>
             </div>
           </div>
 
-          {/* Assigned Branch Tag */}
           <div className="text-xs text-gray-600 flex items-center gap-1.5 pt-1.5 border-t border-gray-200/60 truncate">
             <Building2 size={14} className="text-primary shrink-0" />
             <span className="truncate font-medium">{displayName}</span>

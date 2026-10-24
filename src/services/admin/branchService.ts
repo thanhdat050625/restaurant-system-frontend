@@ -36,16 +36,10 @@ export const branchService = {
     return await apiClient.get(`/restaurants/branches/locations/provinces/${code}/wards`);
   },
 
-  /**
-   * Lấy cấu hình khung giờ hoạt động chung và chi tiết 7 ngày trong tuần
-   */
   getOperatingHours: async (branchId: string): Promise<ApiResponse<IBranchOperatingHours>> => {
     return await apiClient.get(`/restaurants/branches/${branchId}/operating-hours`);
   },
 
-  /**
-   * Cập nhật khung giờ mở/đóng cửa và lịch 7 ngày trong tuần
-   */
   updateOperatingHours: async (
     branchId: string,
     data: IUpdateBranchOperatingHours,
@@ -64,11 +58,7 @@ export const branchService = {
     return await apiClient.put(`/restaurants/branches/${branchId}/operating-hours`, payload);
   },
 
-  /**
-   * Lấy thống kê năng lực sức chứa (bàn, ghế, loại bàn) của chi nhánh
-   */
   getCapacity: async (branchId: string): Promise<ApiResponse<IBranchCapacityStats>> => {
     return await apiClient.get(`/restaurants/branches/${branchId}/capacity`);
   },
 };
-
