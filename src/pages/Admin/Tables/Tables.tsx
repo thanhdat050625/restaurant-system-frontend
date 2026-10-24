@@ -11,7 +11,9 @@ import ConfirmModal from '../../../components/ui/ConfirmModal';
 import TableForm, { TableFormData } from './TableForm';
 import BulkTableForm, { BulkTableFormData } from './BulkTableForm';
 import Pagination from '../../../components/common/Pagination';
-import { Search, Filter, Plus, Layers } from 'lucide-react';
+import { Search, Filter, Plus, Layers, LayoutGrid, List } from 'lucide-react';
+import TableMap from '../../../components/table/TableMap';
+import { socketService } from '../../../services/socketService';
 import toast from 'react-hot-toast';
 
 const Tables: React.FC = () => {
@@ -20,6 +22,7 @@ const Tables: React.FC = () => {
   const [tableTypes, setTableTypes] = useState<ITableType[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [viewMode, setViewMode] = useState<'LIST' | 'MAP'>('MAP');
 
   // Pagination & Filter state
   const [page, setPage] = useState<number>(1);
@@ -46,6 +49,57 @@ const Tables: React.FC = () => {
   useEffect(() => {
     fetchTablesOnly();
   }, [page, limit, search, selectedBranchId, selectedTableTypeId, statusFilter]);
+
+  // Lắng nghe sự kiện WebSocket realtime khi chọn một chi nhánh cụ thể
+  useEffect(() => {
+    if (selectedBranchId && selectedBranchId !== 'ALL') {
+      socketService.connect();
+      socketService.joinBranch(selectedBranchId);
+
+      const handleTableLocked = (lockInfo: any) => {
+        setTables((prev) =>
+          prev.map((t) =>
+            t.id === lockInfo.tableId
+              ? {
+                  ...t,
+                  lockStatus: {
+                    isLocked: true,
+                    lockedByMe: false,
+                    expiresIn: 600,
+                  },
+                }
+              : t
+          )
+        );
+      };
+
+      const handleTableReleased = ({ tableId }: { tableId: string }) => {
+        setTables((prev) =>
+          prev.map((t) =>
+            t.id === tableId
+              ? {
+                  ...t,
+                  lockStatus: {
+                    isLocked: false,
+                    lockedByMe: false,
+                    expiresIn: null,
+                  },
+                }
+              : t
+          )
+        );
+      };
+
+      socketService.on('table:locked', handleTableLocked);
+      socketService.on('table:released', handleTableReleased);
+
+      return () => {
+        socketService.off('table:locked', handleTableLocked);
+        socketService.off('table:released', handleTableReleased);
+        socketService.leaveBranch(selectedBranchId);
+      };
+    }
+  }, [selectedBranchId]);
 
   const fetchInitialData = async () => {
     try {
@@ -227,6 +281,36 @@ const Tables: React.FC = () => {
           <p className="text-sm text-gray-500 mt-1">Quản lý sơ đồ bàn và trạng thái phục vụ</p>
         </div>
         <div className="flex gap-3 items-center self-start sm:self-auto flex-wrap">
+          {/* View Mode Toggle */}
+          <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode('MAP');
+                if (limit !== 100) setLimit(100);
+              }}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                viewMode === 'MAP'
+                  ? 'bg-white shadow text-primary font-bold'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              <LayoutGrid size={15} />
+              <span>Sơ đồ bàn (Map)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('LIST')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                viewMode === 'LIST'
+                  ? 'bg-white shadow text-gray-800 font-bold'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              <List size={15} />
+              <span>Danh sách</span>
+            </button>
+          </div>
           <button
             onClick={() => handleOpenBulkModal()}
             className="bg-secondary text-white px-4 py-2.5 rounded-lg hover:bg-opacity-90 transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
@@ -303,6 +387,13 @@ const Tables: React.FC = () => {
         <div className="text-center py-10">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
         </div>
+      ) : viewMode === 'MAP' ? (
+        <TableMap
+          tables={tables}
+          mode="admin"
+          onTableAction={(table) => handleOpenModal(table)}
+          loading={loading}
+        />
       ) : (
         <>
           <div className="overflow-x-auto">

@@ -5,13 +5,49 @@ import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown, Shield } f
 import { useCart } from '../features/menu/CartContext';
 import { useAuth } from '../features/auth/AuthContext';
 import { useTheme } from '../hooks/ThemeContext';
-import { categories } from '../assets/data/categoryData';
+import { categories as fallbackCategories } from '../assets/data/categoryData';
+import { publicMenuService } from '../services/publicMenuService';
+
+const toSlug = (str) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+};
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [hoveredCat, setHoveredCat] = useState(categories[0]);
+  const [categoriesList, setCategoriesList] = useState(fallbackCategories);
+  const [hoveredCat, setHoveredCat] = useState(fallbackCategories[0] || null);
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const data = await publicMenuService.getCategories();
+        if (data && data.length > 0) {
+          const formatted = data.map((cat, idx) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.name ? toSlug(cat.name) : cat.id,
+            image: cat.imageUrl || fallbackCategories[idx % fallbackCategories.length]?.image || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500',
+            itemCount: cat.items?.length || 8,
+          }));
+          setCategoriesList(formatted);
+          setHoveredCat(formatted[0]);
+        }
+      } catch (err) {
+        console.warn('Error fetching header categories:', err);
+      }
+    };
+    fetchCats();
+  }, []);
   const { totalItems } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
@@ -123,7 +159,7 @@ const Header = () => {
                         <div className="flex">
                           {/* Left — category list */}
                           <div className="flex-1 py-2">
-                            {categories.map(cat => (
+                            {categoriesList.map(cat => (
                               <Link
                                 key={cat.id}
                                 to={`/menu/${cat.slug}`}

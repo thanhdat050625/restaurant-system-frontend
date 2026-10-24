@@ -1,6 +1,12 @@
 import { ITableType } from './table-type.type';
 import { IBranch } from './branch.type';
 
+export interface ITableLockStatus {
+  isLocked: boolean;
+  lockedByMe: boolean;
+  expiresIn: number | null;
+}
+
 export interface ITable {
   id: string;
   tableNumber: string;
@@ -11,6 +17,7 @@ export interface ITable {
   tableTypeId: string;
   branch?: IBranch;
   tableType?: ITableType;
+  lockStatus?: ITableLockStatus;
 }
 
 export interface QueryRestaurantTableParams {
@@ -21,4 +28,12 @@ export interface QueryRestaurantTableParams {
   tableTypeId?: string;
   status?: string;
   floor?: number;
+}
+
+export interface SearchAvailableTablesParams {
+  branchId: string;
+  partySize: number;
+  floor?: number;
+  date?: string;
+  includeLocked?: boolean;
 }
