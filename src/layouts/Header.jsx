@@ -17,7 +17,7 @@ const Header = () => {
   const location = useLocation();
 
   // Khai báo các trang có banner tối màu ở trên cùng
-  const darkHeroPages = ['/', '/menu', '/reservation', '/about', '/contact', '/login', '/register'];
+  const darkHeroPages = ['/', '/menu', '/branches', '/reservation', '/about', '/contact', '/login', '/register'];
   // Kiểm tra xem trang hiện tại có nằm trong danh sách trên không hoặc là đường dẫn menu/danh-muc
   const hasDarkHero = darkHeroPages.includes(location.pathname) || location.pathname.startsWith('/menu/');
   
@@ -40,6 +40,7 @@ const Header = () => {
   const navLinks = [
     { to: '/', label: 'Trang chủ' },
     { to: '/menu', label: 'Thực đơn' },
+    { to: '/branches', label: 'Chi nhánh' },
     { to: '/reservation', label: 'Đặt bàn' },
     { to: '/about', label: 'Về chúng tôi' },
     { to: '/contact', label: 'Liên hệ' },

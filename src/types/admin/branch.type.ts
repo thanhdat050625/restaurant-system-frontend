@@ -1,3 +1,5 @@
+import { IDailyOperatingHour } from './branch-operating-hours.type';
+
 export interface IProvince {
   code: string;
   name: string;
@@ -23,7 +25,15 @@ export interface IBranch {
   phone: string;
   latitude: number;
   longitude: number;
+  imageUrl?: string;
+  openingTime?: string;
+  closingTime?: string;
+  slotDurationMinutes?: number;
   status: 'ACTIVE' | 'CLOSED' | 'INACTIVE';
+  todayHours?: string;
+  isOpenNow?: boolean;
+  distanceKm?: number | null;
+  operatingHours?: IDailyOperatingHour[];
 }
 
 export interface QueryBranchParams {
@@ -31,4 +41,9 @@ export interface QueryBranchParams {
   limit?: number;
   search?: string;
   status?: string;
+  provinceCode?: string;
+  wardCode?: string;
+  lat?: number;
+  lng?: number;
+  isOpenNow?: boolean;
 }
