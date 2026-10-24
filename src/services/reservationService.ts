@@ -26,6 +26,14 @@ export const reservationService = {
     return await apiClient.get('/reservations', { params });
   },
 
+  getMyReservations: async (params?: {
+    timeline?: 'UPCOMING' | 'PAST';
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<{ items: IReservation[]; meta: any }>> => {
+    return await apiClient.get('/reservations/my-history', { params });
+  },
+
   getReservationById: async (id: string): Promise<ApiResponse<IReservation>> => {
     return await apiClient.get(`/reservations/${id}`);
   },

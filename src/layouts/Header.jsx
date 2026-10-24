@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown, Shield } from 'lucide-react';
+import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown, Shield, Calendar } from 'lucide-react';
 import { useCart } from '../features/menu/CartContext';
 import { useAuth } from '../features/auth/AuthContext';
 import { useTheme } from '../hooks/ThemeContext';
@@ -17,7 +17,7 @@ const Header = () => {
   const location = useLocation();
 
   // Khai báo các trang có banner tối màu ở trên cùng
-  const darkHeroPages = ['/', '/menu', '/branches', '/reservation', '/about', '/contact', '/login', '/register'];
+  const darkHeroPages = ['/', '/menu', '/branches', '/reservation', '/reservations/history', '/about', '/contact', '/login', '/register'];
   // Kiểm tra xem trang hiện tại có nằm trong danh sách trên không hoặc là đường dẫn menu/danh-muc
   const hasDarkHero = darkHeroPages.includes(location.pathname) || location.pathname.startsWith('/menu/');
   
@@ -211,10 +211,13 @@ const Header = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
-                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-surface rounded-xl shadow-xl border border-light-border dark:border-dark-border overflow-hidden"
+                      className="absolute right-0 mt-2 w-52 bg-white dark:bg-dark-surface rounded-xl shadow-xl border border-light-border dark:border-dark-border overflow-hidden"
                     >
                       <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                         <User size={16} /> Tài khoản
+                      </Link>
+                      <Link to="/reservations/history" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                        <Calendar size={16} /> Lịch sử đặt bàn
                       </Link>
                       {user?.role === 'ADMIN' && (
                         <Link to="/admin" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
@@ -289,6 +292,9 @@ const Header = () => {
                   <>
                     <Link to="/profile" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                       Tài khoản
+                    </Link>
+                    <Link to="/reservations/history" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                      Lịch sử đặt bàn
                     </Link>
                     {user?.role === 'ADMIN' && (
                       <Link to="/admin" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
