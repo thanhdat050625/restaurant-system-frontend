@@ -49,7 +49,7 @@ const BulkTableForm: React.FC<BulkTableFormProps> = ({
       tableTypeId: tableTypes.length > 0 ? tableTypes[0].id : '',
       quantity: 1,
       startNumber: 1,
-      prefix: 'T',
+      prefix: 'T1',
       floor: 1,
       status: 'AVAILABLE',
       note: '',
@@ -62,7 +62,7 @@ const BulkTableForm: React.FC<BulkTableFormProps> = ({
       tableTypeId: tableTypes.length > 0 ? tableTypes[0].id : '',
       quantity: 1,
       startNumber: 1,
-      prefix: 'T',
+      prefix: 'T1',
       floor: 1,
       status: 'AVAILABLE',
       note: '',
@@ -70,20 +70,34 @@ const BulkTableForm: React.FC<BulkTableFormProps> = ({
   }, [branches, tableTypes, selectedBranchId, reset]);
 
   const selectedTableTypeId = watch('tableTypeId');
+  const selectedFloor = watch('floor');
+  const watchedPrefix = watch('prefix') || 'T1';
+  const watchedStartNumber = watch('startNumber') || 1;
+  const watchedQuantity = watch('quantity') || 5;
 
   useEffect(() => {
+    let base = 'T';
     if (selectedTableTypeId) {
       const selectedType = tableTypes.find(t => t.id === selectedTableTypeId);
       if (selectedType) {
         const name = selectedType.name.toUpperCase();
         if (name.includes('VIP')) {
-          setValue('prefix', 'VIP');
-        } else {
-          setValue('prefix', 'T');
+          base = 'VIP';
         }
       }
     }
-  }, [selectedTableTypeId, tableTypes, setValue]);
+    const floorNum = Number(selectedFloor);
+    const prefixVal = !isNaN(floorNum) ? `${base}${floorNum}` : `${base}1`;
+    setValue('prefix', prefixVal, { shouldValidate: true });
+  }, [selectedTableTypeId, selectedFloor, tableTypes, setValue]);
+
+  // Sinh danh sách bàn mẫu để preview trực quan
+  const sampleCount = Math.min(Math.max(watchedQuantity, 1), 4);
+  const sampleTables = Array.from({ length: sampleCount }).map((_, i) => {
+    const num = (watchedStartNumber || 1) + i;
+    const formatted = num < 10 ? `0${num}` : `${num}`;
+    return `${watchedPrefix}${formatted}`;
+  });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 font-sans">
@@ -127,7 +141,8 @@ const BulkTableForm: React.FC<BulkTableFormProps> = ({
           </label>
           <input
             {...register('prefix')}
-            disabled
+            readOnly
+            tabIndex={-1}
             className="w-full px-3.5 py-2.5 bg-gray-100 border border-gray-300 rounded-xl text-sm text-gray-500 cursor-not-allowed outline-hidden transition-all shadow-2xs"
             placeholder="VD: T, B, VIP"
           />
@@ -159,8 +174,8 @@ const BulkTableForm: React.FC<BulkTableFormProps> = ({
         </div>
       </div>
       
-      <p className="text-xs text-gray-500 italic bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-        💡 Ví dụ: Tiền tố "T", Số lượng "5", Bắt đầu "1" sẽ tự sinh 5 bàn: T01, T02, T03, T04, T05.
+      <p className="text-xs text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-dark-surface/60 p-2.5 rounded-lg border border-gray-200 dark:border-dark-border">
+        💡 Ví dụ: Tầng {selectedFloor ?? 1}, Tiền tố "{watchedPrefix}", Bắt đầu "{watchedStartNumber}" sẽ tự sinh các bàn: {sampleTables.join(', ')}...
       </p>
 
       <div className="grid grid-cols-2 gap-4">

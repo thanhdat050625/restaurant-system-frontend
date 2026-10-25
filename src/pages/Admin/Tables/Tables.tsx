@@ -48,7 +48,7 @@ const Tables: React.FC = () => {
 
   useEffect(() => {
     fetchTablesOnly();
-  }, [page, limit, search, selectedBranchId, selectedTableTypeId, statusFilter]);
+  }, [page, limit, search, selectedBranchId, selectedTableTypeId, statusFilter, viewMode]);
 
   // Lắng nghe sự kiện WebSocket realtime khi chọn một chi nhánh cụ thể
   useEffect(() => {
@@ -120,7 +120,8 @@ const Tables: React.FC = () => {
   const fetchTablesOnly = async (showSpinner = true) => {
     try {
       if (showSpinner) setLoading(true);
-      const params: any = { page, limit };
+      const queryLimit = viewMode === 'MAP' ? 500 : limit;
+      const params: any = { page: viewMode === 'MAP' ? 1 : page, limit: queryLimit };
 
       if (search.trim()) {
         params.search = search.trim();
@@ -227,7 +228,7 @@ const Tables: React.FC = () => {
         fetchTablesOnly(false);
       }
     } catch (error: any) {
-      const errRes = error?.response?.data?.message;
+      const errRes = error?.response?.data?.message || error?.message;
       toast.error(errRes ? errRes : 'Có lỗi xảy ra!');
       console.error(error);
     } finally {
@@ -238,13 +239,13 @@ const Tables: React.FC = () => {
   const handleBulkSubmit = async (data: BulkTableFormData) => {
     try {
       setIsSubmitting(true);
-      const res = await tableService.bulkCreate(data);
-      const succMsg = res?.data?.message;
+      const res = await tableService.bulkCreateTables(data);
+      const succMsg = (res as any)?.message || (res as any)?.data?.message;
       toast.success(succMsg ? succMsg : 'Tạo hàng loạt bàn thành công!');
       handleCloseBulkModal();
       fetchTablesOnly(false);
     } catch (error: any) {
-      const errRes = error?.response?.data?.message;
+      const errRes = error?.response?.data?.message || error?.message;
       toast.error(errRes ? errRes : 'Có lỗi xảy ra!');
       console.error(error);
     } finally {
@@ -265,7 +266,7 @@ const Tables: React.FC = () => {
       toast.success(`Xóa bàn "${deleteTable.tableNumber}" thành công!`);
       setDeleteTable(null);
     } catch (error: any) {
-      const errRes = error?.response?.data?.message;
+      const errRes = error?.response?.data?.message || error?.message;
       toast.error(errRes ? errRes : 'Xóa bàn thất bại!');
     } finally {
       setIsDeleting(false);
@@ -287,7 +288,7 @@ const Tables: React.FC = () => {
               type="button"
               onClick={() => {
                 setViewMode('MAP');
-                if (limit !== 100) setLimit(100);
+                setPage(1);
               }}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all ${
                 viewMode === 'MAP'
@@ -300,7 +301,10 @@ const Tables: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => setViewMode('LIST')}
+              onClick={() => {
+                setViewMode('LIST');
+                setPage(1);
+              }}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all ${
                 viewMode === 'LIST'
                   ? 'bg-white shadow text-gray-800 font-bold'
