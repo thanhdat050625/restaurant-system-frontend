@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ITable } from '../../types/admin/table.type';
-import { Users, Lock, Clock, CheckCircle2, AlertTriangle, Sparkles, Coffee } from 'lucide-react';
+import { Users, Lock, CheckCircle2, AlertTriangle, Sparkles, Coffee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface TableMapProps {
@@ -44,15 +44,22 @@ export const TableMap: React.FC<TableMapProps> = ({
 
   // Đồng bộ activeFloor nếu danh sách tầng thay đổi
   React.useEffect(() => {
+    if (activeFloor === -1) return; // Giữ nguyên khi chọn "Tất cả tầng"
     if (floorMap.floors.length > 0 && !floorMap.floors.includes(activeFloor)) {
       setActiveFloor(floorMap.floors[0]);
     }
   }, [floorMap.floors, activeFloor]);
 
   const currentFloorTables = useMemo(() => {
-    const list = floorMap.map.get(activeFloor) || [];
-    return list.sort((a, b) => a.tableNumber.localeCompare(b.tableNumber, undefined, { numeric: true }));
-  }, [floorMap.map, activeFloor]);
+    const list = activeFloor === -1 ? [...tables] : (floorMap.map.get(activeFloor) || []);
+    return list.sort((a, b) => {
+      const branchA = a.branch?.name || '';
+      const branchB = b.branch?.name || '';
+      if (branchA !== branchB) return branchA.localeCompare(branchB, undefined, { numeric: true });
+      if (a.floor !== b.floor) return a.floor - b.floor;
+      return a.tableNumber.localeCompare(b.tableNumber, undefined, { numeric: true });
+    });
+  }, [tables, floorMap.map, activeFloor]);
 
   // Thống kê nhanh tình trạng bàn của chi nhánh
   const stats = useMemo(() => {
@@ -92,8 +99,14 @@ export const TableMap: React.FC<TableMapProps> = ({
     return (
       <div className="p-8 text-center bg-gray-50 dark:bg-dark-card rounded-2xl border border-dashed border-gray-300 dark:border-dark-border">
         <Coffee className="w-12 h-12 text-gray-400 mx-auto mb-3 opacity-60" />
-        <p className="text-base font-semibold text-gray-700 dark:text-gray-200">Chưa có bàn nào tại chi nhánh này</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Vui lòng chọn chi nhánh khác hoặc liên hệ bộ phận hỗ trợ.</p>
+        <p className="text-base font-semibold text-gray-700 dark:text-gray-200">
+          {mode === 'admin' ? 'Chưa có bàn nào phù hợp' : 'Chưa có bàn nào tại chi nhánh này'}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {mode === 'admin'
+            ? 'Vui lòng kiểm tra lại bộ lọc hoặc tạo thêm bàn.'
+            : 'Vui lòng chọn chi nhánh khác hoặc liên hệ bộ phận hỗ trợ.'}
+        </p>
       </div>
     );
   }
@@ -131,6 +144,26 @@ export const TableMap: React.FC<TableMapProps> = ({
 
       {/* ─── 2. TABS CHUYỂN TẦNG ─── */}
       <div className="flex items-center gap-2 border-b border-gray-200 dark:border-dark-border pb-2 overflow-x-auto">
+        {mode === 'admin' && floorMap.floors.length > 1 && (
+          <button
+            type="button"
+            onClick={() => setActiveFloor(-1)}
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeFloor === -1
+                ? 'bg-primary text-white shadow-md shadow-primary/25 scale-[1.02]'
+                : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-border'
+            }`}
+          >
+            <span>Tất cả tầng</span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full ${
+                activeFloor === -1 ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              {tables.length} bàn
+            </span>
+          </button>
+        )}
         {floorMap.floors.map((floor) => {
           const count = floorMap.map.get(floor)?.length || 0;
           const isActive = floor === activeFloor;
@@ -226,17 +259,19 @@ export const TableMap: React.FC<TableMapProps> = ({
                     }
                   }
                 }}
-                className={`relative rounded-2xl p-4 border transition-all duration-200 flex flex-col justify-between min-h-[145px] ${cardStyle}`}
+                className={`relative rounded-2xl p-4 border transition-all duration-200 flex flex-col justify-between ${mode === 'admin' ? 'min-h-[185px]' : 'min-h-[145px]'} ${cardStyle}`}
               >
-                {/* Ghế minh họa phía trên bàn */}
-                <div className="flex justify-center gap-1.5 mb-2 opacity-60">
-                  {Array.from({ length: Math.min(capacity, 4) }).map((_, idx) => (
-                    <span key={idx} className="w-2.5 h-1.5 rounded-t-sm bg-current" />
-                  ))}
-                </div>
+                {/* Ghế minh họa phía trên bàn (chỉ ở mode khách hàng) */}
+                {mode === 'customer' && (
+                  <div className="flex justify-center gap-1.5 mb-2 opacity-60">
+                    {Array.from({ length: Math.min(capacity, 4) }).map((_, idx) => (
+                      <span key={idx} className="w-2.5 h-1.5 rounded-t-sm bg-current" />
+                    ))}
+                  </div>
+                )}
 
                 {/* Nội dung trung tâm */}
-                <div className="text-center my-auto">
+                <div className="text-center my-auto flex flex-col items-center justify-center w-full">
                   <div className="flex items-center justify-center gap-1">
                     <h4 className="text-lg font-black tracking-tight font-mono">{table.tableNumber}</h4>
                     {table.tableType?.name?.toLowerCase().includes('vip') && (
@@ -249,14 +284,33 @@ export const TableMap: React.FC<TableMapProps> = ({
                     <Users size={12} />
                     <span>{capacity} chỗ</span>
                   </p>
+
+                  {/* Chi nhánh & Tầng cho admin */}
+                  {mode === 'admin' && (
+                    <div className="mt-2.5 pt-2 border-t border-current/15 flex flex-col items-center gap-1 w-full text-center">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                        Tầng {table.floor}
+                      </span>
+                      {table.branch?.name && (
+                        <div className="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-snug px-1 break-words">
+                          <span className="text-slate-400 dark:text-slate-500 font-normal">Chi nhánh: </span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">
+                            {table.branch.name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {/* Ghế minh họa phía dưới bàn */}
-                <div className="flex justify-center gap-1.5 mt-2 mb-2 opacity-60">
-                  {Array.from({ length: Math.min(capacity, 4) }).map((_, idx) => (
-                    <span key={idx} className="w-2.5 h-1.5 rounded-b-sm bg-current" />
-                  ))}
-                </div>
+                {/* Ghế minh họa phía dưới bàn (chỉ ở mode khách hàng) */}
+                {mode === 'customer' && (
+                  <div className="flex justify-center gap-1.5 mt-2 mb-2 opacity-60">
+                    {Array.from({ length: Math.min(capacity, 4) }).map((_, idx) => (
+                      <span key={idx} className="w-2.5 h-1.5 rounded-b-sm bg-current" />
+                    ))}
+                  </div>
+                )}
 
                 {/* Badge trạng thái */}
                 <div className="mt-auto pt-2 border-t border-current/15 flex items-center justify-between">

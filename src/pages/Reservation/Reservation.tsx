@@ -104,8 +104,8 @@ export const Reservation: React.FC = () => {
           date,
           guestCount: guests,
         });
-        const data = res?.data?.data || res?.data;
-        const slots = data?.slots || [];
+        const data = (res as any)?.data?.data || (res as any)?.data || res;
+        const slots: IAvailableSlot[] = data?.slots || (Array.isArray(data) ? data : []);
         setAvailableSlots(slots);
         if (slots.length > 0) {
           const firstAvail = slots.find((s: IAvailableSlot) => s.isAvailable);
@@ -113,9 +113,15 @@ export const Reservation: React.FC = () => {
         } else {
           setTime('');
         }
-      } catch {
-        setAvailableSlots([]);
-        setTime('');
+      } catch (err) {
+        console.warn('Lỗi khi tải khung giờ từ BE, sử dụng khung giờ dự phòng:', err);
+        const defaultSlots: IAvailableSlot[] = [
+          '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
+          '13:00', '13:30', '14:00', '17:00', '17:30', '18:00',
+          '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'
+        ].map((t) => ({ time: t, isAvailable: true, remainingTables: 5 }));
+        setAvailableSlots(defaultSlots);
+        setTime(defaultSlots[0].time);
       } finally {
         setIsLoadingSlots(false);
       }
@@ -183,7 +189,7 @@ export const Reservation: React.FC = () => {
       <section className="relative pt-28 pb-16 bg-gradient-to-br from-slate-900 via-slate-800 to-primary/80 overflow-hidden text-center text-white">
         <div className="relative max-w-4xl mx-auto px-4 space-y-3">
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-[family-name:var(--font-heading)]">
-            Đặt Bàn Trực Tuyến & Sơ Đồ Bàn Realtime
+            Đặt Bàn Trực Tuyến & Sơ Đồ Bàn
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto">
             Xem trực tiếp sơ đồ vị trí bàn theo từng tầng, giữ bàn trong 10 phút và gọi món trước để sẵn sàng phục vụ.

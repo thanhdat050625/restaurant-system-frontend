@@ -145,7 +145,7 @@ export const ReservationDateTimeStep: React.FC<ReservationDateTimeStepProps> = (
         disabled={!selectedBranchId || !date || !time}
         className="w-full py-3.5 bg-gradient-to-r from-primary to-accent hover:opacity-95 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold rounded-xl transition-opacity flex items-center justify-center gap-2 shadow-sm"
       >
-        <span>Tiếp theo: Chọn món gọi trước (tùy chọn)</span>
+        <span>Tiếp theo: Chọn bàn trên sơ đồ</span>
         <ChevronRight size={16} />
       </button>
     </div>
