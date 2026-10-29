@@ -7,6 +7,12 @@ export interface ITableLockStatus {
   expiresIn: number | null;
 }
 
+export interface ITableNextReservation {
+  reservationTime: string;
+  customerName: string;
+  guestCount: number;
+}
+
 export interface ITable {
   id: string;
   tableNumber: string;
@@ -20,6 +26,10 @@ export interface ITable {
   lockStatus?: ITableLockStatus;
   /** Bàn đã có đơn đặt trong khung giờ đang xem (chỉ có ở API tìm bàn theo khung giờ) */
   isReserved?: boolean;
+  /** Thời điểm chuyển sang trạng thái DIRTY (timestamp tính bằng mili-giây) */
+  dirtySince?: number | null;
+  /** Lượt đặt bàn sắp tới trong ngày (nếu có) */
+  nextReservation?: ITableNextReservation | null;
 }
 
 export interface QueryRestaurantTableParams {
