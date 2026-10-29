@@ -12,18 +12,46 @@ const getWsUrl = (): string => {
   return 'http://localhost:3000';
 };
 
+/** Bàn + khung giờ được giữ (khóa giữ bàn tính theo từng khung giờ, không phải cả ngày) */
+export interface ITableSlot {
+  branchId: string;
+  tableId: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+}
+
+/** Payload các sự kiện table:locked / table:released / table:reserved / table:lock_success */
+export interface ITableLockEvent extends Partial<ITableSlot> {
+  tableId: string;
+  lockedBy?: string;
+  expiresAt?: string;
+  tableNumber?: string;
+}
+
 class SocketService {
   private socket: Socket | null = null;
   private currentBranchId: string | null = null;
+  private authKey: string | null = null;
 
   /**
    * Khởi tạo kết nối Socket.IO
+   * - Server xác thực từ cookie `accessToken` tại thời điểm handshake, nên khi người dùng
+   *   đăng nhập/đăng xuất (authKey thay đổi) cần tạo lại kết nối để server nhận đúng danh tính.
    */
-  connect(token?: string): Socket {
-    if (this.socket && this.socket.connected) {
+  connect(authKey?: string | null, token?: string): Socket {
+    const nextAuthKey = authKey === undefined ? this.authKey : authKey;
+
+    if (this.socket && this.authKey === nextAuthKey) {
       return this.socket;
     }
 
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    this.authKey = nextAuthKey;
     const wsUrl = getWsUrl();
     this.socket = io(wsUrl, {
       withCredentials: true,
@@ -62,6 +90,7 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
       this.currentBranchId = null;
+      this.authKey = null;
     }
   }
 
@@ -88,20 +117,20 @@ class SocketService {
   }
 
   /**
-   * Gửi yêu cầu giữ bàn tạm thời (Table Lock)
+   * Gửi yêu cầu giữ bàn tạm thời (Table Lock) cho một khung giờ cụ thể
    */
-  lockTable(branchId: string, tableId: string) {
+  lockTable(slot: ITableSlot & { guestCount?: number }) {
     if (this.socket) {
-      this.socket.emit('table:lock', { branchId, tableId });
+      this.socket.emit('table:lock', slot);
     }
   }
 
   /**
-   * Gửi yêu cầu nhả bàn (Table Release)
+   * Gửi yêu cầu nhả bàn (Table Release) của một khung giờ
    */
-  releaseTable(branchId: string, tableId: string) {
+  releaseTable(slot: ITableSlot) {
     if (this.socket) {
-      this.socket.emit('table:release', { branchId, tableId });
+      this.socket.emit('table:release', slot);
     }
   }
 

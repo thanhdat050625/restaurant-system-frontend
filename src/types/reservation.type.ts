@@ -43,7 +43,11 @@ export interface IAvailableSlotsResponse {
   branchName: string;
   date: string;
   slotDurationMinutes: number;
+  openTime?: string;
+  closeTime?: string;
   slots: IAvailableSlot[];
+  /** Lý do không có khung giờ (đóng cửa, không có bàn đủ chỗ, hết giờ trong ngày...) */
+  message?: string;
 }
 
 export interface IReservation {

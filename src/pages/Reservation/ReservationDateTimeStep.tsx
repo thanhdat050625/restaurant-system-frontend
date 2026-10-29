@@ -15,6 +15,7 @@ interface ReservationDateTimeStepProps {
   time: string;
   onSelectTime: (t: string) => void;
   availableSlots: IAvailableSlot[];
+  slotsMessage?: string;
   isLoadingSlots: boolean;
   onNext: () => void;
 }
@@ -31,6 +32,7 @@ export const ReservationDateTimeStep: React.FC<ReservationDateTimeStepProps> = (
   time,
   onSelectTime,
   availableSlots,
+  slotsMessage,
   isLoadingSlots,
   onNext,
 }) => {
@@ -114,7 +116,12 @@ export const ReservationDateTimeStep: React.FC<ReservationDateTimeStepProps> = (
         ) : availableSlots.length === 0 ? (
           <div className="p-3 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-xs rounded-xl flex items-center gap-2">
             <AlertCircle size={15} />
-            <span>Chi nhánh đóng cửa hoặc không còn khung giờ phục vụ vào ngày này.</span>
+            <span>{slotsMessage || 'Chi nhánh đóng cửa hoặc không còn khung giờ phục vụ vào ngày này.'}</span>
+          </div>
+        ) : !availableSlots.some((s) => s.isAvailable) ? (
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-xs rounded-xl flex items-center gap-2">
+            <AlertCircle size={15} />
+            <span>Đã kín bàn phù hợp cho {guests} khách trong ngày này. Vui lòng chọn ngày khác.</span>
           </div>
         ) : (
           <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -133,6 +140,7 @@ export const ReservationDateTimeStep: React.FC<ReservationDateTimeStepProps> = (
                 }`}
               >
                 {s.time}
+                {!s.isAvailable && <span className="block text-[9px]">Hết bàn</span>}
               </button>
             ))}
           </div>

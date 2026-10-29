@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, ArrowRight, Trash2, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Trash2, ArrowLeft, UtensilsCrossed } from 'lucide-react';
 import PageWrapper from '../../layouts/PageWrapper';
 import CartItem from '../../components/common/CartItem';
 import { useCart } from '../../features/menu/CartContext';
 import { formatPrice } from '../../utils/helpers';
 
 const Cart = () => {
-  const { items, totalItems, subtotal, deliveryFee, total, deliveryType, setDeliveryType, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, totalItems, subtotal, total, updateQuantity, removeItem, clearCart } = useCart();
 
   if (items.length === 0) {
     return (
@@ -60,30 +60,26 @@ const Cart = () => {
               <div className="sticky top-24 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-card border border-light-border dark:border-dark-border">
                 <h3 className="text-lg font-bold text-text-primary dark:text-white mb-4">Tóm tắt đơn hàng</h3>
 
-                {/* Delivery Type */}
-                <div className="flex bg-light-card dark:bg-dark-card rounded-xl p-1 mb-6">
-                  <button onClick={() => setDeliveryType('delivery')} className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${deliveryType === 'delivery' ? 'bg-primary text-white shadow-md' : 'text-text-secondary dark:text-text-light'}`}>
-                    🚚 Giao hàng
-                  </button>
-                  <button onClick={() => setDeliveryType('pickup')} className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${deliveryType === 'pickup' ? 'bg-primary text-white shadow-md' : 'text-text-secondary dark:text-text-light'}`}>
-                    🏪 Tự đến lấy
-                  </button>
+                {/* Service Type */}
+                <div className="flex items-center gap-3 p-3.5 bg-light-card dark:bg-dark-card rounded-xl mb-6 border border-light-border dark:border-dark-border">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <UtensilsCrossed size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-text-secondary dark:text-text-light">Hình thức phục vụ</p>
+                    <p className="text-sm font-semibold text-text-primary dark:text-white">Dùng tại nhà hàng</p>
+                  </div>
                 </div>
 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
-                    <span className="text-text-secondary dark:text-text-light">Tạm tính</span>
+                    <span className="text-text-secondary dark:text-text-light">Tạm tính ({totalItems} món)</span>
                     <span className="text-text-primary dark:text-white font-medium">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-text-secondary dark:text-text-light">Phí vận chuyển</span>
-                    <span className={`font-medium ${deliveryFee === 0 ? 'text-success' : 'text-text-primary dark:text-white'}`}>
-                      {deliveryFee === 0 ? 'Miễn phí' : formatPrice(deliveryFee)}
-                    </span>
+                    <span className="text-text-secondary dark:text-text-light">Phí dịch vụ</span>
+                    <span className="font-medium text-success">Miễn phí</span>
                   </div>
-                  {deliveryType === 'delivery' && subtotal < 200000 && (
-                    <p className="text-xs text-accent">💡 Mua thêm {formatPrice(200000 - subtotal)} để miễn phí ship</p>
-                  )}
                   <hr className="border-light-border dark:border-dark-border" />
                   <div className="flex justify-between">
                     <span className="font-semibold text-text-primary dark:text-white">Tổng cộng</span>

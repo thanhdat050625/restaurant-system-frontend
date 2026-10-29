@@ -30,6 +30,7 @@ Tài liệu kiến trúc chi tiết (Source of Truth): `web_architecture/`
 >    - Bắt buộc xóa sạch `console.log` thừa, file test tạm, file rác trước khi tạo commit.
 > 
 > 6. **Quy tắc Git & Pull Request (Target: `ui`)**:
+>    - **TUYỆT ĐỐI CẤM TỰ Ý COMMIT VÀ PUSH:** Agent không được tự ý chạy `git commit` hoặc `git push` nếu người dùng chưa ra lệnh hoặc chưa xác nhận rõ ràng. Mọi thay đổi phải để ở dạng chưa commit (unstaged / modified) để người dùng review.
 >    - Nhánh phát triển chính của Frontend là **`ui`**.
 >    - Mọi nhánh mới phải checkout từ `ui`: `feature/<tên-tính-năng>` hoặc `fix/<tên-lỗi>`.
 >    - Commit message phải tuân thủ Conventional Commits (`feat: ...`, `fix: ...`, `refactor: ...`, `chore: ...`).

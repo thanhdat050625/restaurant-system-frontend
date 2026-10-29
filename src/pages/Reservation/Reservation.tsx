@@ -7,13 +7,20 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { branchService } from '../../services/admin/branchService';
 import { reservationService } from '../../services/reservationService';
 import { IBranch } from '../../types/admin/branch.type';
-import { ITable } from '../../types/admin/table.type';
 import { IReservation, IAvailableSlot, IPreOrderItem } from '../../types/reservation.type';
 import { ReservationDateTimeStep } from './ReservationDateTimeStep';
 import { ReservationTableStep } from './ReservationTableStep';
 import { ReservationPreOrderStep } from './ReservationPreOrderStep';
 import { ReservationContactStep } from './ReservationContactStep';
 import { ReservationSuccessView } from './ReservationSuccessView';
+import { useTableHold } from './useTableHold';
+
+/** Ngày theo giờ máy khách dạng YYYY-MM-DD (toISOString() lệch ngày vì dùng UTC) */
+const toLocalDateString = (d: Date) => {
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+};
 
 export const Reservation: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -29,10 +36,14 @@ export const Reservation: React.FC = () => {
   const [time, setTime] = useState('');
   const [guests, setGuests] = useState(2);
 
-  const [selectedTable, setSelectedTable] = useState<ITable | null>(null);
-
   const [availableSlots, setAvailableSlots] = useState<IAvailableSlot[]>([]);
+  const [slotsMessage, setSlotsMessage] = useState('');
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  // Bàn đang giữ gắn với đúng chi nhánh + ngày + giờ + số khách; đổi bất kỳ yếu tố nào sẽ nhả bàn
+  const { heldTable: selectedTable, holdExpiresAt, holdTable, clearHold } = useTableHold(
+    `${selectedBranchId}|${date}|${time}|${guests}`,
+  );
 
   const [preOrders, setPreOrders] = useState<IPreOrderItem[]>([]);
 
@@ -53,22 +64,27 @@ export const Reservation: React.FC = () => {
     }
   }, [user]);
 
-  // Tải danh sách chi nhánh hoạt động
+  // Tải danh sách chi nhánh hoạt động (chỉ 1 lần)
   useEffect(() => {
     const fetchBranches = async () => {
       try {
         const res = await branchService.getBranches({ status: 'ACTIVE' });
         const data = res?.data?.data || res?.data || [];
-        const items = Array.isArray(data) ? data : data.items || [];
+        const items: IBranch[] = Array.isArray(data) ? data : data.items || [];
         setBranches(items);
-        if (items.length > 0 && !selectedBranchId) {
-          setSelectedBranchId(items[0].id);
-        }
+        setSelectedBranchId((current) =>
+          items.some((b) => b.id === current) ? current : items[0]?.id || '',
+        );
       } catch {
         setBranches([]);
       }
     };
     fetchBranches();
+  }, []);
+
+  // Thực đơn gọi trước theo từng chi nhánh: đổi chi nhánh thì bỏ các món đã chọn
+  useEffect(() => {
+    setPreOrders([]);
   }, [selectedBranchId]);
 
   // Tạo danh sách 14 ngày tới
@@ -76,7 +92,7 @@ export const Reservation: React.FC = () => {
     return Array.from({ length: 14 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() + i);
-      const val = d.toISOString().split('T')[0];
+      const val = toLocalDateString(d);
       const label = d.toLocaleDateString('vi-VN', {
         weekday: 'short',
         day: 'numeric',
@@ -107,21 +123,23 @@ export const Reservation: React.FC = () => {
         const data = (res as any)?.data?.data || (res as any)?.data || res;
         const slots: IAvailableSlot[] = data?.slots || (Array.isArray(data) ? data : []);
         setAvailableSlots(slots);
-        if (slots.length > 0) {
-          const firstAvail = slots.find((s: IAvailableSlot) => s.isAvailable);
-          setTime(firstAvail ? firstAvail.time : '');
-        } else {
-          setTime('');
-        }
-      } catch (err) {
-        console.warn('Lỗi khi tải khung giờ từ BE, sử dụng khung giờ dự phòng:', err);
-        const defaultSlots: IAvailableSlot[] = [
-          '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
-          '13:00', '13:30', '14:00', '17:00', '17:30', '18:00',
-          '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'
-        ].map((t) => ({ time: t, isAvailable: true, remainingTables: 5 }));
-        setAvailableSlots(defaultSlots);
-        setTime(defaultSlots[0].time);
+        setSlotsMessage(data?.message || '');
+        // Giữ giờ khách đã chọn nếu vẫn còn bàn, ngược lại chọn khung giờ trống sớm nhất
+        setTime((current) => {
+          if (slots.some((s) => s.time === current && s.isAvailable)) return current;
+          return slots.find((s) => s.isAvailable)?.time || '';
+        });
+      } catch (err: any) {
+        // Không tự bịa khung giờ dự phòng: giờ hiển thị phải đúng giờ mở cửa & tình trạng bàn thực tế
+        setAvailableSlots([]);
+        setTime('');
+        const status = err?.response?.status ?? 500;
+        const serverMsg = err?.response?.data?.message;
+        setSlotsMessage(
+          status < 500 && typeof serverMsg === 'string'
+            ? serverMsg
+            : 'Không tải được khung giờ phục vụ. Vui lòng thử lại sau.',
+        );
       } finally {
         setIsLoadingSlots(false);
       }
@@ -158,11 +176,19 @@ export const Reservation: React.FC = () => {
       });
 
       const resData = res?.data?.data || res?.data;
+      // Khóa giữ bàn đã được server chuyển thành đơn đặt bàn
+      clearHold(false);
       setCreatedReservation(resData);
-      toast.success('Đặt bàn thành công!');
+      toast.success('Đặt bàn thành công! Nhà hàng sẽ liên hệ xác nhận.');
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Đặt bàn thất bại. Vui lòng thử lại.';
+      const rawMsg = err?.response?.data?.message;
+      const msg = Array.isArray(rawMsg) ? rawMsg[0] : rawMsg || 'Đặt bàn thất bại. Vui lòng thử lại.';
       toast.error(msg);
+      // Bàn không còn được giữ / đã bị đặt -> quay lại bước chọn bàn
+      if (selectedTable && /giữ bàn|đã được đặt|chọn lại bàn/i.test(msg)) {
+        clearHold(false);
+        setStep(2);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -172,7 +198,7 @@ export const Reservation: React.FC = () => {
     setCreatedReservation(null);
     setStep(1);
     setTime('');
-    setSelectedTable(null);
+    clearHold(false);
     setPreOrders([]);
     setSpecialNotes('');
   };
@@ -246,6 +272,7 @@ export const Reservation: React.FC = () => {
                   time={time}
                   onSelectTime={setTime}
                   availableSlots={availableSlots}
+                  slotsMessage={slotsMessage}
                   isLoadingSlots={isLoadingSlots}
                   onNext={() => setStep(2)}
                 />
@@ -257,9 +284,13 @@ export const Reservation: React.FC = () => {
                 <ReservationTableStep
                   branchId={selectedBranchId}
                   branchName={selectedBranch?.name}
+                  date={date}
+                  time={time}
                   partySize={guests}
                   selectedTable={selectedTable}
-                  onSelectTable={setSelectedTable}
+                  holdExpiresAt={holdExpiresAt}
+                  onTableHeld={holdTable}
+                  onReleaseTable={clearHold}
                   onBack={() => setStep(1)}
                   onNext={() => setStep(3)}
                 />
