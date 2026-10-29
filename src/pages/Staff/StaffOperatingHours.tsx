@@ -151,7 +151,7 @@ const StaffOperatingHours: React.FC = () => {
 
   if (!branchId) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center">
+      <div className="bg-white min-h-full p-8 text-center flex flex-col items-center justify-center">
         <AlertCircle size={40} className="text-amber-500 mx-auto mb-3" />
         <h3 className="text-lg font-bold text-gray-800">Không tìm thấy thông tin cơ sở</h3>
         <p className="text-sm text-gray-500 mt-1">
@@ -162,7 +162,7 @@ const StaffOperatingHours: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 space-y-6">
+    <div className="bg-white min-h-full p-6 space-y-6">
       <div>
         <h2 className="text-xl font-bold text-gray-800">
           Giờ Hoạt Động & Sức Chứa Chi Nhánh

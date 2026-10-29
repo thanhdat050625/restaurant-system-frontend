@@ -18,6 +18,8 @@ export interface ITable {
   branch?: IBranch;
   tableType?: ITableType;
   lockStatus?: ITableLockStatus;
+  /** Bàn đã có đơn đặt trong khung giờ đang xem (chỉ có ở API tìm bàn theo khung giờ) */
+  isReserved?: boolean;
 }
 
 export interface QueryRestaurantTableParams {
@@ -34,6 +36,8 @@ export interface SearchAvailableTablesParams {
   branchId: string;
   partySize: number;
   floor?: number;
-  date?: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  durationMinutes?: number;
   includeLocked?: boolean;
 }

@@ -68,9 +68,12 @@ export const TableMap: React.FC<TableMapProps> = ({
     let occupied = 0;
     let dirty = 0;
     let maintenance = 0;
+    let reserved = 0;
 
     tables.forEach((t) => {
-      if (t.lockStatus?.isLocked) {
+      if (mode === 'customer' && t.isReserved) {
+        reserved++;
+      } else if (t.lockStatus?.isLocked) {
         locked++;
       } else if (t.status === 'AVAILABLE') {
         available++;
@@ -83,8 +86,8 @@ export const TableMap: React.FC<TableMapProps> = ({
       }
     });
 
-    return { total: tables.length, available, locked, occupied, dirty, maintenance };
-  }, [tables]);
+    return { total: tables.length, available, locked, occupied, dirty, maintenance, reserved };
+  }, [tables, mode]);
 
   if (loading) {
     return (
@@ -124,14 +127,23 @@ export const TableMap: React.FC<TableMapProps> = ({
             <span className="w-3 h-3 rounded-md bg-amber-500 animate-pulse shadow-sm" />
             <span className="text-gray-700 dark:text-gray-300">Đang giữ chỗ ({stats.locked})</span>
           </div>
-          <div className="flex items-center gap-1.5 font-medium">
-            <span className="w-3 h-3 rounded-md bg-rose-500 shadow-sm" />
-            <span className="text-gray-700 dark:text-gray-300">Có khách ({stats.occupied})</span>
-          </div>
-          <div className="flex items-center gap-1.5 font-medium">
-            <span className="w-3 h-3 rounded-md bg-yellow-500 shadow-sm" />
-            <span className="text-gray-700 dark:text-gray-300">Chờ dọn ({stats.dirty})</span>
-          </div>
+          {mode === 'customer' ? (
+            <div className="flex items-center gap-1.5 font-medium">
+              <span className="w-3 h-3 rounded-md bg-rose-500 shadow-sm" />
+              <span className="text-gray-700 dark:text-gray-300">Đã được đặt ({stats.reserved})</span>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5 font-medium">
+                <span className="w-3 h-3 rounded-md bg-rose-500 shadow-sm" />
+                <span className="text-gray-700 dark:text-gray-300">Có khách ({stats.occupied})</span>
+              </div>
+              <div className="flex items-center gap-1.5 font-medium">
+                <span className="w-3 h-3 rounded-md bg-yellow-500 shadow-sm" />
+                <span className="text-gray-700 dark:text-gray-300">Chờ dọn ({stats.dirty})</span>
+              </div>
+            </>
+          )}
         </div>
 
         {mode === 'customer' && (
@@ -198,10 +210,15 @@ export const TableMap: React.FC<TableMapProps> = ({
             const isSelected = selectedTableId === table.id;
             const isLockedByOthers = table.lockStatus?.isLocked && !table.lockStatus?.lockedByMe;
             const isLockedByMe = table.lockStatus?.isLocked && table.lockStatus?.lockedByMe;
-            const isOccupied = table.status === 'OCCUPIED';
-            const isDirty = table.status === 'DIRTY';
+            // Khách xem theo khung giờ đặt: trạng thái vật lý hiện tại không áp dụng (API đã tính vào isReserved)
+            const isCustomerMode = mode === 'customer';
+            const isReserved = isCustomerMode && !!table.isReserved;
+            const isOccupied = !isCustomerMode && table.status === 'OCCUPIED';
+            const isDirty = !isCustomerMode && table.status === 'DIRTY';
             const isMaintenance = table.status === 'MAINTENANCE';
-            const isAvailable = table.status === 'AVAILABLE' && !isLockedByOthers;
+            const isAvailable = isCustomerMode
+              ? !isReserved && !isMaintenance && !isLockedByOthers
+              : table.status === 'AVAILABLE' && !isLockedByOthers;
             const isUnderCapacity = mode === 'customer' && partySize > capacity;
 
             // Xác định màu sắc & viền
@@ -213,6 +230,10 @@ export const TableMap: React.FC<TableMapProps> = ({
               cardStyle = 'bg-primary/10 border-primary ring-2 ring-primary text-primary shadow-lg shadow-primary/15';
               badgeBg = 'bg-primary text-white';
               statusText = 'Bạn đang giữ bàn';
+            } else if (isReserved) {
+              cardStyle = 'bg-rose-500/10 border-rose-300 text-rose-700 dark:text-rose-400 opacity-75';
+              badgeBg = 'bg-rose-500 text-white';
+              statusText = 'Đã được đặt';
             } else if (isLockedByOthers) {
               cardStyle = 'bg-amber-500/10 border-amber-400 text-amber-700 dark:text-amber-300 ring-1 ring-amber-400/50';
               badgeBg = 'bg-amber-500 text-white animate-pulse';

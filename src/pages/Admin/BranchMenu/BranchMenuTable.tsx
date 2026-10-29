@@ -99,11 +99,11 @@ export const BranchMenuTable: React.FC<BranchMenuTableProps> = ({
                 </button>
               </th>
               <th className="p-3 font-semibold">Món ăn</th>
-              <th className="p-3 font-semibold">Danh mục</th>
-              <th className="p-3 font-semibold text-right">Giá bán tại cơ sở</th>
-              <th className="p-3 font-semibold text-center">Tình trạng hôm nay (1 Chạm)</th>
-              <th className="p-3 font-semibold text-center">Phục vụ cơ sở</th>
-              <th className="p-3 font-semibold text-center">Thao tác</th>
+              <th className="p-3 font-semibold text-center whitespace-nowrap">Danh mục</th>
+              <th className="p-3 font-semibold text-right whitespace-nowrap">Giá bán tại cơ sở</th>
+              <th className="p-3 font-semibold text-center whitespace-nowrap">Tình trạng hôm nay</th>
+              <th className="p-3 font-semibold text-center whitespace-nowrap">Phục vụ cơ sở</th>
+              <th className="p-3 font-semibold text-center whitespace-nowrap">Thao tác</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm">
@@ -175,13 +175,13 @@ export const BranchMenuTable: React.FC<BranchMenuTableProps> = ({
                       </div>
                     </td>
 
-                    <td className="p-3">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                    <td className="p-3 text-center whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 whitespace-nowrap">
                         {item.menuItem?.category?.name || 'Chưa phân loại'}
                       </span>
                     </td>
 
-                    <td className="p-3 text-right">
+                    <td className="p-3 text-right whitespace-nowrap">
                       <div className="font-bold text-gray-900">
                         {formatVND(currentPrice)}
                       </div>
@@ -194,7 +194,7 @@ export const BranchMenuTable: React.FC<BranchMenuTableProps> = ({
                       )}
                     </td>
 
-                    <td className="p-3 text-center">
+                    <td className="p-3 text-center whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => onToggleAvailability(item)}
@@ -214,7 +214,7 @@ export const BranchMenuTable: React.FC<BranchMenuTableProps> = ({
                       </button>
                     </td>
 
-                    <td className="p-3 text-center">
+                    <td className="p-3 text-center whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => onToggleStatus(item)}
@@ -229,7 +229,7 @@ export const BranchMenuTable: React.FC<BranchMenuTableProps> = ({
                       </button>
                     </td>
 
-                    <td className="p-3 text-center">
+                    <td className="p-3 text-center whitespace-nowrap">
                       <button
                         onClick={() => onEditPrice(item)}
                         className="text-info hover:text-blue-700 font-medium text-xs px-2.5 py-1 bg-blue-50 rounded hover:bg-blue-100 transition-colors inline-flex items-center gap-1 cursor-pointer"

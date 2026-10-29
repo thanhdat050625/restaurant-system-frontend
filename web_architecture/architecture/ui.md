@@ -24,9 +24,9 @@ Tài liệu này quy định các tiêu chuẩn bắt buộc khi xây dựng và
 - Các component hiển thị không chứa quá nhiều hàm tính toán phức tạp.
 - Tách logic phức tạp thành Custom Hook hoặc đưa vào Service xử lý.
 
-### 2.2 Quy tắc Giới hạn Độ dài File (Tối đa 400 dòng)
-- Tuyệt đối không để bất kỳ component nào vượt quá **400 dòng code**.
-- Khi một file tiệm cận 300 dòng, chủ động tách thành:
+### 2.2 Quy tắc Giới hạn Độ dài File (Tối đa 1000 dòng)
+- Tuyệt đối không để bất kỳ component nào vượt quá **1000 dòng code**.
+- Khi một file tiệm cận 800 dòng, chủ động tách thành:
   - Sub-component form nhập liệu: `...Form.tsx` hoặc `...Modal.tsx`.
   - Sub-component từng hàng của table: `...TableRow.tsx`.
   - Custom hook: `use...Data.ts`.

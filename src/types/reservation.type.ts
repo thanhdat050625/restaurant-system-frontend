@@ -26,10 +26,18 @@ export interface ICreateReservationDto {
   guestCount: number;
   reservationDate: string; // YYYY-MM-DD
   reservationTime: string; // HH:mm
+  durationMinutes?: number;
   tableTypeId?: string;
   tableId?: string;
   specialNotes?: string;
   preOrders?: IPreOrderItem[];
+}
+
+export interface IQueryAvailableSlotsParams {
+  branchId: string;
+  date: string;
+  guestCount?: number;
+  durationMinutes?: number;
 }
 
 export interface IAvailableSlot {
@@ -43,7 +51,12 @@ export interface IAvailableSlotsResponse {
   branchName: string;
   date: string;
   slotDurationMinutes: number;
+  durationMinutes?: number;
+  openTime?: string;
+  closeTime?: string;
   slots: IAvailableSlot[];
+  /** Lý do không có khung giờ (đóng cửa, không có bàn đủ chỗ, hết giờ trong ngày...) */
+  message?: string;
 }
 
 export interface IReservation {
@@ -76,6 +89,11 @@ export interface IReservation {
     name: string;
     capacity: number;
   };
+  table?: {
+    id: string;
+    tableNumber: string;
+    floor: number;
+  } | null;
   orders?: {
     id: string;
     menuItemId: string;

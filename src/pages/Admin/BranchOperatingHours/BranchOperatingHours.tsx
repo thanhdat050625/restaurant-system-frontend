@@ -10,6 +10,7 @@ import BranchCapacitySection from './BranchCapacitySection';
 import OperatingHoursScheduleSection from './OperatingHoursScheduleSection';
 import { Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 const BranchOperatingHours: React.FC = () => {
   const { user } = useAuth();
@@ -196,17 +197,15 @@ const BranchOperatingHours: React.FC = () => {
             <Building2 size={16} className="text-primary shrink-0" />
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-gray-400 uppercase">Cơ Sở Phục Vụ</span>
-              <select
+              <Select
+                tone="light"
+                variant="ghost"
+                className="min-w-[220px] -ml-1"
                 value={selectedBranchId}
-                onChange={(e) => setSelectedBranchId(e.target.value)}
-                className="bg-transparent text-sm font-semibold text-gray-800 outline-none cursor-pointer"
-              >
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedBranchId}
+                aria-label="Cơ sở phục vụ"
+                options={branches.map((b) => ({ value: b.id, label: b.name }))}
+              />
             </div>
           </div>
         )}

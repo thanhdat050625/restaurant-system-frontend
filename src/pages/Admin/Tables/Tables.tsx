@@ -15,6 +15,7 @@ import { Search, Filter, Plus, Layers, LayoutGrid, List } from 'lucide-react';
 import TableMap from '../../../components/table/TableMap';
 import { socketService } from '../../../services/socketService';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 const Tables: React.FC = () => {
   const [tables, setTables] = useState<ITable[]>([]);
@@ -169,18 +170,18 @@ const Tables: React.FC = () => {
     setPage(1);
   };
 
-  const handleBranchFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedBranchId(e.target.value);
+  const handleBranchFilterChange = (value: string) => {
+    setSelectedBranchId(value);
     setPage(1);
   };
 
-  const handleTableTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTableTypeId(e.target.value);
+  const handleTableTypeFilterChange = (value: string) => {
+    setSelectedTableTypeId(value);
     setPage(1);
   };
 
-  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
     setPage(1);
   };
 
@@ -347,43 +348,45 @@ const Tables: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-gray-400 shrink-0" />
-          <select
+          <Select
+            size="sm" tone="light"
             value={selectedBranchId}
             onChange={handleBranchFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả chi nhánh</option>
-            {branches.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            aria-label="Lọc chi nhánh"
+            options={[
+              { value: 'ALL', label: 'Tất cả chi nhánh' },
+              ...branches.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+          />
         </div>
 
         <div className="flex items-center gap-2">
-          <select
+          <Select
+            size="sm" tone="light"
             value={selectedTableTypeId}
             onChange={handleTableTypeFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả loại bàn</option>
-            {tableTypes.map(tt => (
-              <option key={tt.id} value={tt.id}>{tt.name} ({tt.capacity} chỗ)</option>
-            ))}
-          </select>
+            aria-label="Lọc loại bàn"
+            options={[
+              { value: 'ALL', label: 'Tất cả loại bàn' },
+              ...tableTypes.map((tt) => ({ value: tt.id, label: `${tt.name} (${tt.capacity} chỗ)` })),
+            ]}
+          />
         </div>
 
         <div className="flex items-center gap-2">
-          <select
+          <Select
+            size="sm" tone="light"
             value={statusFilter}
             onChange={handleStatusFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả trạng thái</option>
-            <option value="AVAILABLE">Trống</option>
-            <option value="OCCUPIED">Có khách</option>
-            <option value="DIRTY">Cần dọn</option>
-            <option value="MAINTENANCE">Bảo trì</option>
-          </select>
+            aria-label="Lọc trạng thái bàn"
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái' },
+              { value: 'AVAILABLE', label: 'Trống' },
+              { value: 'OCCUPIED', label: 'Có khách' },
+              { value: 'DIRTY', label: 'Cần dọn' },
+              { value: 'MAINTENANCE', label: 'Bảo trì' },
+            ]}
+          />
         </div>
       </div>
 

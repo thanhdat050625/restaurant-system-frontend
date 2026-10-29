@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -7,13 +7,26 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { branchService } from '../../services/admin/branchService';
 import { reservationService } from '../../services/reservationService';
 import { IBranch } from '../../types/admin/branch.type';
-import { ITable } from '../../types/admin/table.type';
 import { IReservation, IAvailableSlot, IPreOrderItem } from '../../types/reservation.type';
 import { ReservationDateTimeStep } from './ReservationDateTimeStep';
 import { ReservationTableStep } from './ReservationTableStep';
 import { ReservationPreOrderStep } from './ReservationPreOrderStep';
 import { ReservationContactStep } from './ReservationContactStep';
 import { ReservationSuccessView } from './ReservationSuccessView';
+import { ReservationStepper } from './ReservationStepper';
+import { ReservationSummaryCard } from './ReservationSummaryCard';
+import PageHero from '../../components/ui/PageHero';
+import { CalendarCheck } from 'lucide-react';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920';
+import { useTableHold } from './useTableHold';
+
+/** Ngày theo giờ máy khách dạng YYYY-MM-DD (toISOString() lệch ngày vì dùng UTC) */
+const toLocalDateString = (d: Date) => {
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+};
 
 export const Reservation: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -28,11 +41,30 @@ export const Reservation: React.FC = () => {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [guests, setGuests] = useState(2);
+  const [slotCount, setSlotCount] = useState<number>(1);
+  const [slotDurationMinutes, setSlotDurationMinutes] = useState<number>(90);
+  const [openTime, setOpenTime] = useState<string>('');
+  const [closeTime, setCloseTime] = useState<string>('');
 
-  const [selectedTable, setSelectedTable] = useState<ITable | null>(null);
+  const totalDurationMinutes = slotCount * slotDurationMinutes;
+
+  const endTime = useMemo(() => {
+    if (!time) return '';
+    const [h, m] = time.split(':').map(Number);
+    const endMinutes = h * 60 + (m || 0) + totalDurationMinutes;
+    const endH = Math.floor(endMinutes / 60) % 24;
+    const endM = endMinutes % 60;
+    return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+  }, [time, totalDurationMinutes]);
 
   const [availableSlots, setAvailableSlots] = useState<IAvailableSlot[]>([]);
+  const [slotsMessage, setSlotsMessage] = useState('');
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  // Bàn đang giữ gắn với đúng chi nhánh + ngày + giờ + số khách + thời lượng; đổi bất kỳ yếu tố nào sẽ nhả bàn
+  const { heldTable: selectedTable, holdExpiresAt, holdTable, clearHold } = useTableHold(
+    `${selectedBranchId}|${date}|${time}|${guests}|${totalDurationMinutes}`,
+  );
 
   const [preOrders, setPreOrders] = useState<IPreOrderItem[]>([]);
 
@@ -53,30 +85,42 @@ export const Reservation: React.FC = () => {
     }
   }, [user]);
 
-  // Tải danh sách chi nhánh hoạt động
+  // Tải danh sách chi nhánh hoạt động (chỉ 1 lần)
   useEffect(() => {
     const fetchBranches = async () => {
       try {
         const res = await branchService.getBranches({ status: 'ACTIVE' });
         const data = res?.data?.data || res?.data || [];
-        const items = Array.isArray(data) ? data : data.items || [];
+        const items: IBranch[] = Array.isArray(data) ? data : data.items || [];
         setBranches(items);
-        if (items.length > 0 && !selectedBranchId) {
-          setSelectedBranchId(items[0].id);
-        }
+        setSelectedBranchId((current) =>
+          items.some((b) => b.id === current) ? current : items[0]?.id || '',
+        );
       } catch {
         setBranches([]);
       }
     };
     fetchBranches();
-  }, [selectedBranchId]);
+  }, []);
+
+  // Khi đổi chi nhánh: đồng bộ cấu hình slotDurationMinutes, giờ mở/đóng cửa và reset slot
+  useEffect(() => {
+    const branch = branches.find((b) => b.id === selectedBranchId);
+    if (branch?.slotDurationMinutes) {
+      setSlotDurationMinutes(branch.slotDurationMinutes);
+    }
+    if (branch?.openingTime) setOpenTime(branch.openingTime);
+    if (branch?.closingTime) setCloseTime(branch.closingTime);
+    setSlotCount(1);
+    setPreOrders([]);
+  }, [selectedBranchId, branches]);
 
   // Tạo danh sách 14 ngày tới
   const nextDates = useMemo(() => {
     return Array.from({ length: 14 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() + i);
-      const val = d.toISOString().split('T')[0];
+      const val = toLocalDateString(d);
       const label = d.toLocaleDateString('vi-VN', {
         weekday: 'short',
         day: 'numeric',
@@ -93,7 +137,7 @@ export const Reservation: React.FC = () => {
     }
   }, [date, nextDates]);
 
-  // Tải khung giờ trống khi thay đổi chi nhánh, ngày hoặc số khách
+  // Tải khung giờ trống khi thay đổi chi nhánh, ngày, số khách hoặc thời lượng slot
   useEffect(() => {
     if (!selectedBranchId || !date) return;
     const fetchSlots = async () => {
@@ -103,31 +147,40 @@ export const Reservation: React.FC = () => {
           branchId: selectedBranchId,
           date,
           guestCount: guests,
+          durationMinutes: totalDurationMinutes,
         });
         const data = (res as any)?.data?.data || (res as any)?.data || res;
         const slots: IAvailableSlot[] = data?.slots || (Array.isArray(data) ? data : []);
         setAvailableSlots(slots);
-        if (slots.length > 0) {
-          const firstAvail = slots.find((s: IAvailableSlot) => s.isAvailable);
-          setTime(firstAvail ? firstAvail.time : '');
-        } else {
-          setTime('');
+        setSlotsMessage(data?.message || '');
+        if (data?.slotDurationMinutes) {
+          setSlotDurationMinutes(data.slotDurationMinutes);
         }
-      } catch (err) {
-        console.warn('Lỗi khi tải khung giờ từ BE, sử dụng khung giờ dự phòng:', err);
-        const defaultSlots: IAvailableSlot[] = [
-          '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
-          '13:00', '13:30', '14:00', '17:00', '17:30', '18:00',
-          '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'
-        ].map((t) => ({ time: t, isAvailable: true, remainingTables: 5 }));
-        setAvailableSlots(defaultSlots);
-        setTime(defaultSlots[0].time);
+        if (data?.openTime) setOpenTime(data.openTime);
+        if (data?.closeTime) setCloseTime(data.closeTime);
+
+        // Giữ giờ khách đã chọn nếu vẫn còn bàn, ngược lại chọn khung giờ trống sớm nhất
+        setTime((current) => {
+          if (slots.some((s) => s.time === current && s.isAvailable)) return current;
+          return slots.find((s) => s.isAvailable)?.time || '';
+        });
+      } catch (err: any) {
+        // Không tự bịa khung giờ dự phòng: giờ hiển thị phải đúng giờ mở cửa & tình trạng bàn thực tế
+        setAvailableSlots([]);
+        setTime('');
+        const status = err?.response?.status ?? 500;
+        const serverMsg = err?.response?.data?.message;
+        setSlotsMessage(
+          status < 500 && typeof serverMsg === 'string'
+            ? serverMsg
+            : 'Không tải được khung giờ phục vụ. Vui lòng thử lại sau.',
+        );
       } finally {
         setIsLoadingSlots(false);
       }
     };
     fetchSlots();
-  }, [selectedBranchId, date, guests]);
+  }, [selectedBranchId, date, guests, totalDurationMinutes]);
 
   const selectedBranch = branches.find((b) => b.id === selectedBranchId);
 
@@ -143,11 +196,12 @@ export const Reservation: React.FC = () => {
         branchId: selectedBranchId,
         reservationDate: date,
         reservationTime: time,
+        durationMinutes: totalDurationMinutes,
         guestCount: guests,
         tableId: selectedTable?.id || undefined,
         tableTypeId: selectedTable?.tableTypeId || undefined,
         customerName: name.trim(),
-        customerPhone: phone.trim(),
+        customerPhone: phone.replace(/[\s.-]/g, ''),
         customerEmail: email.trim() || undefined,
         specialNotes: specialNotes.trim() || undefined,
         preOrders: preOrders.map((p) => ({
@@ -158,11 +212,19 @@ export const Reservation: React.FC = () => {
       });
 
       const resData = res?.data?.data || res?.data;
+      // Khóa giữ bàn đã được server chuyển thành đơn đặt bàn
+      clearHold(false);
       setCreatedReservation(resData);
-      toast.success('Đặt bàn thành công!');
+      toast.success('Đặt bàn thành công! Nhà hàng sẽ liên hệ xác nhận.');
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Đặt bàn thất bại. Vui lòng thử lại.';
+      const rawMsg = err?.response?.data?.message;
+      const msg = Array.isArray(rawMsg) ? rawMsg[0] : rawMsg || 'Đặt bàn thất bại. Vui lòng thử lại.';
       toast.error(msg);
+      // Bàn không còn được giữ / đã bị đặt -> quay lại bước chọn bàn
+      if (selectedTable && /giữ bàn|đã được đặt|chọn lại bàn/i.test(msg)) {
+        clearHold(false);
+        setStep(2);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -172,136 +234,153 @@ export const Reservation: React.FC = () => {
     setCreatedReservation(null);
     setStep(1);
     setTime('');
-    setSelectedTable(null);
+    clearHold(false);
     setPreOrders([]);
     setSpecialNotes('');
   };
+
+  // Chuyển bước -> cuộn về đầu stepper (nút Tiếp theo nằm cuối trang)
+  const stepperRef = useRef<HTMLDivElement>(null);
+  const isFirstStepRender = useRef(true);
+  useEffect(() => {
+    if (isFirstStepRender.current) {
+      isFirstStepRender.current = false;
+      return;
+    }
+    stepperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [step]);
 
   if (createdReservation) {
     return <ReservationSuccessView reservation={createdReservation} onReset={handleReset} />;
   }
 
-  const stepTitles = ['Thời gian & Khách', 'Chọn bàn trên sơ đồ', 'Gọi món trước', 'Xác nhận'];
+  const summary = (
+    <ReservationSummaryCard
+      branch={selectedBranch}
+      date={date}
+      time={time}
+      endTime={endTime}
+      slotCount={slotCount}
+      slotDurationMinutes={slotDurationMinutes}
+      guests={guests}
+      selectedTable={selectedTable}
+      holdExpiresAt={holdExpiresAt}
+      preOrders={preOrders}
+    />
+  );
+
+  const stepMotion = {
+    initial: { opacity: 0, x: 20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -20 },
+    transition: { duration: 0.25 },
+  };
 
   return (
-    <PageWrapper>
-      {/* Hero Banner */}
-      <section className="relative pt-28 pb-16 bg-gradient-to-br from-slate-900 via-slate-800 to-primary/80 overflow-hidden text-center text-white">
-        <div className="relative max-w-4xl mx-auto px-4 space-y-3">
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-[family-name:var(--font-heading)]">
-            Đặt Bàn Trực Tuyến & Sơ Đồ Bàn
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto">
-            Xem trực tiếp sơ đồ vị trí bàn theo từng tầng, giữ bàn trong 10 phút và gọi món trước để sẵn sàng phục vụ.
-          </p>
-        </div>
-      </section>
+    <PageWrapper className="bg-light dark:bg-dark">
+      <PageHero
+        overlap
+        image={HERO_IMAGE}
+        eyebrow="Đặt bàn trực tuyến"
+        eyebrowIcon={CalendarCheck}
+        title={
+          <>
+            Đặt bàn tại <span className="gradient-text">FoodHub</span>
+          </>
+        }
+        subtitle="Chọn giờ đến, giữ vị trí bàn yêu thích trên sơ đồ và gọi món trước để bữa ăn được chuẩn bị sẵn sàng."
+      />
 
-      {/* Step Indicator */}
-      <section className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-          {stepTitles.map((title, idx) => (
-            <div key={idx} className="flex items-center gap-1.5 sm:gap-2">
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                  step > idx + 1
-                    ? 'bg-emerald-500 text-white'
-                    : step === idx + 1
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-400'
-                }`}
-              >
-                {step > idx + 1 ? '✓' : idx + 1}
-              </div>
-              <span
-                className={`text-xs font-medium hidden md:inline ${
-                  step === idx + 1 ? 'text-primary font-bold' : 'text-slate-500 dark:text-slate-400'
-                }`}
-              >
-                {title}
-              </span>
-              {idx < stepTitles.length - 1 && (
-                <div className="w-4 sm:w-10 h-0.5 bg-slate-200 dark:bg-slate-700 mx-1" />
-              )}
+      <section className="relative -mt-16 sm:-mt-20 pb-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div ref={stepperRef} className="scroll-mt-24">
+            <ReservationStepper step={step} onStepClick={setStep} />
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
+            <div className="min-w-0">
+              <AnimatePresence mode="wait">
+                {step === 1 && (
+                  <motion.div key="step1" {...stepMotion}>
+                    <ReservationDateTimeStep
+                      branches={branches}
+                      selectedBranchId={selectedBranchId}
+                      onSelectBranch={setSelectedBranchId}
+                      date={date}
+                      onSelectDate={setDate}
+                      nextDates={nextDates}
+                      guests={guests}
+                      onSelectGuests={setGuests}
+                      slotCount={slotCount}
+                      onSelectSlotCount={setSlotCount}
+                      slotDurationMinutes={slotDurationMinutes}
+                      endTime={endTime}
+                      openTime={openTime}
+                      closeTime={closeTime}
+                      time={time}
+                      onSelectTime={setTime}
+                      availableSlots={availableSlots}
+                      slotsMessage={slotsMessage}
+                      isLoadingSlots={isLoadingSlots}
+                      onNext={() => setStep(2)}
+                    />
+                  </motion.div>
+                )}
+
+                {step === 2 && (
+                  <motion.div key="step2" {...stepMotion}>
+                    <ReservationTableStep
+                      branchId={selectedBranchId}
+                      branchName={selectedBranch?.name}
+                      date={date}
+                      time={time}
+                      durationMinutes={totalDurationMinutes}
+                      partySize={guests}
+                      selectedTable={selectedTable}
+                      holdExpiresAt={holdExpiresAt}
+                      onTableHeld={holdTable}
+                      onReleaseTable={clearHold}
+                      onBack={() => setStep(1)}
+                      onNext={() => setStep(3)}
+                    />
+                  </motion.div>
+                )}
+
+                {step === 3 && (
+                  <motion.div key="step3" {...stepMotion}>
+                    <ReservationPreOrderStep
+                      branchId={selectedBranchId}
+                      preOrders={preOrders}
+                      onUpdatePreOrders={setPreOrders}
+                      onBack={() => setStep(2)}
+                      onNext={() => setStep(4)}
+                    />
+                  </motion.div>
+                )}
+
+                {step === 4 && (
+                  <motion.div key="step4" {...stepMotion}>
+                    <ReservationContactStep
+                      name={name}
+                      setName={setName}
+                      phone={phone}
+                      setPhone={setPhone}
+                      email={email}
+                      setEmail={setEmail}
+                      specialNotes={specialNotes}
+                      setSpecialNotes={setSpecialNotes}
+                      summary={summary}
+                      isSubmitting={isSubmitting}
+                      onBack={() => setStep(3)}
+                      onSubmit={handleSubmit}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Main Content Area */}
-      <section className="py-10 bg-slate-50 dark:bg-slate-900 min-h-[60vh]">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <AnimatePresence mode="wait">
-            {step === 1 && (
-              <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <ReservationDateTimeStep
-                  branches={branches}
-                  selectedBranchId={selectedBranchId}
-                  onSelectBranch={setSelectedBranchId}
-                  date={date}
-                  onSelectDate={setDate}
-                  nextDates={nextDates}
-                  guests={guests}
-                  onSelectGuests={setGuests}
-                  time={time}
-                  onSelectTime={setTime}
-                  availableSlots={availableSlots}
-                  isLoadingSlots={isLoadingSlots}
-                  onNext={() => setStep(2)}
-                />
-              </motion.div>
-            )}
-
-            {step === 2 && (
-              <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <ReservationTableStep
-                  branchId={selectedBranchId}
-                  branchName={selectedBranch?.name}
-                  partySize={guests}
-                  selectedTable={selectedTable}
-                  onSelectTable={setSelectedTable}
-                  onBack={() => setStep(1)}
-                  onNext={() => setStep(3)}
-                />
-              </motion.div>
-            )}
-
-            {step === 3 && (
-              <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <ReservationPreOrderStep
-                  branchId={selectedBranchId}
-                  preOrders={preOrders}
-                  onUpdatePreOrders={setPreOrders}
-                  onBack={() => setStep(2)}
-                  onNext={() => setStep(4)}
-                />
-              </motion.div>
-            )}
-
-            {step === 4 && (
-              <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <ReservationContactStep
-                  name={name}
-                  setName={setName}
-                  phone={phone}
-                  setPhone={setPhone}
-                  email={email}
-                  setEmail={setEmail}
-                  specialNotes={specialNotes}
-                  setSpecialNotes={setSpecialNotes}
-                  branchName={selectedBranch?.name}
-                  date={date}
-                  time={time}
-                  guests={guests}
-                  selectedTable={selectedTable}
-                  preOrders={preOrders}
-                  isSubmitting={isSubmitting}
-                  onBack={() => setStep(3)}
-                  onSubmit={handleSubmit}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+            <aside className="hidden lg:block sticky top-28">{summary}</aside>
+          </div>
         </div>
       </section>
     </PageWrapper>

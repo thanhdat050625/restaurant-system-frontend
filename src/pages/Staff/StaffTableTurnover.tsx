@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Users, RefreshCw, AlertCircle, Building2, CheckCircle2 } from 'lucide-react';
+import { BrushCleaning, Users, RefreshCw, AlertCircle, Building2, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../features/auth/AuthContext';
 import { tableService, ITableTurnoverResponse } from '../../services/admin/tableService';
 import { TableTurnoverCard } from './TableTurnoverCard';
+import Select from '../../components/ui/Select';
 
 export const StaffTableTurnover: React.FC = () => {
   const { user } = useAuth();
@@ -81,12 +82,12 @@ export const StaffTableTurnover: React.FC = () => {
   const floorNumbers = Array.from(new Set(floors.map((f) => f.floor))).sort((a, b) => a - b);
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-full p-6 space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Sparkles className="text-primary" size={24} />
+            <BrushCleaning className="text-primary" size={24} />
             <span>Quản Lý Dọn Bàn & Xoay Vòng Bàn</span>
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -172,17 +173,21 @@ export const StaffTableTurnover: React.FC = () => {
         {/* Status filter */}
         <div className="flex items-center gap-2 text-xs">
           <span className="text-gray-500 font-medium">Trạng thái:</span>
-          <select
+          <Select
+            size="sm"
+            tone="light"
+            className="min-w-[200px]"
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-700 bg-gray-50 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
-          >
-            <option value="ALL">Tất cả trạng thái</option>
-            <option value="DIRTY">Cần dọn dẹp ({summary.dirty})</option>
-            <option value="OCCUPIED">Đang có khách ({summary.occupied})</option>
-            <option value="AVAILABLE">Sẵn sàng ({summary.available})</option>
-            <option value="MAINTENANCE">Bảo trì ({summary.maintenance})</option>
-          </select>
+            onChange={setSelectedStatus}
+            aria-label="Lọc trạng thái bàn"
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái' },
+              { value: 'DIRTY', label: `Cần dọn dẹp (${summary.dirty})` },
+              { value: 'OCCUPIED', label: `Đang có khách (${summary.occupied})` },
+              { value: 'AVAILABLE', label: `Sẵn sàng (${summary.available})` },
+              { value: 'MAINTENANCE', label: `Bảo trì (${summary.maintenance})` },
+            ]}
+          />
         </div>
       </div>
 

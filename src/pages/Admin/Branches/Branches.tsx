@@ -9,6 +9,7 @@ import BranchOperatingHoursModal from './BranchOperatingHoursModal';
 import Pagination from '../../../components/common/Pagination';
 import { Search, Filter, Plus, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 const Branches: React.FC = () => {
   const [branches, setBranches] = useState<IBranch[]>([]);
@@ -75,8 +76,8 @@ const Branches: React.FC = () => {
     setPage(1);
   };
 
-  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
     setPage(1);
   };
 
@@ -167,15 +168,17 @@ const Branches: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-gray-400 shrink-0" />
-          <select
+          <Select
+            size="sm" tone="light"
             value={statusFilter}
             onChange={handleStatusFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả trạng thái hoạt động</option>
-            <option value="ACTIVE">Đang hoạt động</option>
-            <option value="CLOSED">Đã đóng cửa</option>
-          </select>
+            aria-label="Lọc trạng thái hoạt động"
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái hoạt động' },
+              { value: 'ACTIVE', label: 'Đang hoạt động' },
+              { value: 'CLOSED', label: 'Đã đóng cửa' },
+            ]}
+          />
         </div>
       </div>
 

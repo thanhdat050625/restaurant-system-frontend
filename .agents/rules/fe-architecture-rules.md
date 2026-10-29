@@ -29,5 +29,5 @@ Tài liệu kiến trúc chi tiết (Source of Truth): `web_architecture/`
 - Tránh truyền props quá 3 tầng (Prop drilling), hãy sử dụng Context API hoặc custom hooks.
 
 ## 4. Quy Chuẩn Code & Kích Thước File
-- Không để bất kỳ file component nào vượt quá **400 dòng**. Chủ động chia nhỏ thành sub-components (như Modal, Row item, Filter bar) hoặc custom hooks.
+- Không để bất kỳ file component nào vượt quá **1000 dòng**. Chủ động chia nhỏ thành sub-components (như Modal, Row item, Filter bar) hoặc custom hooks.
 - Bắt buộc dùng `ConfirmModal.tsx` và `Modal.tsx`, tuyệt đối không dùng `window.confirm` hay `alert()` native.

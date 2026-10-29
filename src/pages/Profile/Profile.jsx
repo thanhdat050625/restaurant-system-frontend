@@ -1,23 +1,13 @@
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, Mail, Phone, MapPin, Package, LogOut,
+  User, Mail, Phone, MapPin, LogOut,
   AtSign, Calendar, Venus, Mars, CircleDot,
-  ShieldCheck, Clock, ChevronRight, Edit3,
-  CheckCircle2, XCircle, Truck, ReceiptText,
+  ShieldCheck, Clock, ChevronRight, Edit3, PlusCircle,
 } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import PageWrapper from '../../layouts/PageWrapper';
 import { useAuth } from '../../features/auth/AuthContext';
-import { formatPrice } from '../../utils/helpers';
-import { useNavigate } from 'react-router-dom';
-
-/* ─── Mock orders ─────────────────────────────────────────────────────────── */
-const mockOrders = [
-  { id: 'FH20260001', date: '19/04/2026', status: 'Đang giao', total: 615000, items: 3, color: 'text-primary', bg: 'bg-primary/10', Icon: Truck },
-  { id: 'FH20260002', date: '17/04/2026', status: 'Hoàn thành', total: 325000, items: 2, color: 'text-success', bg: 'bg-success/10', Icon: CheckCircle2 },
-  { id: 'FH20260003', date: '15/04/2026', status: 'Hoàn thành', total: 480000, items: 4, color: 'text-success', bg: 'bg-success/10', Icon: CheckCircle2 },
-  { id: 'FH20260004', date: '10/04/2026', status: 'Đã huỷ', total: 210000, items: 2, color: 'text-error', bg: 'bg-error/10', Icon: XCircle },
-];
+import { ProfileReservationsTab } from './ProfileReservationsTab';
 
 /* ─── Gender display helper ───────────────────────────────────────────────── */
 const GenderIcon = ({ gender }) => {
@@ -29,14 +19,18 @@ const GenderIcon = ({ gender }) => {
 /* ─── Sidebar tabs ────────────────────────────────────────────────────────── */
 const TABS = [
   { id: 'info', label: 'Thông tin cá nhân', Icon: User },
-  { id: 'orders', label: 'Lịch sử đơn hàng', Icon: Package },
+  { id: 'reservations', label: 'Lịch sử đặt bàn', Icon: Calendar },
 ];
 
 /* ════════════════════════════════════════════════════════════════════════════ */
 const Profile = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('info');
+  // Tab nằm trên URL (?tab=reservations) để menu header link thẳng tới "Lịch sử đặt bàn"
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const activeTab = TABS.some((t) => t.id === tabParam) ? tabParam : 'info';
+  const setActiveTab = (id) => setSearchParams(id === 'info' ? {} : { tab: id }, { replace: true });
 
   const avatarName = user?.fullName ? user.fullName : (user?.username ? user.username : 'User');
   const avatarSrc = user?.avatarUrl
@@ -112,43 +106,6 @@ const Profile = () => {
     </motion.div>
   );
 
-  /* ── Orders tab ───────────────────────────────────────────────────────── */
-  const OrdersTab = () => (
-    <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-text-primary dark:text-white">Lịch sử đơn hàng</h2>
-        <span className="text-sm text-text-light">{mockOrders.length} đơn</span>
-      </div>
-
-      <div className="space-y-3">
-        {mockOrders.map((order, i) => (
-          <motion.div
-            key={order.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.07 }}
-            className="group flex items-center gap-4 p-4 rounded-2xl bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border hover:border-primary/40 hover:shadow-md transition-all cursor-pointer"
-          >
-            <div className={`w-12 h-12 ${order.bg} rounded-xl flex items-center justify-center shrink-0`}>
-              <order.Icon size={22} className={order.color} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-text-primary dark:text-white text-sm">#{order.id}</p>
-              <p className="text-xs text-text-light mt-0.5">{order.date} · {order.items} món</p>
-            </div>
-            <div className="text-right">
-              <p className="font-bold text-text-primary dark:text-white text-sm">{formatPrice(order.total)}</p>
-              <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold ${order.bg} ${order.color}`}>
-                {order.status}
-              </span>
-            </div>
-            <ChevronRight size={16} className="text-text-light group-hover:text-primary transition-colors shrink-0" />
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-  );
-
   /* ══════════════════════════════════════════════════════════════════════════ */
   return (
     <PageWrapper>
@@ -183,10 +140,13 @@ const Profile = () => {
                 ) : null}
                 <p className="text-white/60 text-xs mt-1">{user?.email}</p>
               </div>
-              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl text-white text-sm font-medium">
-                <ReceiptText size={16} />
-                {mockOrders.length} đơn hàng
-              </div>
+              <Link
+                to="/reservation"
+                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-white text-sm font-semibold transition-all hover:scale-105"
+              >
+                <PlusCircle size={18} />
+                Đặt bàn mới
+              </Link>
             </div>
           </motion.div>
 
@@ -235,7 +195,7 @@ const Profile = () => {
             >
               <AnimatePresence mode="wait">
                 {activeTab === 'info' && <InfoTab key="info" />}
-                {activeTab === 'orders' && <OrdersTab key="orders" />}
+                {activeTab === 'reservations' && <ProfileReservationsTab key="reservations" />}
               </AnimatePresence>
             </motion.main>
 

@@ -16,6 +16,7 @@ import PriceOverrideModal from './PriceOverrideModal';
 import BranchMenuTable from './BranchMenuTable';
 import { Building2, Search, Filter, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 const BranchMenu: React.FC = () => {
   const { user } = useAuth();
@@ -240,7 +241,13 @@ const BranchMenu: React.FC = () => {
     branches.find((b) => b.id === selectedBranchId)?.name || currentBranchInfo?.name || 'Chi Nhánh';
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 space-y-6">
+    <div
+      className={
+        isStaff
+          ? 'bg-white min-h-full p-6 space-y-6'
+          : 'bg-white rounded-lg shadow-sm border border-gray-100 p-6 space-y-6'
+      }
+    >
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -272,21 +279,19 @@ const BranchMenu: React.FC = () => {
               <Building2 size={16} className="text-primary shrink-0" />
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-gray-400 uppercase">Cơ Sở Phục Vụ</span>
-                <select
+                <Select
+                  tone="light"
+                  variant="ghost"
+                  className="min-w-[220px] -ml-1"
                   value={selectedBranchId}
-                  onChange={(e) => {
-                    setSelectedBranchId(e.target.value);
+                  onChange={(id) => {
+                    setSelectedBranchId(id);
                     setPage(1);
                     setSelectedItemIds([]);
                   }}
-                  className="bg-transparent text-sm font-semibold text-gray-800 outline-none cursor-pointer"
-                >
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
+                  aria-label="Cơ sở phục vụ"
+                  options={branches.map((b) => ({ value: b.id, label: b.name }))}
+                />
               </div>
             </div>
           )}
@@ -310,51 +315,53 @@ const BranchMenu: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-gray-400 shrink-0" />
-          <select
+          <Select
+            size="sm" tone="light"
             value={categoryFilter}
-            onChange={(e) => {
-              setCategoryFilter(e.target.value);
+            onChange={(v) => {
+              setCategoryFilter(v);
               setPage(1);
             }}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none cursor-pointer"
-          >
-            <option value="ALL">Tất cả danh mục</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            aria-label="Lọc danh mục"
+            options={[
+              { value: 'ALL', label: 'Tất cả danh mục' },
+              ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
+            ]}
+          />
         </div>
 
         <div className="flex items-center gap-2">
-          <select
+          <Select
+            size="sm" tone="light"
             value={availabilityFilter}
-            onChange={(e) => {
-              setAvailabilityFilter(e.target.value);
+            onChange={(v) => {
+              setAvailabilityFilter(v);
               setPage(1);
             }}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none cursor-pointer"
-          >
-            <option value="ALL">Tất cả tình trạng kho</option>
-            <option value="IN_STOCK">Còn hàng hôm nay</option>
-            <option value="OUT_OF_STOCK">Tạm hết hôm nay</option>
-          </select>
+            aria-label="Lọc tình trạng kho"
+            options={[
+              { value: 'ALL', label: 'Tất cả tình trạng kho' },
+              { value: 'IN_STOCK', label: 'Còn hàng hôm nay' },
+              { value: 'OUT_OF_STOCK', label: 'Tạm hết hôm nay' },
+            ]}
+          />
         </div>
 
         <div className="flex items-center gap-2">
-          <select
+          <Select
+            size="sm" tone="light"
             value={activeFilter}
-            onChange={(e) => {
-              setActiveFilter(e.target.value);
+            onChange={(v) => {
+              setActiveFilter(v);
               setPage(1);
             }}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none cursor-pointer"
-          >
-            <option value="ALL">Tất cả trạng thái phục vụ</option>
-            <option value="ACTIVE">Đang phục vụ tại cơ sở</option>
-            <option value="INACTIVE">Ngừng bán tại cơ sở</option>
-          </select>
+            aria-label="Lọc trạng thái phục vụ"
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái phục vụ' },
+              { value: 'ACTIVE', label: 'Đang phục vụ tại cơ sở' },
+              { value: 'INACTIVE', label: 'Ngừng bán tại cơ sở' },
+            ]}
+          />
         </div>
       </div>
 

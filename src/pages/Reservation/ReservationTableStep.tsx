@@ -1,199 +1,215 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { CheckCircle2, Info, LayoutGrid, Timer } from 'lucide-react';
+import { ui, SectionTitle, StepActions } from './reservationUi';
 import TableMap from '../../components/table/TableMap';
 import { ITable } from '../../types/admin/table.type';
 import { tableService } from '../../services/admin/tableService';
-import { socketService } from '../../services/socketService';
+import { socketService, ITableSlot, ITableLockEvent } from '../../services/socketService';
 import { useAuth } from '../../features/auth/AuthContext';
 import toast from 'react-hot-toast';
 
 interface ReservationTableStepProps {
   branchId: string;
   branchName?: string;
+  date: string;
+  time: string;
+  durationMinutes?: number;
   partySize: number;
   selectedTable: ITable | null;
-  onSelectTable: (table: ITable | null) => void;
+  holdExpiresAt: number | null;
+  onTableHeld: (table: ITable, slot: ITableSlot, expiresAt: number) => void;
+  onReleaseTable: (notifyServer?: boolean) => void;
   onBack: () => void;
   onNext: () => void;
 }
 
+const formatCountdown = (ms: number) => {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(totalSeconds / 60);
+  const s = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+};
+
 export const ReservationTableStep: React.FC<ReservationTableStepProps> = ({
   branchId,
   branchName,
+  date,
+  time,
+  durationMinutes,
   partySize,
   selectedTable,
-  onSelectTable,
+  holdExpiresAt,
+  onTableHeld,
+  onReleaseTable,
   onBack,
   onNext,
 }) => {
   const { user, isAuthenticated } = useAuth();
   const [tables, setTables] = useState<ITable[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
-  // 1. Tải danh sách bàn khả dụng theo chi nhánh và số khách
-  const fetchTables = useCallback(async () => {
-    if (!branchId) return;
+  const tablesRef = useRef<ITable[]>([]);
+  tablesRef.current = tables;
 
-    try {
-      setLoading(true);
-      const res = await tableService.searchAvailableTables({
-        branchId,
-        partySize,
-        includeLocked: true,
-      });
+  // 1. Tải sơ đồ bàn theo đúng khung giờ khách chọn (bàn đã có đơn trùng giờ sẽ hiển thị "Đã được đặt")
+  const fetchTables = useCallback(
+    async (showLoading = false) => {
+      if (!branchId || !date || !time) return;
 
-      let list: ITable[] = [];
-      if (Array.isArray(res)) list = res;
-      else if (Array.isArray(res?.data)) list = res.data;
+      try {
+        if (showLoading) setLoading(true);
+        const res = await tableService.searchAvailableTables({
+          branchId,
+          partySize,
+          date,
+          time,
+          durationMinutes,
+          includeLocked: true,
+        });
 
-      setTables(list);
+        let list: ITable[] = [];
+        if (Array.isArray(res)) list = res;
+        else if (Array.isArray(res?.data)) list = res.data;
 
-      // Nếu bàn đã chọn trước đó không còn trong danh sách khả dụng
-      if (selectedTable && !list.some((t) => t.id === selectedTable.id)) {
-        onSelectTable(null);
+        setTables(list);
+        setHasLoaded(true);
+      } catch (err) {
+        console.error('Error fetching available tables:', err);
+        toast.error('Lỗi khi tải sơ đồ bàn');
+      } finally {
+        if (showLoading) setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching available tables:', err);
-      toast.error('Lỗi khi tải danh sách bàn khả dụng');
-    } finally {
-      setLoading(false);
-    }
-  }, [branchId, partySize, selectedTable, onSelectTable]);
+    },
+    [branchId, partySize, date, time],
+  );
+
+  const fetchTablesRef = useRef(fetchTables);
+  fetchTablesRef.current = fetchTables;
 
   useEffect(() => {
-    fetchTables();
-  }, [branchId, partySize]);
+    fetchTables(true);
+  }, [fetchTables]);
 
-  // 2. Kết nối Socket.IO realtime nhận cập nhật giữ bàn
+  // Bàn đang giữ đã bị người khác đặt (hoặc không còn phù hợp) -> bỏ chọn
+  useEffect(() => {
+    if (!selectedTable || !hasLoaded || loading) return;
+    const current = tables.find((t) => t.id === selectedTable.id);
+    if (!current || current.isReserved) {
+      onReleaseTable(false);
+      toast.error(`Bàn ${selectedTable.tableNumber} không còn trống trong khung giờ này. Vui lòng chọn bàn khác.`);
+    }
+  }, [tables, selectedTable, hasLoaded, loading, onReleaseTable]);
+
+  // Đồng hồ đếm ngược thời gian giữ bàn
+  useEffect(() => {
+    if (!holdExpiresAt) return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [holdExpiresAt]);
+
+  // 2. Kết nối Socket.IO realtime: mọi thay đổi giữ/nhả/đặt bàn trong chi nhánh -> tải lại sơ đồ của khung giờ
   useEffect(() => {
     if (!branchId) return;
 
-    socketService.connect();
+    // Truyền user id để tạo lại socket khi đăng nhập/đăng xuất (server xác thực lúc handshake)
+    socketService.connect(user?.id ?? null);
     socketService.joinBranch(branchId);
 
-    const handleTableLocked = (lockInfo: { tableId: string; lockedBy: string; tableNumber?: string }) => {
-      setTables((prev) =>
-        prev.map((t) =>
-          t.id === lockInfo.tableId
-            ? {
-                ...t,
-                lockStatus: {
-                  isLocked: true,
-                  lockedByMe: user?.id ? lockInfo.lockedBy === user.id : false,
-                  expiresIn: 600,
-                },
-              }
-            : t
-        )
-      );
-
-      if (user?.id && lockInfo.lockedBy === user.id) {
-        const found = tables.find((t) => t.id === lockInfo.tableId);
-        if (found) {
-          onSelectTable(found);
-        }
-      }
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+    const scheduleRefresh = (event?: ITableLockEvent) => {
+      if (event?.date && event.date !== date) return;
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => fetchTablesRef.current(), 300);
     };
 
-    const handleTableReleased = ({ tableId }: { tableId: string }) => {
-      setTables((prev) =>
-        prev.map((t) =>
-          t.id === tableId
-            ? {
-                ...t,
-                lockStatus: {
-                  isLocked: false,
-                  lockedByMe: false,
-                  expiresIn: null,
-                },
-              }
-            : t
-        )
-      );
-
-      if (selectedTable?.id === tableId) {
-        onSelectTable(null);
+    const handleLockSuccess = (lockInfo: ITableLockEvent) => {
+      if (lockInfo.date !== date || lockInfo.time !== time) return;
+      const lockedTable = tablesRef.current.find((t) => t.id === lockInfo.tableId);
+      if (lockedTable) {
+        const expiresAt = lockInfo.expiresAt ? Date.parse(lockInfo.expiresAt) : Date.now() + 10 * 60 * 1000;
+        onTableHeld(lockedTable, { branchId, tableId: lockedTable.id, date, time }, expiresAt);
+        toast.success(`Đã giữ bàn ${lockInfo.tableNumber || lockedTable.tableNumber} trong 10 phút!`);
       }
-    };
-
-    const handleLockSuccess = (lockInfo: { tableId: string; tableNumber?: string }) => {
-      const lockedTbl = tables.find((t) => t.id === lockInfo.tableId);
-      if (lockedTbl) {
-        onSelectTable(lockedTbl);
-      }
-      toast.success(`Đã giữ bàn ${lockInfo.tableNumber || ''} trong 10 phút!`);
+      scheduleRefresh();
     };
 
     const handleLockFailed = (err: { reason?: string }) => {
       toast.error(err.reason || 'Bàn này vừa được người khác giữ. Vui lòng chọn bàn khác.');
+      scheduleRefresh();
     };
 
-    socketService.on('table:locked', handleTableLocked);
-    socketService.on('table:released', handleTableReleased);
+    socketService.on('table:locked', scheduleRefresh);
+    socketService.on('table:released', scheduleRefresh);
+    socketService.on('table:reserved', scheduleRefresh);
     socketService.on('table:lock_success', handleLockSuccess);
     socketService.on('table:lock_failed', handleLockFailed);
 
     return () => {
-      socketService.off('table:locked', handleTableLocked);
-      socketService.off('table:released', handleTableReleased);
+      clearTimeout(refreshTimer);
+      socketService.off('table:locked', scheduleRefresh);
+      socketService.off('table:released', scheduleRefresh);
+      socketService.off('table:reserved', scheduleRefresh);
       socketService.off('table:lock_success', handleLockSuccess);
       socketService.off('table:lock_failed', handleLockFailed);
       socketService.leaveBranch(branchId);
     };
-  }, [branchId, user?.id, tables, selectedTable, onSelectTable]);
+  }, [branchId, date, time, user?.id, onTableHeld]);
 
   // 3. Xử lý click chọn bàn trên TableMap
   const handleTableClick = (table: ITable) => {
     if (!isAuthenticated) {
-      toast.error('Vui lòng đăng nhập để thực hiện chọn và giữ bàn thời gian thực.');
+      toast.error('Vui lòng đăng nhập để chọn và giữ bàn. Bạn vẫn có thể tiếp tục để nhà hàng tự xếp bàn.');
       return;
     }
 
     if (selectedTable?.id === table.id) {
-      socketService.releaseTable(branchId, table.id);
-      onSelectTable(null);
+      onReleaseTable();
       toast('Đã nhả bàn.', { icon: 'ℹ️' });
       return;
     }
 
-    // Gửi event lock bàn qua Socket
-    socketService.lockTable(branchId, table.id);
+    // Server tự nhả bàn cũ của bạn khi giữ bàn mới (mỗi khách chỉ giữ 1 bàn)
+    socketService.lockTable({ branchId, tableId: table.id, date, time, guestCount: partySize });
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Info */}
-      <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <Sparkles size={18} className="text-primary" />
-              Chọn vị trí bàn trực tiếp trên sơ đồ
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
-              <MapPin size={13} className="text-primary shrink-0" />
-              {branchName || 'Chi nhánh'} • Đang tìm bàn cho <strong>{partySize} khách</strong>
-            </p>
-          </div>
+    <div className="space-y-5">
+      <div className={`${ui.card} p-5 sm:p-6`}>
+        <SectionTitle
+          icon={LayoutGrid}
+          title="Chọn vị trí bàn trên sơ đồ"
+          description={`${branchName || 'Chi nhánh'} · ${time} · ${partySize} khách`}
+        />
 
-          {selectedTable ? (
-            <div className="px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-500" />
-              <span>
-                Đang giữ bàn: <strong>{selectedTable.tableNumber}</strong> (Tầng {selectedTable.floor || 1} - {selectedTable.tableType?.capacity || 2} chỗ)
+        {selectedTable ? (
+          <div className="mb-5 px-4 py-3 rounded-xl bg-success/10 border border-success/30 text-sm flex flex-wrap items-center gap-x-3 gap-y-1">
+            <CheckCircle2 size={18} className="text-success shrink-0" />
+            <span className={ui.heading}>
+              Đang giữ bàn <strong>{selectedTable.tableNumber}</strong>
+              <span className={ui.muted}>
+                {' '}
+                · Tầng {selectedTable.floor || 1} · {selectedTable.tableType?.capacity || 2} chỗ
               </span>
-            </div>
-          ) : (
-            <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center gap-1.5">
-              <AlertCircle size={14} className="text-amber-500" />
-              <span>Chưa chọn bàn (Hệ thống có thể tự xếp bàn khi bạn đến)</span>
-            </div>
-          )}
-        </div>
-      </div>
+            </span>
+            {holdExpiresAt && (
+              <span className="sm:ml-auto inline-flex items-center gap-1.5 text-xs font-semibold text-warning">
+                <Timer size={14} /> còn {formatCountdown(holdExpiresAt - now)}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className={`mb-5 px-4 py-3 rounded-xl bg-light-card dark:bg-dark-card text-xs flex items-start gap-2 ${ui.muted}`}>
+            <Info size={15} className="text-primary shrink-0 mt-px" />
+            <span>
+              {isAuthenticated
+                ? 'Bấm vào bàn màu xanh để giữ bàn trong 10 phút, hoặc bỏ qua để nhà hàng tự xếp bàn phù hợp.'
+                : 'Đăng nhập để tự chọn vị trí bàn. Bạn vẫn có thể tiếp tục, nhà hàng sẽ tự xếp bàn phù hợp.'}
+            </span>
+          </div>
+        )}
 
-      {/* Sơ đồ bàn TableMap */}
-      <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
         <TableMap
           tables={tables}
           mode="customer"
@@ -204,27 +220,11 @@ export const ReservationTableStep: React.FC<ReservationTableStepProps> = ({
         />
       </div>
 
-      {/* Điều hướng Next / Back */}
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="w-1/3 py-3 border border-slate-300 dark:border-slate-600 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1"
-        >
-          <ChevronLeft size={16} /> Quay lại
-        </button>
-
-        <button
-          type="button"
-          onClick={onNext}
-          className="w-2/3 py-3 bg-gradient-to-r from-primary to-accent hover:opacity-95 text-white text-xs sm:text-sm font-semibold rounded-xl transition-opacity flex items-center justify-center gap-1 shadow-sm"
-        >
-          <span>
-            {selectedTable ? `Tiếp tục với bàn ${selectedTable.tableNumber}` : 'Tiếp tục (Nhà hàng tự xếp bàn)'}
-          </span>
-          <ChevronRight size={16} />
-        </button>
-      </div>
+      <StepActions
+        onBack={onBack}
+        onNext={onNext}
+        nextLabel={selectedTable ? `Tiếp tục với bàn ${selectedTable.tableNumber}` : 'Tiếp tục, nhà hàng tự xếp bàn'}
+      />
     </div>
   );
 };

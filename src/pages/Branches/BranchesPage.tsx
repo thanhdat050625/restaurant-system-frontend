@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, MapPin, Navigation, RotateCcw, Building2, AlertCircle } from 'lucide-react';
+import { Search, Navigation, RotateCcw, Building2, AlertCircle, Store, Map as MapIcon, MapPinned } from 'lucide-react';
+import Select from '../../components/ui/Select';
+import PageWrapper from '../../layouts/PageWrapper';
+import PageHero from '../../components/ui/PageHero';
 import { branchService } from '../../services/admin/branchService';
 import { IBranch, IProvince, IWard } from '../../types/admin/branch.type';
 import { BranchCard } from './BranchCard';
@@ -17,6 +20,7 @@ export const BranchesPage: React.FC = () => {
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
@@ -59,6 +63,7 @@ export const BranchesPage: React.FC = () => {
   // Fetch branches with filters
   const fetchBranches = useCallback(async () => {
     setIsLoading(true);
+    setLoadError(false);
     try {
       const params: Record<string, any> = {
         status: 'ACTIVE',
@@ -78,6 +83,7 @@ export const BranchesPage: React.FC = () => {
       setBranches(branchItems);
     } catch {
       setBranches([]);
+      setLoadError(true);
     } finally {
       setIsLoading(false);
     }
@@ -137,170 +143,176 @@ export const BranchesPage: React.FC = () => {
     setIsDetailOpen(true);
   };
 
+  const hasActiveFilters = Boolean(search || selectedProvince || selectedWard || isOpenNow || userCoords);
+  const toggleClass = (active: boolean) =>
+    `inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+      active
+        ? 'bg-primary text-white border-primary shadow-glow'
+        : 'bg-white dark:bg-dark-surface border-light-border dark:border-dark-border text-text-secondary dark:text-gray-300 hover:border-primary hover:text-primary'
+    }`;
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors pt-20 pb-16">
-      {/* Hero Banner */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-primary/80 text-white py-14 sm:py-20 px-4 mb-8 sm:mb-12">
-        <div className="max-w-6xl mx-auto text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-medium text-amber-300">
-            <Building2 size={14} />
-            <span>Hệ thống chuỗi nhà hàng chất lượng cao</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-[family-name:var(--font-heading)]">
-            Hệ Thống Chi Nhánh FoodHub
-          </h1>
-          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Khám phá không gian ẩm thực sang trọng và hương vị tinh tế tại mọi chi nhánh của FoodHub trên toàn quốc.
-          </p>
-        </div>
-      </div>
+    <PageWrapper className="bg-light dark:bg-dark">
+      <PageHero
+        overlap
+        image="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920"
+        eyebrow="Hệ thống chuỗi nhà hàng"
+        eyebrowIcon={Building2}
+        title={
+          <>
+            Chi nhánh <span className="gradient-text">FoodHub</span>
+          </>
+        }
+        subtitle="Tìm nhà hàng gần bạn nhất, xem giờ mở cửa và đặt bàn chỉ với vài thao tác."
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Filter Controls Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/80 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {/* Search Input */}
-            <div className="relative">
-              <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Tìm tên, số điện thoại, đường..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-              />
-            </div>
+      <section className="relative -mt-16 sm:-mt-20 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          {/* Bộ lọc */}
+          <div className="bg-white dark:bg-dark-surface rounded-2xl p-4 sm:p-6 shadow-card-hover border border-light-border dark:border-dark-border space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-3">
+              <div className="relative">
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light" />
+                <input
+                  type="text"
+                  placeholder="Tìm theo tên chi nhánh, số điện thoại, tên đường..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-light-border dark:border-dark-border bg-light dark:bg-dark text-sm text-text-primary dark:text-white placeholder:text-text-light focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                />
+              </div>
 
-            {/* Province Select */}
-            <div>
-              <select
+              <Select
                 value={selectedProvince}
-                onChange={(e) => {
-                  setSelectedProvince(e.target.value);
+                onChange={(code) => {
+                  setSelectedProvince(code);
                   setSelectedWard('');
                 }}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-              >
-                <option value="">Tất cả Tỉnh / Thành phố</option>
-                {provinces.map((p) => (
-                  <option key={p.code} value={p.code}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                icon={MapIcon}
+                aria-label="Tỉnh / Thành phố"
+                placeholder="Tất cả Tỉnh / Thành phố"
+                options={[
+                  { value: '', label: 'Tất cả Tỉnh / Thành phố' },
+                  ...provinces.map((p) => ({ value: p.code, label: p.name })),
+                ]}
+              />
 
-            {/* Ward Select */}
-            <div>
-              <select
+              <Select
                 value={selectedWard}
+                onChange={setSelectedWard}
                 disabled={!selectedProvince}
-                onChange={(e) => setSelectedWard(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
-              >
-                <option value="">Tất cả Phường / Xã</option>
-                {wards.map((w) => (
-                  <option key={w.code} value={w.code}>
-                    {w.fullName || w.name}
-                  </option>
-                ))}
-              </select>
+                icon={MapPinned}
+                aria-label="Phường / Xã"
+                placeholder={selectedProvince ? 'Tất cả Phường / Xã' : 'Chọn Tỉnh / Thành trước'}
+                options={[
+                  { value: '', label: 'Tất cả Phường / Xã' },
+                  ...wards.map((w) => ({ value: w.code, label: w.fullName || w.name })),
+                ]}
+              />
             </div>
 
-            {/* Near Me Geo Button */}
-            <div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button type="button" onClick={handleGetLocation} disabled={isLocating} className={toggleClass(!!userCoords)}>
+                <Navigation size={15} className={isLocating ? 'animate-pulse' : ''} />
+                {isLocating ? 'Đang định vị...' : 'Gần tôi nhất'}
+              </button>
+              <button type="button" onClick={() => setIsOpenNow((v) => !v)} className={toggleClass(isOpenNow)}>
+                <span className={`w-2 h-2 rounded-full ${isOpenNow ? 'bg-white' : 'bg-success'}`} />
+                Đang mở cửa
+              </button>
+
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="ml-auto inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary dark:text-text-light hover:text-primary transition-colors"
+                >
+                  <RotateCcw size={14} />
+                  Xóa bộ lọc
+                </button>
+              )}
+            </div>
+
+            {locationError && (
+              <div className="px-4 py-3 rounded-xl bg-error/10 text-error text-sm flex items-center gap-2">
+                <AlertCircle size={16} className="shrink-0" />
+                <span>{locationError}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Danh sách chi nhánh */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((idx) => (
+                <div
+                  key={idx}
+                  className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden border border-light-border dark:border-dark-border animate-pulse"
+                >
+                  <div className="h-52 bg-light-card dark:bg-dark-card" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-5 w-2/3 rounded bg-light-card dark:bg-dark-card" />
+                    <div className="h-4 w-full rounded bg-light-card dark:bg-dark-card" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="h-12 rounded-xl bg-light-card dark:bg-dark-card" />
+                      <div className="h-12 rounded-xl bg-light-card dark:bg-dark-card" />
+                    </div>
+                    <div className="h-11 rounded-xl bg-light-card dark:bg-dark-card" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : loadError ? (
+            <div className="text-center py-16 px-6 bg-white dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border">
+              <AlertCircle size={44} className="mx-auto text-error mb-3" />
+              <h3 className="text-lg font-bold text-text-primary dark:text-white">Không tải được danh sách chi nhánh</h3>
+              <p className="mt-1 text-sm text-text-secondary dark:text-text-light">Vui lòng kiểm tra kết nối mạng và thử lại.</p>
               <button
                 type="button"
-                onClick={handleGetLocation}
-                disabled={isLocating}
-                className={`w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all ${
-                  userCoords
-                    ? 'bg-amber-500 text-white shadow-sm'
-                    : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600'
-                }`}
+                onClick={fetchBranches}
+                className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-semibold transition-colors"
               >
-                <Navigation size={16} className={isLocating ? 'animate-spin' : ''} />
-                <span>{isLocating ? 'Đang định vị...' : userCoords ? 'Đang bật Gần tôi (Tắt)' : 'Gần tôi nhất'}</span>
+                <RotateCcw size={15} />
+                Thử lại
               </button>
             </div>
-          </div>
-
-          {/* Secondary filter & reset */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-700/60">
-            <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm text-slate-700 dark:text-slate-300 select-none">
-              <input
-                type="checkbox"
-                checked={isOpenNow}
-                onChange={(e) => setIsOpenNow(e.target.checked)}
-                className="w-4 h-4 rounded text-primary focus:ring-primary/40 border-slate-300 dark:border-slate-600"
-              />
-              <span>Chỉ hiển thị chi nhánh đang mở cửa</span>
-            </label>
-
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="text-xs text-slate-500 hover:text-primary transition-colors flex items-center gap-1 font-medium"
-            >
-              <RotateCcw size={13} />
-              <span>Đặt lại bộ lọc</span>
-            </button>
-          </div>
-
-          {locationError && (
-            <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
-              <AlertCircle size={14} className="shrink-0" />
-              <span>{locationError}</span>
+          ) : branches.length === 0 ? (
+            <div className="text-center py-16 px-6 bg-white dark:bg-dark-surface rounded-2xl border border-dashed border-light-border dark:border-dark-border">
+              <Store size={44} className="mx-auto text-text-light mb-3" />
+              <h3 className="text-lg font-bold text-text-primary dark:text-white">Không tìm thấy chi nhánh phù hợp</h3>
+              <p className="mt-1 text-sm text-text-secondary dark:text-text-light max-w-md mx-auto">
+                Thử đổi từ khóa, khu vực hoặc tắt bộ lọc &quot;Đang mở cửa&quot;.
+              </p>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="mt-5 px-5 py-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white text-sm font-semibold transition-colors"
+                >
+                  Xem tất cả chi nhánh
+                </button>
+              )}
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-end justify-between gap-4 mb-5">
+                <h2 className="text-2xl font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)]">
+                  {userCoords ? 'Chi nhánh gần bạn' : 'Tất cả chi nhánh'}
+                </h2>
+                <span className="text-sm text-text-secondary dark:text-text-light whitespace-nowrap">
+                  <strong className="text-text-primary dark:text-white">{branches.length}</strong> chi nhánh
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {branches.map((branch) => (
+                  <BranchCard key={branch.id} branch={branch} onSelectDetail={handleOpenDetail} />
+                ))}
+              </div>
             </div>
           )}
         </div>
+      </section>
 
-        {/* Branch List Content */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((idx) => (
-              <div
-                key={idx}
-                className="bg-white dark:bg-slate-800 rounded-2xl h-80 animate-pulse border border-slate-200 dark:border-slate-700"
-              />
-            ))}
-          </div>
-        ) : branches.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
-            <Building2 size={48} className="mx-auto text-slate-400" />
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-              Không tìm thấy chi nhánh phù hợp
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-              Vui lòng thử điều chỉnh lại từ khóa tìm kiếm, Tỉnh/Thành phố hoặc tắt bộ lọc đang mở cửa.
-            </p>
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="px-4 py-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-xl transition-colors"
-            >
-              Xem tất cả chi nhánh
-            </button>
-          </div>
-        ) : (
-          <div>
-            <div className="mb-4 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-              Tìm thấy <strong className="text-slate-800 dark:text-slate-100">{branches.length}</strong> chi nhánh phù hợp:
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {branches.map((branch) => (
-                <BranchCard
-                  key={branch.id}
-                  branch={branch}
-                  onSelectDetail={handleOpenDetail}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Branch Detail Modal */}
       <BranchDetailModal
         branch={selectedBranch}
         isOpen={isDetailOpen}
@@ -309,7 +321,7 @@ export const BranchesPage: React.FC = () => {
           setSelectedBranch(null);
         }}
       />
-    </div>
+    </PageWrapper>
   );
 };
 

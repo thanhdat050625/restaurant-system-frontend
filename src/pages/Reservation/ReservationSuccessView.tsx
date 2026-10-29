@@ -1,103 +1,110 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Calendar, Clock, Users, Building2, Phone, UtensilsCrossed, RotateCcw } from 'lucide-react';
+import { CheckCircle2, CalendarDays, Clock, Users, Building2, Phone, UtensilsCrossed, RotateCcw, Armchair, History } from 'lucide-react';
 import { IReservation } from '../../types/reservation.type';
+import { ui } from './reservationUi';
 
 interface ReservationSuccessViewProps {
   reservation: IReservation;
   onReset: () => void;
 }
 
-export const ReservationSuccessView: React.FC<ReservationSuccessViewProps> = ({
-  reservation,
-  onReset,
-}) => {
+export const ReservationSuccessView: React.FC<ReservationSuccessViewProps> = ({ reservation, onReset }) => {
   const formattedDate = new Date(reservation.reservationDate).toLocaleDateString('vi-VN', {
     weekday: 'long',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
+  const { table } = reservation;
+
+  const details = [
+    { icon: Building2, label: 'Chi nhánh', value: reservation.branch?.name || 'Chi nhánh FoodHub' },
+    { icon: CalendarDays, label: 'Ngày', value: formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1) },
+    {
+      icon: Clock,
+      label: 'Giờ đến',
+      value: `${reservation.reservationTime} (khoảng ${reservation.slotDurationMinutes || 90} phút)`,
+    },
+    { icon: Users, label: 'Số khách', value: `${reservation.guestCount} người` },
+    {
+      icon: Armchair,
+      label: 'Vị trí bàn',
+      value: table ? `Bàn ${table.tableNumber} · Tầng ${table.floor}` : 'Nhà hàng tự xếp bàn',
+    },
+    { icon: Phone, label: 'Người liên hệ', value: `${reservation.customerName} · ${reservation.customerPhone}` },
+  ];
 
   return (
-    <section className="pt-32 pb-20 min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
+    <section className="pt-32 pb-20 min-h-screen bg-light dark:bg-dark px-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center max-w-lg w-full mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-lg mx-auto text-center"
       >
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', delay: 0.2 }}
-          className="w-20 h-20 bg-emerald-100 dark:bg-emerald-950/50 rounded-full flex items-center justify-center mx-auto mb-5 text-emerald-600 dark:text-emerald-400"
+          transition={{ type: 'spring', delay: 0.15 }}
+          className="w-20 h-20 rounded-full bg-success/15 text-success flex items-center justify-center mx-auto mb-5 ring-8 ring-success/5"
         >
           <CheckCircle2 size={44} />
         </motion.div>
 
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100 mb-2 font-[family-name:var(--font-heading)]">
-          Đặt Bàn Thành Công!
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6">
-          Nhà hàng đã ghi nhận thông tin đặt chỗ của bạn.
+        <h1 className={`text-3xl font-bold font-[family-name:var(--font-heading)] mb-2 ${ui.heading}`}>
+          Đặt bàn thành công!
+        </h1>
+        <p className={`text-sm mb-8 ${ui.muted}`}>
+          Đơn của bạn đang chờ nhà hàng xác nhận. Vui lòng đưa mã đặt bàn cho nhân viên khi đến.
         </p>
 
-        {/* Reservation Card Details */}
-        <div className="bg-white dark:bg-slate-800 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-left space-y-4 shadow-sm mb-6">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Mã đặt bàn</span>
-            <span className="font-mono font-bold text-sm text-primary bg-primary/10 px-2.5 py-1 rounded-lg">
-              {reservation.reservationCode}
-            </span>
+        <div className={`${ui.card} overflow-hidden text-left mb-6`}>
+          <div className="px-6 py-5 bg-gradient-to-r from-primary to-primary-dark text-white flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-white/80">Mã đặt bàn</p>
+              <p className="font-mono text-xl font-bold tracking-wider">{reservation.reservationCode}</p>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-white/20 text-xs font-semibold">Chờ xác nhận</span>
           </div>
 
-          <div className="space-y-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-            <div className="flex items-center gap-2.5">
-              <Building2 size={16} className="text-primary shrink-0" />
-              <span>Chi nhánh: <strong className="text-slate-800 dark:text-slate-100">{reservation.branch?.name || 'Chi nhánh FoodHub'}</strong></span>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Calendar size={16} className="text-primary shrink-0" />
-              <span>Ngày: <strong className="text-slate-800 dark:text-slate-100">{formattedDate}</strong></span>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Clock size={16} className="text-primary shrink-0" />
-              <span>Khung giờ: <strong className="text-slate-800 dark:text-slate-100">{reservation.reservationTime}</strong> ({reservation.slotDurationMinutes || 90} phút)</span>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Users size={16} className="text-primary shrink-0" />
-              <span>Số lượng khách: <strong className="text-slate-800 dark:text-slate-100">{reservation.guestCount} người</strong></span>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Phone size={16} className="text-primary shrink-0" />
-              <span>Người liên hệ: <strong className="text-slate-800 dark:text-slate-100">{reservation.customerName}</strong> ({reservation.customerPhone})</span>
-            </div>
-          </div>
+          <dl className="px-6 py-2 divide-y divide-light-border dark:divide-dark-border">
+            {details.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-center gap-3 py-3">
+                <Icon size={17} className="text-primary shrink-0" />
+                <dt className={`text-sm w-28 shrink-0 ${ui.muted}`}>{label}</dt>
+                <dd className={`text-sm font-medium text-right flex-1 ${ui.heading}`}>{value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             type="button"
             onClick={onReset}
-            className="w-full sm:w-1/2 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-600 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+            className="py-3 px-4 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-dark-surface text-sm font-semibold text-text-secondary dark:text-gray-200 hover:bg-light-card dark:hover:bg-dark-card transition-colors inline-flex items-center justify-center gap-2"
           >
-            <RotateCcw size={15} />
-            <span>Đặt bàn khác</span>
+            <RotateCcw size={16} />
+            Đặt bàn khác
           </button>
-
-          <Link
-            to={reservation.branchId ? `/menu?branchId=${reservation.branchId}` : '/menu'}
-            className="w-full sm:w-1/2 py-3 px-4 rounded-xl bg-gradient-to-r from-primary to-accent text-white text-xs sm:text-sm font-semibold hover:opacity-95 transition-opacity flex items-center justify-center gap-2 shadow-sm"
-          >
-            <UtensilsCrossed size={15} />
-            <span>Xem thực đơn món ăn</span>
-          </Link>
+          {reservation.userId ? (
+            <Link
+              to="/profile?tab=reservations"
+              className="py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-semibold shadow-glow transition-colors inline-flex items-center justify-center gap-2"
+            >
+              <History size={16} />
+              Xem lịch sử đặt bàn
+            </Link>
+          ) : (
+            <Link
+              to={reservation.branchId ? `/menu?branchId=${reservation.branchId}` : '/menu'}
+              className="py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-semibold shadow-glow transition-colors inline-flex items-center justify-center gap-2"
+            >
+              <UtensilsCrossed size={16} />
+              Xem thực đơn
+            </Link>
+          )}
         </div>
       </motion.div>
     </section>

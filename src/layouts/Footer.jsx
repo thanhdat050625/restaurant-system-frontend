@@ -21,7 +21,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-text-light text-sm leading-relaxed mb-6">
-              Hương vị đỉnh cao, trải nghiệm tuyệt vời. Đặt món online hoặc đặt bàn tại nhà hàng.
+              Hương vị đỉnh cao, trải nghiệm tuyệt vời. Đặt món trước hoặc đặt bàn thưởng thức tại nhà hàng.
             </p>
             <div className="flex gap-3">
               {[
@@ -93,7 +93,7 @@ const Footer = () => {
                 <span className="text-white font-medium">09:00 - 23:00</span>
               </div>
               <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-xl">
-                <p className="text-primary text-sm font-medium">🎉 Miễn phí ship đơn từ 200k</p>
+                <p className="text-primary text-sm font-medium">🎉 Đặt bàn trước & thưởng thức tại nhà hàng</p>
               </div>
             </div>
           </div>

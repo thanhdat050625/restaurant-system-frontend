@@ -35,7 +35,7 @@ const cartReducer = (state, action) => {
   }
 };
 
-const initialState = { items: [], deliveryType: 'delivery', coupon: null };
+const initialState = { items: [], deliveryType: 'dine_in', coupon: null };
 
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
@@ -51,8 +51,8 @@ export const CartProvider = ({ children }) => {
     const optionPrice = item.selectedOptionPrice ? item.selectedOptionPrice : 0;
     return sum + (item.price + optionPrice) * item.quantity;
   }, 0);
-  const deliveryFee = state.deliveryType === 'delivery' ? (subtotal >= 200000 ? 0 : 25000) : 0;
-  const total = subtotal + deliveryFee;
+  const deliveryFee = 0;
+  const total = subtotal;
 
   return (
     <CartContext.Provider value={{ ...state, totalItems, subtotal, deliveryFee, total, addItem, removeItem, updateQuantity, clearCart, setDeliveryType }}>

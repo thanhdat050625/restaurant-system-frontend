@@ -28,7 +28,7 @@ Thư mục này chứa toàn bộ quy tắc về kiến trúc (architecture), th
    - **Admin & Staff Management:** `src/layouts/admin/AdminLayout.tsx`, `src/layouts/staff/StaffLayout.tsx`, `src/pages/Admin/*`.
 3. **API Service Client:** Toàn bộ API calls phải thông qua Axios client tại `src/services/api.ts`, **KHÔNG BAO GIỜ** gọi `fetch()` hay tạo Axios instance tự do trong React component.
 4. **Không Over-engineering:** Tái sử dụng các UI components sẵn có (`src/components/common/`, `src/components/ui/`), hook dùng chung và design token trước khi tạo mới.
-5. **Giới hạn kích thước file:** Không component nào được vượt quá **400 dòng**.
+5. **Giới hạn kích thước file:** Không component nào được vượt quá **1000 dòng**.
 
 ---
 

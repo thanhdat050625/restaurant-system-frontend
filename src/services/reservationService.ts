@@ -4,6 +4,7 @@ import {
   ICreateReservationDto,
   IReservation,
   IAvailableSlotsResponse,
+  IQueryAvailableSlotsParams,
   IPreOrderItem,
 } from '../types/reservation.type';
 
@@ -14,11 +15,9 @@ export const reservationService = {
     return await apiClient.post('/reservations', data);
   },
 
-  getAvailableSlots: async (params: {
-    branchId: string;
-    date: string;
-    guestCount?: number;
-  }): Promise<ApiResponse<IAvailableSlotsResponse>> => {
+  getAvailableSlots: async (
+    params: IQueryAvailableSlotsParams,
+  ): Promise<ApiResponse<IAvailableSlotsResponse>> => {
     return await apiClient.get('/reservations/available-slots', { params });
   },
 

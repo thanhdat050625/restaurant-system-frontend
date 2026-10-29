@@ -14,8 +14,8 @@ Tài liệu kiến trúc chi tiết (Source of Truth): `web_architecture/`
 >    - Tuyệt đối không hardcode địa chỉ IP hoặc port API (ví dụ: `http://localhost:3000`) trong mã nguồn components hay services.
 >    - Bắt buộc dùng `VITE_API_BASE_URL` thông qua Axios client tại `src/services/api.ts`.
 > 
-> 2. **Giới hạn độ dài file (Tối đa 400 dòng)**:
->    - Tuyệt đối không viết hoặc để bất kỳ component nào vượt quá **400 dòng**.
+> 2. **Giới hạn độ dài file (Tối đa 1000 dòng)**:
+>    - Tuyệt đối không viết hoặc để bất kỳ component nào vượt quá **1000 dòng**.
 >    - Nếu component phình to, bắt buộc phải chủ động tách nhỏ thành các sub-components (như modals, item cards, list tables) hoặc custom hooks trước khi thêm logic mới.
 > 
 > 3. **TypeScript First & Type Safety**:
@@ -30,6 +30,7 @@ Tài liệu kiến trúc chi tiết (Source of Truth): `web_architecture/`
 >    - Bắt buộc xóa sạch `console.log` thừa, file test tạm, file rác trước khi tạo commit.
 > 
 > 6. **Quy tắc Git & Pull Request (Target: `ui`)**:
+>    - **TUYỆT ĐỐI CẤM TỰ Ý COMMIT VÀ PUSH:** Agent không được tự ý chạy `git commit` hoặc `git push` nếu người dùng chưa ra lệnh hoặc chưa xác nhận rõ ràng. Mọi thay đổi phải để ở dạng chưa commit (unstaged / modified) để người dùng review.
 >    - Nhánh phát triển chính của Frontend là **`ui`**.
 >    - Mọi nhánh mới phải checkout từ `ui`: `feature/<tên-tính-năng>` hoặc `fix/<tên-lỗi>`.
 >    - Commit message phải tuân thủ Conventional Commits (`feat: ...`, `fix: ...`, `refactor: ...`, `chore: ...`).

@@ -54,7 +54,7 @@ const Header = () => {
   const location = useLocation();
 
   // Khai báo các trang có banner tối màu ở trên cùng
-  const darkHeroPages = ['/', '/menu', '/branches', '/reservation', '/reservations/history', '/about', '/contact', '/login', '/register'];
+  const darkHeroPages = ['/', '/menu', '/branches', '/reservation', '/about', '/contact', '/login', '/register'];
   // Kiểm tra xem trang hiện tại có nằm trong danh sách trên không hoặc là đường dẫn menu/danh-muc
   const hasDarkHero = darkHeroPages.includes(location.pathname) || location.pathname.startsWith('/menu/');
   
@@ -328,7 +328,7 @@ const Header = () => {
                       <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                         <User size={16} /> Tài khoản
                       </Link>
-                      <Link to="/reservations/history" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                      <Link to="/profile?tab=reservations" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                         <Calendar size={16} /> Lịch sử đặt bàn
                       </Link>
                       {user?.role === 'ADMIN' && (
@@ -405,7 +405,7 @@ const Header = () => {
                     <Link to="/profile" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                       Tài khoản
                     </Link>
-                    <Link to="/reservations/history" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                    <Link to="/profile?tab=reservations" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                       Lịch sử đặt bàn
                     </Link>
                     {user?.role === 'ADMIN' && (
