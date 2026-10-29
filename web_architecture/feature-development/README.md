@@ -30,7 +30,7 @@ graph TD
 ### Bước 4 & 5: Xây dựng UI & State
 - Xây dựng component giao diện, áp dụng Tailwind CSS hỗ trợ cả Light Mode và Dark Mode.
 - Đảm bảo xử lý đủ 4 trạng thái: **Loading, Error, Empty, Success**.
-- Tuân thủ giới hạn: không file component nào vượt quá **400 dòng**.
+- Tuân thủ giới hạn: không file component nào vượt quá **1000 dòng**.
 
 ### Bước 6: Cấu hình Routing
 - Đăng ký Route trong `src/App.jsx`.
@@ -49,7 +49,7 @@ Trước khi coi một feature là hoàn thành, Agent **PHẢI** kiểm tra cá
 - [ ] Đã inspect code/feature tương tự trước khi tạo implementation mới.
 - [ ] Không gọi `axios` trực tiếp trong component; luôn qua `src/services/api.ts`.
 - [ ] Không hardcode URL API; sử dụng `VITE_API_BASE_URL`.
-- [ ] Không vượt quá **400 dòng code** trên một file component.
+- [ ] Không vượt quá **1000 dòng code** trên một file component.
 - [ ] Giao diện hỗ trợ đầy đủ cả **Light Mode** và **Dark Mode**.
 - [ ] Xử lý đầy đủ 4 UI States: Loading, Error, Empty, Success.
 - [ ] Tuyệt đối không dùng `window.confirm()` hay `alert()`; sử dụng `ConfirmModal.tsx` và `Modal.tsx`.

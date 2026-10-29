@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import Select from '../../../components/ui/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { IBranch, IProvince, IWard } from '../../../types/admin/branch.type';
@@ -30,6 +31,7 @@ interface BranchFormProps {
 const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, onCancel, isLoading = false }) => {
   const {
     register,
+    control,
     handleSubmit,
     reset,
     watch,
@@ -123,19 +125,24 @@ const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, onCancel
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
             Tỉnh/Thành phố <span className="text-red-500">*</span>
           </label>
-          <select
-            {...register('address.provinceCode')}
-            onChange={(e) => {
-              register('address.provinceCode').onChange(e);
-              setValue('address.wardCode', '');
-            }}
-            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
-          >
-            <option value="">Chọn Tỉnh/Thành phố</option>
-            {provinces.map(p => (
-              <option key={p.code} value={p.code}>{p.name}</option>
-            ))}
-          </select>
+          <Controller
+            name="address.provinceCode"
+            control={control}
+            render={({ field }) => (
+              <Select
+                tone="light"
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                onChange={(code) => {
+                  field.onChange(code);
+                  setValue('address.wardCode', '');
+                }}
+                invalid={!!errors.address?.provinceCode}
+                placeholder="Chọn Tỉnh/Thành phố"
+                options={provinces.map((p) => ({ value: p.code, label: p.name }))}
+              />
+            )}
+          />
           {errors.address?.provinceCode && <p className="mt-1 text-xs text-red-600 font-medium">{errors.address.provinceCode.message}</p>}
         </div>
 
@@ -143,16 +150,22 @@ const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, onCancel
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
             Phường/Xã <span className="text-red-500">*</span>
           </label>
-          <select
-            {...register('address.wardCode')}
-            disabled={!selectedProvinceCode}
-            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs disabled:bg-gray-100 disabled:text-gray-400"
-          >
-            <option value="">Chọn Phường/Xã</option>
-            {wards.map(w => (
-              <option key={w.code} value={w.code}>{w.name}</option>
-            ))}
-          </select>
+          <Controller
+            name="address.wardCode"
+            control={control}
+            render={({ field }) => (
+              <Select
+                tone="light"
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                onChange={field.onChange}
+                disabled={!selectedProvinceCode}
+                invalid={!!errors.address?.wardCode}
+                placeholder={selectedProvinceCode ? "Chọn Phường/Xã" : "Chọn Tỉnh/Thành trước"}
+                options={wards.map((w) => ({ value: w.code, label: w.name }))}
+              />
+            )}
+          />
           {errors.address?.wardCode && <p className="mt-1 text-xs text-red-600 font-medium">{errors.address.wardCode.message}</p>}
         </div>
       </div>
@@ -212,13 +225,22 @@ const BranchForm: React.FC<BranchFormProps> = ({ initialData, onSubmit, onCancel
         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
           Trạng thái
         </label>
-        <select
-          {...register('status')}
-          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
-        >
-          <option value="ACTIVE">Hoạt động</option>
-          <option value="INACTIVE">Ngừng hoạt động</option>
-        </select>
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => (
+            <Select
+              tone="light"
+              value={field.value ?? ''}
+              onBlur={field.onBlur}
+              onChange={field.onChange}
+              options={[
+                { value: 'ACTIVE', label: 'Hoạt động' },
+                { value: 'INACTIVE', label: 'Ngừng hoạt động' },
+              ]}
+            />
+          )}
+        />
         {errors.status && <p className="mt-1 text-xs text-red-600 font-medium">{errors.status.message}</p>}
       </div>
 

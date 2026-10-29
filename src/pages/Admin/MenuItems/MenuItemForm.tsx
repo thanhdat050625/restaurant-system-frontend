@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import Select from '../../../components/ui/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { MenuItem } from '../../../types/menuItem.type';
@@ -34,6 +35,7 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, onCa
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -117,18 +119,22 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, onCa
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
             Danh mục <span className="text-red-500">*</span>
           </label>
-          <select
-            {...register('categoryId')}
-            disabled={loadingCategories}
-            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
-          >
-            <option value="">-- Chọn danh mục --</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="categoryId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                tone="light"
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                onChange={field.onChange}
+                disabled={loadingCategories}
+                invalid={!!errors.categoryId}
+                placeholder={loadingCategories ? "Đang tải danh mục..." : "-- Chọn danh mục --"}
+                options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+              />
+            )}
+          />
           {errors.categoryId && <p className="mt-1 text-xs text-red-600 font-medium">{errors.categoryId.message}</p>}
         </div>
       </div>

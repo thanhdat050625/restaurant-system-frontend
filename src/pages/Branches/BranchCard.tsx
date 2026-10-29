@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Clock, UtensilsCrossed, Calendar } from 'lucide-react';
+import { MapPin, Phone, Clock, UtensilsCrossed, CalendarCheck, Navigation, ChevronRight } from 'lucide-react';
 import { IBranch } from '../../types/admin/branch.type';
 
 interface BranchCardProps {
@@ -12,107 +12,106 @@ const DEFAULT_BRANCH_IMAGE =
   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80';
 
 export const BranchCard: React.FC<BranchCardProps> = ({ branch, onSelectDetail }) => {
-  const fullAddress = [
-    branch.streetAddress,
-    branch.ward?.fullName || branch.ward?.name,
-    branch.province?.name,
-  ]
+  const fullAddress = [branch.streetAddress, branch.ward?.fullName || branch.ward?.name, branch.province?.name]
     .filter(Boolean)
     .join(', ');
 
   return (
-    <div className="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 hover:shadow-xl transition-all duration-300 flex flex-col h-full hover:-translate-y-1">
-      {/* Cover Image & Badges */}
-      <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+    <article className="group bg-white dark:bg-dark-surface rounded-2xl overflow-hidden border border-light-border dark:border-dark-border shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+      {/* Ảnh bìa */}
+      <button
+        type="button"
+        onClick={() => onSelectDetail(branch)}
+        className="relative h-52 w-full overflow-hidden bg-light-card dark:bg-dark-card text-left"
+        aria-label={`Xem chi tiết ${branch.name}`}
+      >
         <img
           src={branch.imageUrl || DEFAULT_BRANCH_IMAGE}
           alt={branch.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-        {/* Top badges */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
-          {branch.isOpenNow ? (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/90 text-white backdrop-blur-md flex items-center gap-1.5 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              Đang mở cửa
-            </span>
-          ) : (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/90 text-white backdrop-blur-md flex items-center gap-1.5 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-white/70" />
-              Đóng cửa
-            </span>
-          )}
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 ${
+              branch.isOpenNow ? 'bg-success/90 text-white' : 'bg-black/55 text-white/90'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${branch.isOpenNow ? 'bg-white animate-pulse' : 'bg-white/60'}`} />
+            {branch.isOpenNow ? 'Đang mở cửa' : 'Đã đóng cửa'}
+          </span>
 
           {typeof branch.distanceKm === 'number' && (
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/90 text-white backdrop-blur-md flex items-center gap-1 shadow-sm">
-              <MapPin size={12} />
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-text-primary backdrop-blur-md flex items-center gap-1">
+              <Navigation size={12} className="text-primary" />
               {branch.distanceKm} km
             </span>
           )}
         </div>
+      </button>
 
-        {/* Branch Name overlay at bottom of image */}
-        <div className="absolute bottom-3 left-3 right-3">
-          <h3 className="text-lg font-bold text-white drop-shadow-md line-clamp-1">
+      {/* Nội dung */}
+      <div className="p-5 flex-1 flex flex-col gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)] line-clamp-1 group-hover:text-primary transition-colors">
             {branch.name}
           </h3>
-        </div>
-      </div>
-
-      {/* Card Content */}
-      <div className="p-4 flex-1 flex flex-col justify-between gap-4">
-        <div className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-          <div className="flex items-start gap-2">
-            <MapPin size={16} className="text-primary shrink-0 mt-0.5" />
+          <p className="mt-1.5 text-sm text-text-secondary dark:text-text-light flex items-start gap-1.5">
+            <MapPin size={15} className="text-primary shrink-0 mt-0.5" />
             <span className="line-clamp-2">{fullAddress || 'Đang cập nhật địa chỉ'}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Clock size={16} className="text-primary shrink-0" />
-            <span>Hôm nay: <strong className="text-slate-800 dark:text-slate-100">{branch.todayHours || 'Chưa thiết lập'}</strong></span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Phone size={16} className="text-primary shrink-0" />
-            <a
-              href={`tel:${branch.phone}`}
-              className="hover:text-primary transition-colors font-medium text-slate-800 dark:text-slate-100"
-            >
-              {branch.phone}
-            </a>
-          </div>
+          </p>
         </div>
 
-        {/* Actions */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => onSelectDetail(branch)}
-            className="px-2 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors text-center"
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="px-3 py-2.5 rounded-xl bg-light-card dark:bg-dark-card">
+            <p className="text-text-light flex items-center gap-1">
+              <Clock size={12} /> Hôm nay
+            </p>
+            <p className="mt-0.5 font-semibold text-text-primary dark:text-white truncate">
+              {branch.todayHours || 'Chưa thiết lập'}
+            </p>
+          </div>
+          <a
+            href={`tel:${branch.phone}`}
+            className="px-3 py-2.5 rounded-xl bg-light-card dark:bg-dark-card hover:bg-primary/10 transition-colors"
           >
-            Chi tiết
-          </button>
+            <p className="text-text-light flex items-center gap-1">
+              <Phone size={12} /> Hotline
+            </p>
+            <p className="mt-0.5 font-semibold text-text-primary dark:text-white truncate">{branch.phone}</p>
+          </a>
+        </div>
 
-          <Link
-            to={`/menu?branchId=${branch.id}`}
-            className="px-2 py-2 text-xs font-medium text-primary hover:text-white bg-primary/10 hover:bg-primary rounded-xl transition-all flex items-center justify-center gap-1 text-center"
-          >
-            <UtensilsCrossed size={13} />
-            <span>Thực đơn</span>
-          </Link>
-
+        {/* Hành động */}
+        <div className="mt-auto space-y-2">
           <Link
             to={`/reservation?branchId=${branch.id}`}
-            className="px-2 py-2 text-xs font-semibold text-white bg-gradient-to-r from-primary to-accent hover:opacity-95 rounded-xl transition-opacity flex items-center justify-center gap-1 text-center shadow-sm"
+            className="w-full py-3 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-semibold shadow-glow transition-colors flex items-center justify-center gap-2"
           >
-            <Calendar size={13} />
-            <span>Đặt bàn</span>
+            <CalendarCheck size={16} />
+            Đặt bàn tại đây
           </Link>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              to={`/menu?branchId=${branch.id}`}
+              className="py-2.5 rounded-xl border border-light-border dark:border-dark-border text-xs font-semibold text-text-secondary dark:text-gray-200 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1.5"
+            >
+              <UtensilsCrossed size={14} />
+              Thực đơn
+            </Link>
+            <button
+              type="button"
+              onClick={() => onSelectDetail(branch)}
+              className="py-2.5 rounded-xl border border-light-border dark:border-dark-border text-xs font-semibold text-text-secondary dark:text-gray-200 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1"
+            >
+              Chi tiết
+              <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 };

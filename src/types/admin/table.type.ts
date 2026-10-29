@@ -38,5 +38,6 @@ export interface SearchAvailableTablesParams {
   floor?: number;
   date: string; // YYYY-MM-DD
   time: string; // HH:mm
+  durationMinutes?: number;
   includeLocked?: boolean;
 }

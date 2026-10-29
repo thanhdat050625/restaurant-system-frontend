@@ -21,6 +21,7 @@ import {
   Users,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 const Staff: React.FC = () => {
   const [staffs, setStaffs] = useState<IStaff[]>([]);
@@ -106,13 +107,13 @@ const Staff: React.FC = () => {
     setPage(1);
   };
 
-  const handleBranchFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setBranchFilter(e.target.value);
+  const handleBranchFilterChange = (value: string) => {
+    setBranchFilter(value);
     setPage(1);
   };
 
-  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
     setPage(1);
   };
 
@@ -183,31 +184,31 @@ const Staff: React.FC = () => {
         {/* Lọc theo Chi nhánh */}
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-gray-400 shrink-0" />
-          <select
+          <Select
+            size="sm" tone="light"
             value={branchFilter}
             onChange={handleBranchFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả chi nhánh</option>
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+            aria-label="Lọc chi nhánh"
+            options={[
+              { value: 'ALL', label: 'Tất cả chi nhánh' },
+              ...branches.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+          />
         </div>
 
         {/* Lọc theo Trạng thái */}
         <div className="flex items-center gap-2">
-          <select
+          <Select
+            size="sm" tone="light"
             value={statusFilter}
             onChange={handleStatusFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả trạng thái hoạt động</option>
-            <option value="ACTIVE">Đang làm việc</option>
-            <option value="INACTIVE">Đã khóa</option>
-          </select>
+            aria-label="Lọc trạng thái hoạt động"
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái hoạt động' },
+              { value: 'ACTIVE', label: 'Đang làm việc' },
+              { value: 'INACTIVE', label: 'Đã khóa' },
+            ]}
+          />
         </div>
       </div>
 

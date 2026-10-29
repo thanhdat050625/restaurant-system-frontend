@@ -8,6 +8,7 @@ import MenuCategoryForm, { MenuCategoryFormData } from './MenuCategoryForm';
 import Pagination from '../../../components/common/Pagination';
 import { Search, Filter, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 const MenuCategories: React.FC = () => {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -83,8 +84,8 @@ const MenuCategories: React.FC = () => {
     setPage(1);
   };
 
-  const handleActiveFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setActiveFilter(e.target.value);
+  const handleActiveFilterChange = (value: string) => {
+    setActiveFilter(value);
     setPage(1);
   };
 
@@ -186,15 +187,17 @@ const MenuCategories: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-gray-400 shrink-0" />
-          <select
+          <Select
+            size="sm" tone="light"
             value={activeFilter}
             onChange={handleActiveFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả trạng thái hiển thị</option>
-            <option value="ACTIVE">Đang hiển thị</option>
-            <option value="INACTIVE">Đang ẩn</option>
-          </select>
+            aria-label="Lọc trạng thái hiển thị"
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái hiển thị' },
+              { value: 'ACTIVE', label: 'Đang hiển thị' },
+              { value: 'INACTIVE', label: 'Đang ẩn' },
+            ]}
+          />
         </div>
       </div>
 

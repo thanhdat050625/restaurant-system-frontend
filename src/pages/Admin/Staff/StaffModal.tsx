@@ -4,6 +4,7 @@ import { IBranch } from '../../../types/admin/branch.type';
 import { staffService } from '../../../services/admin/staffService';
 import { X, User, Mail, Lock, Phone, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 interface StaffModalProps {
   isOpen: boolean;
@@ -202,22 +203,15 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                 Chi Nhánh Làm Việc <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                <select
-                  value={formData.branchId}
-                  onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
-                  required
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-hidden transition-all appearance-none cursor-pointer"
-                >
-                  <option value="" disabled>-- Chọn chi nhánh --</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                tone="light"
+                icon={Building2}
+                value={formData.branchId}
+                onChange={(branchId) => setFormData({ ...formData, branchId })}
+                placeholder="-- Chọn chi nhánh --"
+                aria-label="Chi nhánh làm việc"
+                options={branches.map((b) => ({ value: b.id, label: b.name }))}
+              />
               {staffToEdit && (
                 <p className="text-[11px] text-orange-600 mt-1">Chọn chi nhánh khác để điều chuyển</p>
               )}

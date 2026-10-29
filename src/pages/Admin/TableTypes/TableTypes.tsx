@@ -8,6 +8,7 @@ import TableTypeForm, { TableTypeFormData } from './TableTypeForm';
 import Pagination from '../../../components/common/Pagination';
 import { Search, Filter, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 const TableTypes: React.FC = () => {
   const [tableTypes, setTableTypes] = useState<ITableType[]>([]);
@@ -70,8 +71,8 @@ const TableTypes: React.FC = () => {
     setPage(1);
   };
 
-  const handleCapacityFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCapacityFilter(e.target.value);
+  const handleCapacityFilterChange = (value: string) => {
+    setCapacityFilter(value);
     setPage(1);
   };
 
@@ -162,18 +163,16 @@ const TableTypes: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-gray-400 shrink-0" />
-          <select
+          <Select
+            size="sm" tone="light"
             value={capacityFilter}
             onChange={handleCapacityFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả số chỗ ngồi</option>
-            <option value="2">Bàn 2 người</option>
-            <option value="4">Bàn 4 người</option>
-            <option value="6">Bàn 6 người</option>
-            <option value="8">Bàn 8 người</option>
-            <option value="10">Bàn 10 người</option>
-          </select>
+            aria-label="Lọc số chỗ ngồi"
+            options={[
+              { value: 'ALL', label: 'Tất cả số chỗ ngồi' },
+              ...[2, 4, 6, 8, 10].map((n) => ({ value: String(n), label: `Bàn ${n} người` })),
+            ]}
+          />
         </div>
       </div>
 

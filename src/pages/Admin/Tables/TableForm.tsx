@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import Select from '../../../components/ui/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { ITable } from '../../../types/admin/table.type';
@@ -38,6 +39,7 @@ const TableForm: React.FC<TableFormProps> = ({
 }) => {
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -108,30 +110,42 @@ const TableForm: React.FC<TableFormProps> = ({
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
             Chi nhánh <span className="text-red-500">*</span>
           </label>
-          <select
-            {...register('branchId')}
-            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
-          >
-            <option value="">Chọn chi nhánh</option>
-            {branches.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+          <Controller
+            name="branchId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                tone="light"
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                onChange={field.onChange}
+                invalid={!!errors.branchId}
+                placeholder="Chọn chi nhánh"
+                options={branches.map((b) => ({ value: b.id, label: b.name }))}
+              />
+            )}
+          />
           {errors.branchId && <p className="mt-1 text-xs text-red-600 font-medium">{errors.branchId.message}</p>}
         </div>
         <div>
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
             Loại bàn <span className="text-red-500">*</span>
           </label>
-          <select
-            {...register('tableTypeId')}
-            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
-          >
-            <option value="">Chọn loại bàn</option>
-            {tableTypes.map(t => (
-              <option key={t.id} value={t.id}>{t.name} ({t.capacity} chỗ)</option>
-            ))}
-          </select>
+          <Controller
+            name="tableTypeId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                tone="light"
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                onChange={field.onChange}
+                invalid={!!errors.tableTypeId}
+                placeholder="Chọn loại bàn"
+                options={tableTypes.map((t) => ({ value: t.id, label: t.name, description: `${t.capacity} chỗ ngồi` }))}
+              />
+            )}
+          />
           {errors.tableTypeId && <p className="mt-1 text-xs text-red-600 font-medium">{errors.tableTypeId.message}</p>}
         </div>
       </div>
@@ -140,15 +154,24 @@ const TableForm: React.FC<TableFormProps> = ({
         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
           Trạng thái
         </label>
-        <select
-          {...register('status')}
-          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all shadow-2xs"
-        >
-          <option value="AVAILABLE">Bàn trống (Available)</option>
-          <option value="OCCUPIED">Đang phục vụ (Occupied)</option>
-          <option value="MAINTENANCE">Đang bảo trì (Maintenance)</option>
-          <option value="DIRTY">Cần dọn dẹp (Dirty)</option>
-        </select>
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => (
+            <Select
+              tone="light"
+              value={field.value ?? ''}
+              onBlur={field.onBlur}
+              onChange={field.onChange}
+              options={[
+                { value: 'AVAILABLE', label: 'Bàn trống', description: 'Available' },
+                { value: 'OCCUPIED', label: 'Đang phục vụ', description: 'Occupied' },
+                { value: 'MAINTENANCE', label: 'Đang bảo trì', description: 'Maintenance' },
+                { value: 'DIRTY', label: 'Cần dọn dẹp', description: 'Dirty' },
+              ]}
+            />
+          )}
+        />
         {errors.status && <p className="mt-1 text-xs text-red-600 font-medium">{errors.status.message}</p>}
       </div>
 

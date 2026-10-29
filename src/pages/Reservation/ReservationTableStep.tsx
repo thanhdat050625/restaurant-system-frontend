@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Info, LayoutGrid, Timer } from 'lucide-react';
+import { ui, SectionTitle, StepActions } from './reservationUi';
 import TableMap from '../../components/table/TableMap';
 import { ITable } from '../../types/admin/table.type';
 import { tableService } from '../../services/admin/tableService';
@@ -12,6 +13,7 @@ interface ReservationTableStepProps {
   branchName?: string;
   date: string;
   time: string;
+  durationMinutes?: number;
   partySize: number;
   selectedTable: ITable | null;
   holdExpiresAt: number | null;
@@ -33,6 +35,7 @@ export const ReservationTableStep: React.FC<ReservationTableStepProps> = ({
   branchName,
   date,
   time,
+  durationMinutes,
   partySize,
   selectedTable,
   holdExpiresAt,
@@ -62,6 +65,7 @@ export const ReservationTableStep: React.FC<ReservationTableStepProps> = ({
           partySize,
           date,
           time,
+          durationMinutes,
           includeLocked: true,
         });
 
@@ -170,44 +174,42 @@ export const ReservationTableStep: React.FC<ReservationTableStepProps> = ({
     socketService.lockTable({ branchId, tableId: table.id, date, time, guestCount: partySize });
   };
 
-  const displayDate = date ? new Date(`${date}T00:00:00`).toLocaleDateString('vi-VN') : '';
-
   return (
-    <div className="space-y-6">
-      {/* Header Info */}
-      <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <Sparkles size={18} className="text-primary" />
-              Chọn vị trí bàn trực tiếp trên sơ đồ
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
-              <MapPin size={13} className="text-primary shrink-0" />
-              {branchName || 'Chi nhánh'} • {time} ngày {displayDate} • <strong>{partySize} khách</strong>
-            </p>
-          </div>
+    <div className="space-y-5">
+      <div className={`${ui.card} p-5 sm:p-6`}>
+        <SectionTitle
+          icon={LayoutGrid}
+          title="Chọn vị trí bàn trên sơ đồ"
+          description={`${branchName || 'Chi nhánh'} · ${time} · ${partySize} khách`}
+        />
 
-          {selectedTable ? (
-            <div className="px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-500" />
-              <span>
-                Đang giữ bàn: <strong>{selectedTable.tableNumber}</strong> (Tầng {selectedTable.floor || 1} -{' '}
-                {selectedTable.tableType?.capacity || 2} chỗ)
-                {holdExpiresAt && <> • còn {formatCountdown(holdExpiresAt - now)}</>}
+        {selectedTable ? (
+          <div className="mb-5 px-4 py-3 rounded-xl bg-success/10 border border-success/30 text-sm flex flex-wrap items-center gap-x-3 gap-y-1">
+            <CheckCircle2 size={18} className="text-success shrink-0" />
+            <span className={ui.heading}>
+              Đang giữ bàn <strong>{selectedTable.tableNumber}</strong>
+              <span className={ui.muted}>
+                {' '}
+                · Tầng {selectedTable.floor || 1} · {selectedTable.tableType?.capacity || 2} chỗ
               </span>
-            </div>
-          ) : (
-            <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center gap-1.5">
-              <AlertCircle size={14} className="text-amber-500" />
-              <span>Chưa chọn bàn (Nhà hàng sẽ tự xếp bàn phù hợp)</span>
-            </div>
-          )}
-        </div>
-      </div>
+            </span>
+            {holdExpiresAt && (
+              <span className="sm:ml-auto inline-flex items-center gap-1.5 text-xs font-semibold text-warning">
+                <Timer size={14} /> còn {formatCountdown(holdExpiresAt - now)}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className={`mb-5 px-4 py-3 rounded-xl bg-light-card dark:bg-dark-card text-xs flex items-start gap-2 ${ui.muted}`}>
+            <Info size={15} className="text-primary shrink-0 mt-px" />
+            <span>
+              {isAuthenticated
+                ? 'Bấm vào bàn màu xanh để giữ bàn trong 10 phút, hoặc bỏ qua để nhà hàng tự xếp bàn phù hợp.'
+                : 'Đăng nhập để tự chọn vị trí bàn. Bạn vẫn có thể tiếp tục, nhà hàng sẽ tự xếp bàn phù hợp.'}
+            </span>
+          </div>
+        )}
 
-      {/* Sơ đồ bàn TableMap */}
-      <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
         <TableMap
           tables={tables}
           mode="customer"
@@ -218,27 +220,11 @@ export const ReservationTableStep: React.FC<ReservationTableStepProps> = ({
         />
       </div>
 
-      {/* Điều hướng Next / Back */}
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="w-1/3 py-3 border border-slate-300 dark:border-slate-600 text-xs font-semibold rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1"
-        >
-          <ChevronLeft size={16} /> Quay lại
-        </button>
-
-        <button
-          type="button"
-          onClick={onNext}
-          className="w-2/3 py-3 bg-gradient-to-r from-primary to-accent hover:opacity-95 text-white text-xs sm:text-sm font-semibold rounded-xl transition-opacity flex items-center justify-center gap-1 shadow-sm"
-        >
-          <span>
-            {selectedTable ? `Tiếp tục với bàn ${selectedTable.tableNumber}` : 'Tiếp tục (Nhà hàng tự xếp bàn)'}
-          </span>
-          <ChevronRight size={16} />
-        </button>
-      </div>
+      <StepActions
+        onBack={onBack}
+        onNext={onNext}
+        nextLabel={selectedTable ? `Tiếp tục với bàn ${selectedTable.tableNumber}` : 'Tiếp tục, nhà hàng tự xếp bàn'}
+      />
     </div>
   );
 };

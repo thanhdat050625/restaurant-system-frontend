@@ -1,6 +1,7 @@
 import React from 'react';
 import { IDailyOperatingHour } from '../../../types/admin/branch-operating-hours.type';
 import { Clock, Sparkles } from 'lucide-react';
+import Select from '../../../components/ui/Select';
 
 const DAY_NAMES: Record<number, string> = {
   1: 'Thứ Hai',
@@ -92,18 +93,21 @@ export const OperatingHoursScheduleSection: React.FC<OperatingHoursScheduleSecti
             <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
               Thời lượng slot dùng bữa
             </label>
-            <select
+            <Select<number>
+              size="sm"
+              tone="light"
               value={slotDurationMinutes}
-              onChange={(e) => onSlotDurationChange(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-primary outline-none"
-            >
-              <option value={45}>45 phút</option>
-              <option value={60}>60 phút (1 giờ)</option>
-              <option value={90}>90 phút (1 giờ 30 phút - Chuẩn)</option>
-              <option value={120}>120 phút (2 giờ)</option>
-              <option value={150}>150 phút (2 giờ 30 phút)</option>
-              <option value={180}>180 phút (3 giờ)</option>
-            </select>
+              onChange={onSlotDurationChange}
+              aria-label="Thời lượng một lượt đặt bàn"
+              options={[
+                { value: 45, label: '45 phút' },
+                { value: 60, label: '60 phút (1 giờ)' },
+                { value: 90, label: '90 phút (1 giờ 30 phút)', description: 'Khuyến nghị' },
+                { value: 120, label: '120 phút (2 giờ)' },
+                { value: 150, label: '150 phút (2 giờ 30 phút)' },
+                { value: 180, label: '180 phút (3 giờ)' },
+              ]}
+            />
           </div>
         </div>
 

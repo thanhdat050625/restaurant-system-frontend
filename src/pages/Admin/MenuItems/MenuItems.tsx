@@ -10,6 +10,7 @@ import MenuItemForm from './MenuItemForm';
 import Pagination from '../../../components/common/Pagination';
 import { Search, Plus, Star, Clock, Filter, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '../../../components/ui/Select';
 
 const MenuItems: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -100,13 +101,13 @@ const MenuItems: React.FC = () => {
     setPage(1);
   };
 
-  const handleCategoryFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCategoryId(e.target.value);
+  const handleCategoryFilterChange = (value: string) => {
+    setSelectedCategoryId(value);
     setPage(1);
   };
 
-  const handleActiveFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setActiveFilter(e.target.value);
+  const handleActiveFilterChange = (value: string) => {
+    setActiveFilter(value);
     setPage(1);
   };
 
@@ -220,30 +221,30 @@ const MenuItems: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-gray-400 shrink-0" />
-          <select
+          <Select
+            size="sm" tone="light"
             value={selectedCategoryId}
             onChange={handleCategoryFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả danh mục</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            aria-label="Lọc danh mục"
+            options={[
+              { value: 'ALL', label: 'Tất cả danh mục' },
+              ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
+            ]}
+          />
         </div>
 
         <div className="flex items-center gap-2">
-          <select
+          <Select
+            size="sm" tone="light"
             value={activeFilter}
             onChange={handleActiveFilterChange}
-            className="w-full py-2 px-3 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
-          >
-            <option value="ALL">Tất cả trạng thái</option>
-            <option value="ACTIVE">Đang kinh doanh</option>
-            <option value="INACTIVE">Đang ẩn</option>
-          </select>
+            aria-label="Lọc trạng thái"
+            options={[
+              { value: 'ALL', label: 'Tất cả trạng thái' },
+              { value: 'ACTIVE', label: 'Đang kinh doanh' },
+              { value: 'INACTIVE', label: 'Đang ẩn' },
+            ]}
+          />
         </div>
       </div>
 
@@ -260,7 +261,7 @@ const MenuItems: React.FC = () => {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 text-xs uppercase tracking-wider">
                   <th className="p-3 font-semibold">Món ăn</th>
-                  <th className="p-3 font-semibold">Danh mục</th>
+                  <th className="p-3 font-semibold text-center whitespace-nowrap">Danh mục</th>
                   <th className="p-3 font-semibold text-right">Giá niêm yết</th>
                   <th className="p-3 font-semibold text-center">Thời gian nấu</th>
                   <th className="p-3 font-semibold text-center">Trạng thái</th>
@@ -306,8 +307,8 @@ const MenuItems: React.FC = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="p-3">
-                        <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                      <td className="p-3 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 whitespace-nowrap">
                           {item.category?.name ? item.category.name : 'Chưa phân loại'}
                         </span>
                       </td>

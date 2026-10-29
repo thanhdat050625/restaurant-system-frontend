@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { PaginationMeta } from '../../types/api-response.type';
+import Select from '../ui/Select';
 
 interface PaginationProps {
   meta?: PaginationMeta | null;
@@ -54,17 +55,16 @@ const Pagination: React.FC<PaginationProps> = ({
         {onLimitChange && (
           <div className="flex items-center gap-1.5 ml-2">
             <span className="text-xs text-gray-500">Mỗi trang:</span>
-            <select
+            <Select<number>
+              size="sm"
+              tone="light"
+              className="w-20"
+              searchable={false}
               value={limit}
-              onChange={(e) => onLimitChange(Number(e.target.value))}
-              className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium focus:ring-primary focus:border-primary outline-none"
-            >
-              {pageSizeOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+              onChange={onLimitChange}
+              aria-label="Số mục mỗi trang"
+              options={pageSizeOptions.map((opt) => ({ value: opt, label: String(opt) }))}
+            />
           </div>
         )}
       </div>

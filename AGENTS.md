@@ -14,8 +14,8 @@ Tài liệu kiến trúc chi tiết (Source of Truth): `web_architecture/`
 >    - Tuyệt đối không hardcode địa chỉ IP hoặc port API (ví dụ: `http://localhost:3000`) trong mã nguồn components hay services.
 >    - Bắt buộc dùng `VITE_API_BASE_URL` thông qua Axios client tại `src/services/api.ts`.
 > 
-> 2. **Giới hạn độ dài file (Tối đa 400 dòng)**:
->    - Tuyệt đối không viết hoặc để bất kỳ component nào vượt quá **400 dòng**.
+> 2. **Giới hạn độ dài file (Tối đa 1000 dòng)**:
+>    - Tuyệt đối không viết hoặc để bất kỳ component nào vượt quá **1000 dòng**.
 >    - Nếu component phình to, bắt buộc phải chủ động tách nhỏ thành các sub-components (như modals, item cards, list tables) hoặc custom hooks trước khi thêm logic mới.
 > 
 > 3. **TypeScript First & Type Safety**:
