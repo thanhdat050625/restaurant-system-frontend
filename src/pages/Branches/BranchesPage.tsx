@@ -32,7 +32,7 @@ export const BranchesPage: React.FC = () => {
     const fetchProvinces = async () => {
       try {
         const res = await branchService.getProvinces();
-        const data = res?.data?.data || res?.data || [];
+        const data = (res as any)?.data?.data || (res as any)?.data || [];
         setProvinces(Array.isArray(data) ? data : []);
       } catch {
         setProvinces([]);
@@ -51,7 +51,7 @@ export const BranchesPage: React.FC = () => {
     const fetchWards = async () => {
       try {
         const res = await branchService.getWardsByProvince(selectedProvince);
-        const data = res?.data?.data || res?.data || [];
+        const data = (res as any)?.data?.data || (res as any)?.data || [];
         setWards(Array.isArray(data) ? data : []);
       } catch {
         setWards([]);
@@ -78,7 +78,7 @@ export const BranchesPage: React.FC = () => {
       }
 
       const res = await branchService.getBranches(params);
-      const data = res?.data?.data || res?.data || [];
+      const data = (res as any)?.data?.data || (res as any)?.data || [];
       const branchItems = Array.isArray(data) ? data : data.items || [];
       setBranches(branchItems);
     } catch {

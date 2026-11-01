@@ -1,5 +1,5 @@
 import apiClient from './api';
-import { ApiResponse, PaginatedResponse } from '../types/api-response.type';
+import { ApiResponse } from '../types/api-response.type';
 import { MenuCategory } from '../types/menuCategory.type';
 import { MenuItem } from '../types/menuItem.type';
 

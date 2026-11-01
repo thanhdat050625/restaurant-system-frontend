@@ -4,9 +4,7 @@ import {
   Sparkles,
   RefreshCw,
   Building2,
-  AlertTriangle,
   CheckCircle2,
-  Clock,
   Layers,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -23,6 +21,7 @@ export const StaffTableTurnover: React.FC = () => {
   const [turnoverData, setTurnoverData] = useState<ITableTurnoverResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingTableId, setUpdatingTableId] = useState<string | null>(null);
+  const [isBulkCleaning, setIsBulkCleaning] = useState(false);
 
   const [selectedFloor, setSelectedFloor] = useState<number | 'ALL'>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
@@ -32,8 +31,8 @@ export const StaffTableTurnover: React.FC = () => {
       if (!branchId) return;
       if (showLoading) setIsLoading(true);
       try {
-        const res = await tableService.getTableTurnover(branchId);
-        const data = res?.data?.data || res?.data;
+        const res: any = await tableService.getTableTurnover(branchId);
+        const data = res?.data?.data || res?.data || res;
         setTurnoverData(data || null);
       } catch {
         setTurnoverData(null);
@@ -86,6 +85,21 @@ export const StaffTableTurnover: React.FC = () => {
       toast.error(msg);
     } finally {
       setUpdatingTableId(null);
+    }
+  };
+
+  const handleBulkClean = async () => {
+    if (!branchId) return;
+    setIsBulkCleaning(true);
+    try {
+      const res: any = await tableService.bulkCleanTables(branchId);
+      const msg = res?.message || res?.data?.message || 'Đã dọn sạch tất cả bàn thành công.';
+      toast.success(msg);
+      fetchTurnover(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Không thể dọn dẹp bàn.');
+    } finally {
+      setIsBulkCleaning(false);
     }
   };
 
@@ -211,6 +225,18 @@ export const StaffTableTurnover: React.FC = () => {
               </p>
             </div>
           </div>
+
+          {dirtyTables.length > 0 && (
+            <button
+              type="button"
+              onClick={handleBulkClean}
+              disabled={isBulkCleaning}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Sparkles size={14} className={isBulkCleaning ? 'animate-spin' : ''} />
+              <span>Dọn sạch tất cả ({dirtyTables.length} bàn)</span>
+            </button>
+          )}
         </div>
 
         {dirtyTables.length === 0 ? (
@@ -220,10 +246,10 @@ export const StaffTableTurnover: React.FC = () => {
             <span className="text-xs text-emerald-600">Hiện tại không có bàn nào trong hàng đợi chờ dọn.</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {dirtyTables.map((table) => (
               <TableTurnoverCard
-                key={`urgent-${table.id}`}
+                key={table.id}
                 table={table}
                 onUpdateStatus={handleUpdateStatus}
                 isUpdating={updatingTableId === table.id}
@@ -233,89 +259,68 @@ export const StaffTableTurnover: React.FC = () => {
         )}
       </div>
 
-      {/* KHU VỰC 2: SƠ ĐỒ TOÀN BỘ BÀN THEO TẦNG */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+      {/* KHU VỰC 2: TẤT CẢ CÁC BÀN THEO TẦNG */}
+      <div className="p-5 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Layers size={18} className="text-primary" />
-            <h2 className="text-base font-bold text-gray-800">Sơ Đồ Toàn Bộ Bàn</h2>
+            <Layers className="text-gray-500" size={20} />
+            <h2 className="text-base font-bold text-gray-800">
+              Sơ Đồ Toàn Bộ Bàn Phục Vụ ({displayedTables.length} bàn)
+            </h2>
           </div>
 
-          {/* Lọc trạng thái nhanh dạng Tabs */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {[
-              { id: 'ALL', label: 'Tất cả', count: summary.total },
-              { id: 'DIRTY', label: 'Cần dọn', count: summary.dirty, color: 'text-amber-700 bg-amber-100' },
-              { id: 'OCCUPIED', label: 'Đang có khách', count: summary.occupied },
-              { id: 'AVAILABLE', label: 'Sẵn sàng', count: summary.available },
-              { id: 'MAINTENANCE', label: 'Bảo trì', count: summary.maintenance },
-            ].map((st) => (
+          {/* Filters */}
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+            {/* Lọc theo tầng */}
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-medium">
               <button
-                key={st.id}
                 type="button"
-                onClick={() => setSelectedStatus(st.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${
-                  selectedStatus === st.id
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                onClick={() => setSelectedFloor('ALL')}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                  selectedFloor === 'ALL'
+                    ? 'bg-white text-gray-900 shadow-sm font-bold'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <span>{st.label}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    selectedStatus === st.id ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                Tất cả tầng
+              </button>
+              {floorNumbers.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setSelectedFloor(f)}
+                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    selectedFloor === f
+                      ? 'bg-white text-gray-900 shadow-sm font-bold'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  {st.count}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+                  Tầng {f}
+                </button>
+              ))}
+            </div>
 
-        {/* Lọc tầng */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          <span className="text-gray-500 font-medium mr-1">Tầng phục vụ:</span>
-          <button
-            type="button"
-            onClick={() => setSelectedFloor('ALL')}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              selectedFloor === 'ALL'
-                ? 'bg-gray-800 text-white shadow-xs'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Tất cả tầng ({allTables.length} bàn)
-          </button>
-          {floorNumbers.map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setSelectedFloor(f)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                selectedFloor === f
-                  ? 'bg-gray-800 text-white shadow-xs'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+            {/* Lọc theo trạng thái */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-1.5 text-xs bg-gray-100 border border-gray-200 rounded-xl font-medium text-gray-700 outline-none focus:ring-2 focus:ring-primary/20"
             >
-              Tầng {f} ({allTables.filter((t) => t.floor === f).length} bàn)
-            </button>
-          ))}
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="AVAILABLE">Sẵn sàng</option>
+              <option value="OCCUPIED">Đang có khách</option>
+              <option value="DIRTY">Cần dọn dẹp</option>
+              <option value="MAINTENANCE">Bảo trì</option>
+            </select>
+          </div>
         </div>
 
-        {/* Tables Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="h-32 bg-gray-50 rounded-2xl animate-pulse border border-gray-200" />
-            ))}
-          </div>
-        ) : displayedTables.length === 0 ? (
-          <div className="p-12 text-center bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-500">
-            Không có bàn nào phù hợp với bộ lọc hiện tại.
+        {displayedTables.length === 0 ? (
+          <div className="p-8 text-center text-gray-400 text-xs">
+            Không tìm thấy bàn nào phù hợp với bộ lọc đã chọn.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {displayedTables.map((table) => (
               <TableTurnoverCard
                 key={table.id}

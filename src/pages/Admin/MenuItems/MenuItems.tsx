@@ -402,10 +402,10 @@ const MenuItems: React.FC = () => {
         isOpen={!!deleteItem}
         title="Ẩn món ăn"
         message={`Bạn có chắc chắn muốn ẩn món "${deleteItem?.name}" khỏi thực đơn toàn hệ thống không?`}
-        confirmLabel="Ẩn món"
-        cancelLabel="Hủy"
+        confirmText="Ẩn món"
+        cancelText="Hủy"
         onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteItem(null)}
+        onClose={() => setDeleteItem(null)}
         isLoading={isDeleting}
       />
     </div>

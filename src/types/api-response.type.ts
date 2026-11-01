@@ -5,6 +5,9 @@ export interface PaginationMeta {
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
+  itemCount?: number;
+  itemsPerPage?: number;
+  currentPage?: number;
 }
 
 export interface ApiResponse<T> {
@@ -13,3 +16,8 @@ export interface ApiResponse<T> {
   data: T;
   meta?: PaginationMeta;
 }
+
+export type PaginatedResponse<T> = ApiResponse<{
+  items: T[];
+  meta: PaginationMeta;
+}>;

@@ -28,7 +28,7 @@ const MenuCategoryForm: React.FC<MenuCategoryFormProps> = ({ initialData, onSubm
     reset,
     formState: { errors },
   } = useForm<MenuCategoryFormData>({
-    resolver: zodResolver(menuCategorySchema),
+    resolver: zodResolver(menuCategorySchema) as any,
     defaultValues: {
       name: '',
       description: '',

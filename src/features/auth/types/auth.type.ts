@@ -41,6 +41,9 @@ export interface AuthUser {
     avatar?: string | null;
     role: string;
     isActive: boolean;
+    branchId?: string | null;
+    branch?: any;
+    branchName?: string;
     createdAt: string;
     updatedAt: string;
 }

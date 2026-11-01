@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Users, UserCheck, CheckCircle, Clock, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Sparkles, Users, UserCheck, CheckCircle, Clock, ShieldAlert } from 'lucide-react';
 import { ITable } from '../../types/admin/table.type';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
@@ -139,87 +139,69 @@ export const TableTurnoverCard: React.FC<TableTurnoverCardProps> = ({
           )}
 
           {table.note && (
-            <p className="text-[11px] text-slate-400 mt-1 line-clamp-1 italic">
-              Ghi chú: {table.note}
+            <p className="mt-1.5 text-[11px] text-slate-400 italic line-clamp-1">
+              "{table.note}"
             </p>
           )}
         </div>
 
-        {/* Action buttons */}
+        {/* Nút hành động dọn dẹp hoặc chuyển trạng thái */}
         <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center gap-1.5">
-          {table.status === 'DIRTY' && (
+          {table.status === 'DIRTY' ? (
             <button
               type="button"
               disabled={isUpdating}
               onClick={() => onUpdateStatus(table.id, 'AVAILABLE')}
-              className={`w-full py-2 px-3 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50 ${
-                isUrgent
-                  ? 'bg-red-600 hover:bg-red-700 animate-pulse'
-                  : 'bg-emerald-600 hover:bg-emerald-700'
-              }`}
+              className="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
               <Sparkles size={14} />
-              <span>Đã dọn sạch xong</span>
+              <span>Đã dọn sạch</span>
             </button>
-          )}
-
-          {table.status === 'OCCUPIED' && (
+          ) : table.status === 'OCCUPIED' ? (
             <button
               type="button"
               disabled={isUpdating}
               onClick={() => setShowConfirmLeave(true)}
-              className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:hover:bg-blue-900/60 dark:text-blue-300 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
             >
               <UserCheck size={14} />
-              <span>Khách đã trả bàn</span>
+              <span>Khách rời bàn</span>
             </button>
-          )}
-
-          {table.status === 'AVAILABLE' && (
-            <div className="w-full flex items-center justify-between text-xs py-1">
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                <CheckCircle size={14} />
-                <span>Sẵn sàng đón khách</span>
-              </span>
-              <button
-                type="button"
-                disabled={isUpdating}
-                onClick={() => onUpdateStatus(table.id, 'MAINTENANCE')}
-                className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline cursor-pointer"
-                title="Tạm khóa bàn để bảo trì"
-              >
-                Khóa bàn
-              </button>
-            </div>
-          )}
-
-          {table.status === 'MAINTENANCE' && (
+          ) : table.status === 'AVAILABLE' ? (
+            <button
+              type="button"
+              disabled={isUpdating}
+              onClick={() => onUpdateStatus(table.id, 'OCCUPIED')}
+              className="w-full py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <CheckCircle size={14} className="text-emerald-500" />
+              <span>Xếp khách vào</span>
+            </button>
+          ) : (
             <button
               type="button"
               disabled={isUpdating}
               onClick={() => onUpdateStatus(table.id, 'AVAILABLE')}
-              className="w-full py-2 px-3 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
             >
-              <CheckCircle size={14} />
-              <span>Mở lại bàn</span>
+              Mở lại bàn
             </button>
           )}
         </div>
       </div>
 
-      {/* Modal xác nhận khách trả bàn để tránh bấm nhầm */}
       <ConfirmModal
         isOpen={showConfirmLeave}
-        onClose={() => setShowConfirmLeave(false)}
-        onConfirm={() => {
-          setShowConfirmLeave(false);
-          onUpdateStatus(table.id, 'DIRTY');
-        }}
-        title={`Xác nhận trả bàn ${table.tableNumber}?`}
-        message={`Khách tại bàn ${table.tableNumber} đã hoàn tất dùng bữa và rời đi? Bàn sẽ được đưa vào hàng đợi "Cần dọn dẹp" để nhân viên tiến hành dọn bàn.`}
-        confirmText="Xác nhận trả bàn"
+        title="Xác nhận khách rời bàn"
+        message={`Chuyển bàn ${table.tableNumber} sang trạng thái "Cần dọn dẹp"? Hệ thống sẽ tự động kích hoạt đồng hồ đếm thời gian chờ dọn.`}
+        confirmText="Xác nhận"
         cancelText="Đóng"
         type="warning"
+        onConfirm={() => {
+          onUpdateStatus(table.id, 'DIRTY');
+          setShowConfirmLeave(false);
+        }}
+        onClose={() => setShowConfirmLeave(false)}
       />
     </>
   );

@@ -11,7 +11,7 @@ import ConfirmModal from '../../../components/ui/ConfirmModal';
 import TableForm, { TableFormData } from './TableForm';
 import BulkTableForm, { BulkTableFormData } from './BulkTableForm';
 import Pagination from '../../../components/common/Pagination';
-import { Search, Filter, Plus, Layers, LayoutGrid, List } from 'lucide-react';
+import { Search, Filter, Plus, Layers, LayoutGrid, List, Building2 } from 'lucide-react';
 import TableMap from '../../../components/table/TableMap';
 import { socketService } from '../../../services/socketService';
 import toast from 'react-hot-toast';
@@ -30,6 +30,7 @@ const Tables: React.FC = () => {
   const [limit, setLimit] = useState<number>(10);
   const [search, setSearch] = useState<string>('');
   const [selectedBranchId, setSelectedBranchId] = useState<string>('ALL');
+  const selectedBranch = branches.find((b) => b.id === selectedBranchId);
   const [selectedTableTypeId, setSelectedTableTypeId] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
@@ -279,7 +280,15 @@ const Tables: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Danh sách Bàn</h2>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h2 className="text-xl font-bold text-gray-800">Danh sách Bàn</h2>
+            {selectedBranch && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1 shadow-2xs">
+                <Building2 size={13} />
+                <span>{selectedBranch.name}</span>
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-500 mt-1">Quản lý sơ đồ bàn và trạng thái phục vụ</p>
         </div>
         <div className="flex gap-3 items-center self-start sm:self-auto flex-wrap">
@@ -334,59 +343,74 @@ const Tables: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
-        <div className="relative">
+      <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[200px]">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             value={search}
             onChange={handleSearchChange}
             placeholder="Tìm theo số bàn, ghi chú..."
-            className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none"
+            className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-primary focus:border-primary outline-none shadow-2xs"
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Filter size={18} className="text-gray-400 shrink-0" />
-          <Select
-            size="sm" tone="light"
-            value={selectedBranchId}
-            onChange={handleBranchFilterChange}
-            aria-label="Lọc chi nhánh"
-            options={[
-              { value: 'ALL', label: 'Tất cả chi nhánh' },
-              ...branches.map((b) => ({ value: b.id, label: b.name })),
-            ]}
-          />
-        </div>
+        {/* Dropdowns Group */}
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+          {/* Lọc chi nhánh - độ rộng tối thiểu 300px trên desktop để đọc trọn vẹn tên chi nhánh */}
+          <div className="flex items-center gap-1.5 w-full sm:w-auto min-w-[280px] lg:w-80">
+            <Filter size={18} className="text-gray-400 shrink-0 hidden sm:block" />
+            <div className="flex-1 min-w-0">
+              <Select
+                className="w-full"
+                size="sm" tone="light"
+                value={selectedBranchId}
+                onChange={handleBranchFilterChange}
+                aria-label="Lọc chi nhánh"
+                placeholder="Chọn chi nhánh..."
+                options={[
+                  { value: 'ALL', label: 'Tất cả chi nhánh' },
+                  ...branches.map((b) => ({ value: b.id, label: b.name })),
+                ]}
+              />
+            </div>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <Select
-            size="sm" tone="light"
-            value={selectedTableTypeId}
-            onChange={handleTableTypeFilterChange}
-            aria-label="Lọc loại bàn"
-            options={[
-              { value: 'ALL', label: 'Tất cả loại bàn' },
-              ...tableTypes.map((tt) => ({ value: tt.id, label: `${tt.name} (${tt.capacity} chỗ)` })),
-            ]}
-          />
-        </div>
+          {/* Lọc loại bàn */}
+          <div className="w-full sm:w-48 lg:w-52 shrink-0">
+            <Select
+              className="w-full"
+              size="sm" tone="light"
+              value={selectedTableTypeId}
+              onChange={handleTableTypeFilterChange}
+              aria-label="Lọc loại bàn"
+              placeholder="Loại bàn..."
+              options={[
+                { value: 'ALL', label: 'Tất cả loại bàn' },
+                ...tableTypes.map((tt) => ({ value: tt.id, label: `${tt.name} (${tt.capacity} chỗ)` })),
+              ]}
+            />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <Select
-            size="sm" tone="light"
-            value={statusFilter}
-            onChange={handleStatusFilterChange}
-            aria-label="Lọc trạng thái bàn"
-            options={[
-              { value: 'ALL', label: 'Tất cả trạng thái' },
-              { value: 'AVAILABLE', label: 'Trống' },
-              { value: 'OCCUPIED', label: 'Có khách' },
-              { value: 'DIRTY', label: 'Cần dọn' },
-              { value: 'MAINTENANCE', label: 'Bảo trì' },
-            ]}
-          />
+          {/* Lọc trạng thái */}
+          <div className="w-full sm:w-40 lg:w-44 shrink-0">
+            <Select
+              className="w-full"
+              size="sm" tone="light"
+              value={statusFilter}
+              onChange={handleStatusFilterChange}
+              aria-label="Lọc trạng thái bàn"
+              placeholder="Trạng thái..."
+              options={[
+                { value: 'ALL', label: 'Tất cả trạng thái' },
+                { value: 'AVAILABLE', label: 'Trống' },
+                { value: 'OCCUPIED', label: 'Có khách' },
+                { value: 'DIRTY', label: 'Cần dọn' },
+                { value: 'MAINTENANCE', label: 'Bảo trì' },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
