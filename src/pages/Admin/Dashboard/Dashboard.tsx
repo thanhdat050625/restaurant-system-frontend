@@ -289,7 +289,7 @@ const Dashboard: React.FC = () => {
                   <div className="space-y-1 text-xs text-gray-600">
                     <div className="flex items-center gap-2">
                       <MapPin size={14} className="text-gray-400 shrink-0" />
-                      <span className="truncate">{branch.address}</span>
+                      <span className="truncate">{(branch as any).address || branch.streetAddress}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone size={14} className="text-gray-400 shrink-0" />

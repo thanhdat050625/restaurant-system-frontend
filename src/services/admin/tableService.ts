@@ -41,6 +41,14 @@ export const tableService = {
     return await apiClient.patch(`/tables/${id}/status`, { status, note });
   },
 
+  bulkCleanTables: async (
+    branchId: string,
+    tableIds?: string[],
+    note?: string,
+  ): Promise<ApiResponse<{ count: number; message: string; cleanedTables: any[] }>> => {
+    return await apiClient.patch(`/tables/branch/${branchId}/bulk-clean`, { tableIds, note });
+  },
+
   getTableById: async (id: string): Promise<ApiResponse<ITable>> => {
     return await apiClient.get(`/tables/${id}`);
   },

@@ -22,7 +22,7 @@ export const ProfileReservationsTab: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await reservationService.getMyReservations({ timeline });
-      const data = res?.data?.data || res?.data;
+      const data = (res as any)?.data?.data || (res as any)?.data;
       const items = Array.isArray(data) ? data : data?.items || [];
       setReservations(items);
     } catch {

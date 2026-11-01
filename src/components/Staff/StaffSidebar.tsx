@@ -9,6 +9,7 @@ import {
   Building2,
   Clock,
   BrushCleaning,
+  ShoppingBag,
 } from 'lucide-react';
 
 const StaffSidebar: React.FC = () => {
@@ -46,6 +47,7 @@ const StaffSidebar: React.FC = () => {
   const navItems = [
     { name: 'Menu chi nhánh', path: '/staff/menu', icon: <BookOpenCheck size={18} /> },
     { name: 'Dọn & Xoay vòng bàn', path: '/staff/table-turnover', icon: <BrushCleaning size={18} /> },
+    { name: 'Đơn mang về', path: '/staff/pickup-orders', icon: <ShoppingBag size={18} /> },
     { name: 'Giờ & Sức chứa', path: '/staff/operating-hours', icon: <Clock size={18} /> },
   ];
 
@@ -58,26 +60,43 @@ const StaffSidebar: React.FC = () => {
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm">
-      <div className="h-16 shrink-0 flex items-center px-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-primary">FoodHub Staff</h1>
+      {/* Brand Header */}
+      <div className="h-16 shrink-0 flex items-center justify-between px-6 border-b border-gray-200">
+        <div>
+          <h1 className="text-lg font-bold text-gray-800 leading-tight">FoodHub Staff</h1>
+          <span className="text-[11px] font-semibold text-primary uppercase tracking-wider">Cổng nhân viên</span>
+        </div>
       </div>
 
+      {/* Branch Badge Card */}
+      <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+        <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <Building2 size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Chi nhánh làm việc</p>
+            <p className="text-xs font-bold text-gray-800 truncate" title={displayName}>
+              {displayName}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
       <div className="p-4 flex-1 overflow-y-auto min-h-0 custom-scrollbar">
         <div className="mb-4 px-2">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
-            Menu Quản Lý
-          </p>
+          <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Tác vụ phục vụ</p>
         </div>
         <nav className="space-y-1">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/staff'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                   isActive
-                    ? 'bg-primary/10 text-primary font-medium'
+                    ? 'bg-primary text-white shadow-sm'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`
               }
@@ -89,46 +108,39 @@ const StaffSidebar: React.FC = () => {
         </nav>
       </div>
 
+      {/* Staff profile & Logout */}
       <div className="p-4 border-t border-gray-200 shrink-0">
-        <div className="px-3 py-2.5 mb-2 bg-gray-50/80 rounded-xl border border-gray-100 space-y-2">
-          <div className="flex items-center gap-3">
-            <img
-              src={avatarSrc}
-              alt={staffName}
-              className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/40 shadow-sm shrink-0"
-            />
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {staffName}
-              </p>
-              <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                {user?.role || 'STAFF'}
-              </span>
-            </div>
-          </div>
-
-          <div className="text-xs text-gray-600 flex items-center gap-1.5 pt-1.5 border-t border-gray-200/60 truncate">
-            <Building2 size={14} className="text-primary shrink-0" />
-            <span className="truncate font-medium">{displayName}</span>
+        <div className="flex items-center gap-3 px-2 py-2 mb-2">
+          <img
+            src={avatarSrc}
+            alt={staffName}
+            className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-inner"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-gray-800 truncate">{staffName}</p>
+            <p className="text-[11px] text-gray-400 truncate">{user?.email}</p>
           </div>
         </div>
 
-        <Link
-          to="/"
-          className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors mb-1 font-medium text-sm"
-        >
-          <ExternalLink size={17} />
-          Về trang chủ
-        </Link>
-
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors text-sm font-medium cursor-pointer"
-        >
-          <LogOut size={17} />
-          Đăng xuất
-        </button>
+        <div className="space-y-1">
+          <Link
+            to="/"
+            target="_blank"
+            className="flex items-center justify-between w-full px-3 py-1.5 text-xs text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <ExternalLink size={14} />
+              Xem trang khách
+            </span>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium cursor-pointer"
+          >
+            <LogOut size={14} />
+            Đăng xuất
+          </button>
+        </div>
       </div>
     </aside>
   );

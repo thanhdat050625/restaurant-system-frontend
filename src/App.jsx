@@ -28,6 +28,7 @@ import StaffRoute from './components/common/StaffRoute';
 import StaffLayout from './layouts/staff/StaffLayout';
 import StaffOperatingHours from './pages/Staff/StaffOperatingHours';
 import StaffTableTurnover from './pages/Staff/StaffTableTurnover';
+import StaffPickupOrders from './pages/Staff/StaffPickupOrders';
 
 // Admin Imports
 import AdminRoute from './components/common/AdminRoute';
@@ -41,6 +42,7 @@ import MenuCategories from './pages/Admin/MenuCategories/MenuCategories';
 import MenuItems from './pages/Admin/MenuItems/MenuItems';
 import BranchMenu from './pages/Admin/BranchMenu/BranchMenu';
 import BranchOperatingHours from './pages/Admin/BranchOperatingHours/BranchOperatingHours';
+import AdminPickupOrders from './pages/Admin/PickupOrders/AdminPickupOrders';
 
 const GuestRoute = ({ children }) => {
   const { user, isAuthenticated, isCheckingAuth } = useAuth();
@@ -98,6 +100,7 @@ const Layout = () => {
             <Route index element={<Navigate to="/staff/menu" replace />} />
             <Route path="menu" element={<BranchMenu />} />
             <Route path="table-turnover" element={<StaffTableTurnover />} />
+            <Route path="pickup-orders" element={<StaffPickupOrders />} />
             <Route path="operating-hours" element={<StaffOperatingHours />} />
           </Route>
 
@@ -111,6 +114,7 @@ const Layout = () => {
             <Route path="menu-categories" element={<MenuCategories />} />
             <Route path="menu-items" element={<MenuItems />} />
             <Route path="branch-menu" element={<BranchMenu />} />
+            <Route path="pickup-orders" element={<AdminPickupOrders />} />
             <Route path="operating-hours" element={<BranchOperatingHours />} />
           </Route>
         </Routes>

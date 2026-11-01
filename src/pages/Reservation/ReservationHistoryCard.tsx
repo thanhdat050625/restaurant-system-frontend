@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, Users, Building2, Phone, QrCode, XCircle, UtensilsCrossed } from 'lucide-react';
+import { Calendar, Users, Building2, Phone, QrCode, XCircle, UtensilsCrossed } from 'lucide-react';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { formatPrice } from '../../utils/helpers';
 

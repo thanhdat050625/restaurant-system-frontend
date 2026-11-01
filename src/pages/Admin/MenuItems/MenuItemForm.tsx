@@ -40,7 +40,7 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ initialData, onSubmit, onCa
     reset,
     formState: { errors },
   } = useForm<MenuItemFormData>({
-    resolver: zodResolver(menuItemSchema),
+    resolver: zodResolver(menuItemSchema) as any,
     defaultValues: {
       name: '',
       categoryId: '',

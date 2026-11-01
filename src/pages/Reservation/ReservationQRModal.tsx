@@ -1,5 +1,5 @@
 import React from 'react';
-import { QrCode, Calendar, Clock, Building2, User } from 'lucide-react';
+import { Calendar, Building2, User } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 import { IReservation } from '../../types/reservation.type';
 

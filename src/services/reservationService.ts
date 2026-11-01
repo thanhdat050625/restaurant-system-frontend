@@ -44,6 +44,18 @@ export const reservationService = {
     return await apiClient.patch(`/reservations/${id}/cancel`, { reason });
   },
 
+  updateStatus: async (
+    id: string,
+    status: string,
+    note?: string,
+  ): Promise<ApiResponse<IReservation>> => {
+    return await apiClient.patch(`/reservations/${id}/status`, { status, note });
+  },
+
+  checkInQr: async (reservationCode: string): Promise<ApiResponse<IReservation>> => {
+    return await apiClient.post('/reservations/check-in-qr', { reservationCode });
+  },
+
   getPreOrders: async (reservationId: string): Promise<ApiResponse<any>> => {
     return await apiClient.get(`/reservations/${reservationId}/pre-orders`);
   },

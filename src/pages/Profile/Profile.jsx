@@ -2,12 +2,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Mail, Phone, MapPin, LogOut,
   AtSign, Calendar, Venus, Mars, CircleDot,
-  ShieldCheck, Clock, ChevronRight, Edit3, PlusCircle,
+  ShieldCheck, Clock, ChevronRight, Edit3, PlusCircle, ShoppingBag,
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import PageWrapper from '../../layouts/PageWrapper';
 import { useAuth } from '../../features/auth/AuthContext';
 import { ProfileReservationsTab } from './ProfileReservationsTab';
+import { ProfilePickupOrdersTab } from './ProfilePickupOrdersTab';
 
 /* ─── Gender display helper ───────────────────────────────────────────────── */
 const GenderIcon = ({ gender }) => {
@@ -20,6 +21,7 @@ const GenderIcon = ({ gender }) => {
 const TABS = [
   { id: 'info', label: 'Thông tin cá nhân', Icon: User },
   { id: 'reservations', label: 'Lịch sử đặt bàn', Icon: Calendar },
+  { id: 'pickup-orders', label: 'Đơn đặt mang về', Icon: ShoppingBag },
 ];
 
 /* ════════════════════════════════════════════════════════════════════════════ */
@@ -196,6 +198,7 @@ const Profile = () => {
               <AnimatePresence mode="wait">
                 {activeTab === 'info' && <InfoTab key="info" />}
                 {activeTab === 'reservations' && <ProfileReservationsTab key="reservations" />}
+                {activeTab === 'pickup-orders' && <ProfilePickupOrdersTab key="pickup-orders" />}
               </AnimatePresence>
             </motion.main>
 

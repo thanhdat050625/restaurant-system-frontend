@@ -90,7 +90,7 @@ export const Reservation: React.FC = () => {
     const fetchBranches = async () => {
       try {
         const res = await branchService.getBranches({ status: 'ACTIVE' });
-        const data = res?.data?.data || res?.data || [];
+        const data = (res as any)?.data?.data || (res as any)?.data || [];
         const items: IBranch[] = Array.isArray(data) ? data : data.items || [];
         setBranches(items);
         setSelectedBranchId((current) =>
@@ -211,7 +211,7 @@ export const Reservation: React.FC = () => {
         })),
       });
 
-      const resData = res?.data?.data || res?.data;
+      const resData = (res as any)?.data?.data || (res as any)?.data;
       // Khóa giữ bàn đã được server chuyển thành đơn đặt bàn
       clearHold(false);
       setCreatedReservation(resData);

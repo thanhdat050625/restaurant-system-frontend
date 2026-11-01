@@ -18,6 +18,7 @@ export interface IBranch {
   id: string;
   name: string;
   streetAddress: string;
+  address?: string | { provinceCode?: string; wardCode?: string; detail?: string } | any;
   provinceCode: string;
   wardCode: string;
   province?: IProvince;

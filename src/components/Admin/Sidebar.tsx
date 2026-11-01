@@ -1,7 +1,20 @@
 import React from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
-import { Home, MapPin, Layers, LayoutGrid, LogOut, ExternalLink, UtensilsCrossed, Utensils, Users, BookOpenCheck, Clock } from 'lucide-react';
+import {
+  Home,
+  MapPin,
+  Layers,
+  LayoutGrid,
+  LogOut,
+  ExternalLink,
+  UtensilsCrossed,
+  Utensils,
+  Users,
+  BookOpenCheck,
+  Clock,
+  ShoppingBag,
+} from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
@@ -17,7 +30,8 @@ const Sidebar: React.FC = () => {
     { name: 'Chi nhánh', path: '/admin/branches', icon: <MapPin size={18} /> },
     { name: 'Nhân viên', path: '/admin/staff', icon: <Users size={18} /> },
     { name: 'Loại bàn', path: '/admin/table-types', icon: <Layers size={18} /> },
-    { name: 'Bàn', path: '/admin/tables', icon: <LayoutGrid size={18} /> },
+    { name: 'Bàn & Sơ đồ', path: '/admin/tables', icon: <LayoutGrid size={18} /> },
+    { name: 'Đơn mang về', path: '/admin/pickup-orders', icon: <ShoppingBag size={18} /> },
     { name: 'Danh mục món', path: '/admin/menu-categories', icon: <UtensilsCrossed size={18} /> },
     { name: 'Món ăn', path: '/admin/menu-items', icon: <Utensils size={18} /> },
     { name: 'Menu chi nhánh', path: '/admin/branch-menu', icon: <BookOpenCheck size={18} /> },
@@ -47,9 +61,10 @@ const Sidebar: React.FC = () => {
               to={item.path}
               end={item.path === '/admin'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isActive
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                  isActive
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`
               }
             >
@@ -61,33 +76,36 @@ const Sidebar: React.FC = () => {
       </div>
 
       <div className="p-4 border-t border-gray-200 shrink-0">
-        <div className="flex items-center gap-3 px-3 py-2 mb-2 bg-gray-50/80 rounded-xl border border-gray-100">
+        <div className="flex items-center gap-3 px-3 py-2 mb-2">
           <img
             src={avatarSrc}
-            alt={user?.fullName ? user.fullName : 'Admin'}
-            className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/40 shadow-sm shrink-0"
+            alt="Admin"
+            className="w-8 h-8 rounded-full border border-gray-200"
           />
-          <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-semibold text-gray-900 truncate">{user?.fullName ? user.fullName : 'Administrator'}</p>
-            <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-              {user?.role ? user.role : 'ADMIN'}
-            </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{adminName}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
         </div>
-        <Link
-          to="/"
-          className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors mb-1 font-medium text-sm"
-        >
-          <ExternalLink size={17} />
-          Về trang chủ
-        </Link>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors text-sm font-medium"
-        >
-          <LogOut size={17} />
-          Đăng xuất
-        </button>
+        <div className="space-y-1">
+          <Link
+            to="/"
+            target="_blank"
+            className="flex items-center justify-between w-full px-3 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 rounded-md transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <ExternalLink size={16} />
+              Xem trang khách
+            </span>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+          >
+            <LogOut size={16} />
+            Đăng xuất
+          </button>
+        </div>
       </div>
     </aside>
   );

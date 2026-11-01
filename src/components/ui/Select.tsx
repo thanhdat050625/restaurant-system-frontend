@@ -108,8 +108,8 @@ export function Select<T extends string | number = string>({
   const updatePosition = useCallback(() => {
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const width = Math.max(rect.width, 200);
-    const left = Math.min(rect.left, window.innerWidth - width - 8);
+    const width = Math.max(rect.width, 320);
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
     const spaceBelow = window.innerHeight - rect.bottom;
     const openUp = spaceBelow < PANEL_MAX_HEIGHT + 60 && rect.top > spaceBelow;
     setPosition(
@@ -246,7 +246,7 @@ export function Select<T extends string | number = string>({
         : 'hover:border-primary/60';
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative w-full min-w-0 ${className}`}>
       <button
         ref={triggerRef}
         id={id}
@@ -257,12 +257,13 @@ export function Select<T extends string | number = string>({
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
         aria-label={ariaLabel}
+        title={selected ? selected.label : placeholder}
         onClick={() => (open ? closeMenu() : openMenu())}
         onKeyDown={handleTriggerKeyDown}
         className={`w-full flex items-center gap-2.5 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed ${triggerClass} ${ringClass}`}
       >
         {Icon && <Icon size={17} className="text-primary shrink-0" />}
-        <span className={`flex-1 truncate ${selected ? '' : t.placeholder}`}>
+        <span className={`flex-1 min-w-0 truncate ${selected ? '' : t.placeholder}`}>
           {selected ? selected.label : placeholder}
         </span>
         <ChevronDown
@@ -332,7 +333,7 @@ export function Select<T extends string | number = string>({
                         } ${isSelected ? 'font-semibold' : ''}`}
                       >
                         <span className="flex-1 min-w-0">
-                          <span className="block truncate">{option.label}</span>
+                          <span className="block truncate" title={option.label}>{option.label}</span>
                           {option.description && (
                             <span className={`block text-xs truncate font-normal ${t.muted}`}>{option.description}</span>
                           )}

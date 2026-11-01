@@ -31,7 +31,7 @@ export const ReservationPreOrderStep: React.FC<ReservationPreOrderStepProps> = (
       setIsLoading(true);
       try {
         const res = await branchMenuService.getPublicBranchMenu(branchId, { limit: 100 });
-        const data = res?.data?.data || res?.data;
+        const data = (res as any)?.data?.data || (res as any)?.data;
         const items = data?.items || [];
         setMenuItems(items.filter((i: IBranchMenuItem) => i.isActive && i.isAvailable));
       } catch {
