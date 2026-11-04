@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   BrushCleaning,
-  Sparkles,
   RefreshCw,
   Building2,
   CheckCircle2,
@@ -211,7 +210,7 @@ export const StaffTableTurnover: React.FC = () => {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold">
-              <Sparkles size={18} />
+              <BrushCleaning size={18} />
             </div>
             <div>
               <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
@@ -233,7 +232,7 @@ export const StaffTableTurnover: React.FC = () => {
               disabled={isBulkCleaning}
               className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
-              <Sparkles size={14} className={isBulkCleaning ? 'animate-spin' : ''} />
+              <BrushCleaning size={14} className={isBulkCleaning ? 'animate-spin' : ''} />
               <span>Dọn sạch tất cả ({dirtyTables.length} bàn)</span>
             </button>
           )}

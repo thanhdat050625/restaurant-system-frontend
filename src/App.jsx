@@ -26,6 +26,7 @@ import Contact from './pages/Contact/Contact';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import StaffRoute from './components/common/StaffRoute';
 import StaffLayout from './layouts/staff/StaffLayout';
+import { StaffReservations } from './pages/Staff/StaffReservations';
 import StaffOperatingHours from './pages/Staff/StaffOperatingHours';
 import StaffTableTurnover from './pages/Staff/StaffTableTurnover';
 import StaffPickupOrders from './pages/Staff/StaffPickupOrders';
@@ -97,10 +98,11 @@ const Layout = () => {
               </StaffRoute>
             }
           >
-            <Route index element={<Navigate to="/staff/menu" replace />} />
-            <Route path="menu" element={<BranchMenu />} />
+            <Route index element={<Navigate to="/staff/reservations" replace />} />
+            <Route path="reservations" element={<StaffReservations />} />
             <Route path="table-turnover" element={<StaffTableTurnover />} />
             <Route path="pickup-orders" element={<StaffPickupOrders />} />
+            <Route path="menu" element={<BranchMenu />} />
             <Route path="operating-hours" element={<StaffOperatingHours />} />
           </Route>
 

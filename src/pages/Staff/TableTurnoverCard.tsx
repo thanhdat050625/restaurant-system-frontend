@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Users, UserCheck, CheckCircle, Clock, ShieldAlert } from 'lucide-react';
+import { BrushCleaning, Users, UserCheck, CheckCircle, Clock, ShieldAlert } from 'lucide-react';
 import { ITable } from '../../types/admin/table.type';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
@@ -154,7 +154,7 @@ export const TableTurnoverCard: React.FC<TableTurnoverCardProps> = ({
               onClick={() => onUpdateStatus(table.id, 'AVAILABLE')}
               className="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
-              <Sparkles size={14} />
+              <BrushCleaning size={14} />
               <span>Đã dọn sạch</span>
             </button>
           ) : table.status === 'OCCUPIED' ? (

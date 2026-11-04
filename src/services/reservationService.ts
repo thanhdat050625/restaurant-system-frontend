@@ -48,8 +48,9 @@ export const reservationService = {
     id: string,
     status: string,
     note?: string,
+    tableId?: string,
   ): Promise<ApiResponse<IReservation>> => {
-    return await apiClient.patch(`/reservations/${id}/status`, { status, note });
+    return await apiClient.patch(`/reservations/${id}/status`, { status, note, tableId });
   },
 
   checkInQr: async (reservationCode: string): Promise<ApiResponse<IReservation>> => {
