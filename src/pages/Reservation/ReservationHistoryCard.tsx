@@ -7,6 +7,7 @@ interface ReservationHistoryCardProps {
   reservation: IReservation;
   onOpenQR: (res: IReservation) => void;
   onOpenCancel: (res: IReservation) => void;
+  onOpenOrderFood?: (res: IReservation) => void;
 }
 
 const statusConfig: Record<ReservationStatus, { label: string; bg: string; text: string }> = {
@@ -22,6 +23,7 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
   reservation,
   onOpenQR,
   onOpenCancel,
+  onOpenOrderFood,
 }) => {
   const status = statusConfig[reservation.status] || {
     label: reservation.status,
@@ -113,11 +115,22 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
 
       {/* Action buttons */}
       <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60">
+        {reservation.status === 'SEATED' && onOpenOrderFood && (
+          <button
+            type="button"
+            onClick={() => onOpenOrderFood(reservation)}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <UtensilsCrossed size={14} />
+            <span>Gọi thêm món</span>
+          </button>
+        )}
+
         {canCancel && (
           <button
             type="button"
             onClick={() => onOpenCancel(reservation)}
-            className="px-3 py-1.5 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors flex items-center gap-1"
+            className="px-3 py-1.5 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <XCircle size={14} />
             <span>Hủy đặt bàn</span>
@@ -128,7 +141,7 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
           <button
             type="button"
             onClick={() => onOpenQR(reservation)}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <QrCode size={14} />
             <span>Mã QR Check-in</span>

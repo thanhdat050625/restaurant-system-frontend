@@ -7,6 +7,7 @@ import { reservationService } from '../../services/reservationService';
 import { IReservation } from '../../types/reservation.type';
 import { ReservationHistoryCard } from '../Reservation/ReservationHistoryCard';
 import { ReservationQRModal } from '../Reservation/ReservationQRModal';
+import { OrderFoodModal } from '../Reservation/OrderFoodModal';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
 export const ProfileReservationsTab: React.FC = () => {
@@ -15,6 +16,7 @@ export const ProfileReservationsTab: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedQRReservation, setSelectedQRReservation] = useState<IReservation | null>(null);
+  const [orderingFoodReservation, setOrderingFoodReservation] = useState<IReservation | null>(null);
   const [cancellingReservation, setCancellingReservation] = useState<IReservation | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -131,6 +133,7 @@ export const ProfileReservationsTab: React.FC = () => {
               reservation={res}
               onOpenQR={setSelectedQRReservation}
               onOpenCancel={setCancellingReservation}
+              onOpenOrderFood={setOrderingFoodReservation}
             />
           ))}
         </div>
@@ -141,6 +144,14 @@ export const ProfileReservationsTab: React.FC = () => {
         reservation={selectedQRReservation}
         isOpen={Boolean(selectedQRReservation)}
         onClose={() => setSelectedQRReservation(null)}
+      />
+
+      {/* Order Food Modal */}
+      <OrderFoodModal
+        reservation={orderingFoodReservation}
+        isOpen={Boolean(orderingFoodReservation)}
+        onClose={() => setOrderingFoodReservation(null)}
+        onSuccess={() => fetchReservations()}
       />
 
       {/* Confirm Cancel Modal */}

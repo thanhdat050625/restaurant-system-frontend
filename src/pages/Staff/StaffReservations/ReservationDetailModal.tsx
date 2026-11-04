@@ -23,6 +23,7 @@ interface ReservationDetailModalProps {
   onClose: () => void;
   reservation: IReservation | null;
   onAssignTable?: (reservation: IReservation) => void;
+  onOrderFood?: (reservation: IReservation) => void;
 }
 
 const statusBadgeMap: Record<
@@ -72,6 +73,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
   onClose,
   reservation,
   onAssignTable,
+  onOrderFood,
 }) => {
   if (!reservation) return null;
 
@@ -211,13 +213,24 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
               <UtensilsCrossed size={14} className="text-primary" />
-              Món ăn gọi trước ({orders.length} món)
+              Món ăn tại bàn ({orders.length} món)
             </h4>
-            {orders.length > 0 && (
-              <span className="text-xs font-bold text-primary font-mono">
-                Tổng: {formatPrice(totalPreOrderAmount)}
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {['PENDING', 'CONFIRMED', 'SEATED'].includes(reservation.status) && onOrderFood && (
+                <button
+                  type="button"
+                  onClick={() => onOrderFood(reservation)}
+                  className="text-xs font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  {orders.length > 0 ? '+ Gọi thêm món' : '+ Gọi món ngay'}
+                </button>
+              )}
+              {orders.length > 0 && (
+                <span className="text-xs font-bold text-primary font-mono">
+                  Tổng: {formatPrice(totalPreOrderAmount)}
+                </span>
+              )}
+            </div>
           </div>
 
           {orders.length === 0 ? (

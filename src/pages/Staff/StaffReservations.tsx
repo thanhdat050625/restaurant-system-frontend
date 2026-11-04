@@ -23,6 +23,7 @@ import { socketService } from '../../services/socketService';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { ReservationDetailModal } from './StaffReservations/ReservationDetailModal';
 import { AssignTableModal } from './StaffReservations/AssignTableModal';
+import { OrderFoodModal } from '../Reservation/OrderFoodModal';
 import QrScannerModal from '../../components/common/QrScannerModal';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
@@ -81,6 +82,7 @@ export const StaffReservations: React.FC = () => {
   // Modals
   const [detailTarget, setDetailTarget] = useState<IReservation | null>(null);
   const [assignTableTarget, setAssignTableTarget] = useState<IReservation | null>(null);
+  const [orderFoodTarget, setOrderFoodTarget] = useState<IReservation | null>(null);
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -580,17 +582,28 @@ export const StaffReservations: React.FC = () => {
                       </>
                     )}
 
-                    {/* Status SEATED: Hoàn thành bữa ăn */}
+                    {/* Status SEATED: Gọi thêm món hoặc Hoàn thành bữa ăn */}
                     {res.status === 'SEATED' && (
-                      <button
-                        type="button"
-                        disabled={isUpdating}
-                        onClick={() => handleCompleteReservation(res)}
-                        className="w-full py-1.5 bg-primary hover:bg-primary-hover active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
-                      >
-                        <CheckCircle2 size={14} />
-                        <span>Hoàn thành bữa ăn</span>
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setOrderFoodTarget(res)}
+                          className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer shadow-sm"
+                          title="Gọi thêm món tại bàn"
+                        >
+                          <UtensilsCrossed size={14} />
+                          <span>Gọi món</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isUpdating}
+                          onClick={() => handleCompleteReservation(res)}
+                          className="px-3 py-1.5 bg-primary hover:bg-primary-hover active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                        >
+                          <CheckCircle2 size={14} />
+                          <span>Hoàn thành</span>
+                        </button>
+                      </>
                     )}
 
                     {/* Status CANCELLED / NO_SHOW / COMPLETED: Done badges */}
@@ -614,6 +627,17 @@ export const StaffReservations: React.FC = () => {
           setDetailTarget(null);
           setAssignTableTarget(r);
         }}
+        onOrderFood={(r) => {
+          setDetailTarget(null);
+          setOrderFoodTarget(r);
+        }}
+      />
+
+      <OrderFoodModal
+        isOpen={Boolean(orderFoodTarget)}
+        onClose={() => setOrderFoodTarget(null)}
+        reservation={orderFoodTarget}
+        onSuccess={() => fetchReservations(false)}
       />
 
       <AssignTableModal
