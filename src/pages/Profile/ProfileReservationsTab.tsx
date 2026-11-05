@@ -7,6 +7,7 @@ import { reservationService } from '../../services/reservationService';
 import { IReservation } from '../../types/reservation.type';
 import { ReservationHistoryCard } from '../Reservation/ReservationHistoryCard';
 import { ReservationQRModal } from '../Reservation/ReservationQRModal';
+import { ReservationDetailModal } from '../Reservation/ReservationDetailModal';
 import { OrderFoodModal } from '../Reservation/OrderFoodModal';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
@@ -15,6 +16,7 @@ export const ProfileReservationsTab: React.FC = () => {
   const [reservations, setReservations] = useState<IReservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [selectedDetailReservation, setSelectedDetailReservation] = useState<IReservation | null>(null);
   const [selectedQRReservation, setSelectedQRReservation] = useState<IReservation | null>(null);
   const [orderingFoodReservation, setOrderingFoodReservation] = useState<IReservation | null>(null);
   const [cancellingReservation, setCancellingReservation] = useState<IReservation | null>(null);
@@ -131,6 +133,7 @@ export const ProfileReservationsTab: React.FC = () => {
             <ReservationHistoryCard
               key={res.id}
               reservation={res}
+              onOpenDetail={setSelectedDetailReservation}
               onOpenQR={setSelectedQRReservation}
               onOpenCancel={setCancellingReservation}
               onOpenOrderFood={setOrderingFoodReservation}
@@ -138,6 +141,21 @@ export const ProfileReservationsTab: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Detail Modal */}
+      <ReservationDetailModal
+        reservation={selectedDetailReservation}
+        isOpen={Boolean(selectedDetailReservation)}
+        onClose={() => setSelectedDetailReservation(null)}
+        onOpenQR={(res) => {
+          setSelectedDetailReservation(null);
+          setSelectedQRReservation(res);
+        }}
+        onOrderFood={(res) => {
+          setSelectedDetailReservation(null);
+          setOrderingFoodReservation(res);
+        }}
+      />
 
       {/* QR Modal */}
       <ReservationQRModal
