@@ -248,7 +248,7 @@ export const AdminPickupOrders: React.FC = () => {
             <span>Quản Lý Đơn Mang Về Toàn Chuỗi</span>
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Theo dõi, tra cứu và kiểm soát tình hình đặt món mang về ghé lấy tại các chi nhánh (RRMS-32)
+            Theo dõi, tra cứu và kiểm soát tình hình đặt món mang về ghé lấy tại các chi nhánh
           </p>
         </div>
 

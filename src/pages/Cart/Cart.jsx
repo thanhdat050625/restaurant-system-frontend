@@ -67,7 +67,7 @@ const Cart = () => {
                   </div>
                   <div>
                     <p className="text-xs text-text-secondary dark:text-text-light">Hình thức phục vụ</p>
-                    <p className="text-sm font-semibold text-text-primary dark:text-white">Dùng tại nhà hàng</p>
+                    <p className="text-sm font-semibold text-text-primary dark:text-white">Lấy tại nhà hàng</p>
                   </div>
                 </div>
 

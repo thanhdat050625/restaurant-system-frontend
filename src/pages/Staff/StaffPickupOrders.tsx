@@ -223,10 +223,10 @@ export const StaffPickupOrders: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
             <ShoppingBag className="text-primary" size={24} />
-            <span>Quản Lý Đơn Mang Về (Pick-up)</span>
+            <span>Quản Lý Đơn Mang Về</span>
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Theo dõi danh sách khách đặt món trước và hẹn giờ ghé lấy tại chi nhánh (RRMS-32)
+            Theo dõi danh sách khách đặt món trước và hẹn giờ ghé lấy tại chi nhánh
           </p>
         </div>
 

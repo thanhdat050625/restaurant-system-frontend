@@ -1,6 +1,25 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 
 const CartContext = createContext();
+
+const CART_STORAGE_KEY = 'foodhub_cart_data';
+
+const getInitialState = () => {
+  try {
+    const saved = localStorage.getItem(CART_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.items)) {
+        return {
+          items: parsed.items,
+          deliveryType: parsed.deliveryType || 'dine_in',
+          coupon: parsed.coupon || null,
+        };
+      }
+    }
+  } catch {}
+  return { items: [], deliveryType: 'dine_in', coupon: null };
+};
 
 const cartReducer = (state, action) => {
   switch (action.type) {
@@ -35,15 +54,24 @@ const cartReducer = (state, action) => {
   }
 };
 
-const initialState = { items: [], deliveryType: 'dine_in', coupon: null };
-
 export const CartProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(cartReducer, initialState);
+  const [state, dispatch] = useReducer(cartReducer, null, getInitialState);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state));
+    } catch {}
+  }, [state]);
 
   const addItem = useCallback((item) => dispatch({ type: 'ADD_ITEM', payload: item }), []);
   const removeItem = useCallback((index) => dispatch({ type: 'REMOVE_ITEM', payload: index }), []);
   const updateQuantity = useCallback((index, quantity) => dispatch({ type: 'UPDATE_QUANTITY', payload: { index, quantity } }), []);
-  const clearCart = useCallback(() => dispatch({ type: 'CLEAR_CART' }), []);
+  const clearCart = useCallback(() => {
+    dispatch({ type: 'CLEAR_CART' });
+    try {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    } catch {}
+  }, []);
   const setDeliveryType = useCallback((type) => dispatch({ type: 'SET_DELIVERY_TYPE', payload: type }), []);
 
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);

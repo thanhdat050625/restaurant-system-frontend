@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Phone,
@@ -11,6 +11,7 @@ import {
   Calendar,
   AlertCircle,
   ShoppingBag,
+  ArrowLeft,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageWrapper from '../../layouts/PageWrapper';
@@ -19,6 +20,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { formatPrice } from '../../utils/helpers';
 import { branchService } from '../../services/admin/branchService';
 import { pickupOrderService } from '../../services/pickupOrderService';
+import { Select } from '../../components/ui/Select';
 
 const toLocalDateString = (d) => {
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -196,7 +198,7 @@ const Checkout = () => {
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !createdOrder) {
     navigate('/cart');
     return null;
   }
@@ -206,11 +208,18 @@ const Checkout = () => {
       <section className="pt-28 pb-20 bg-light dark:bg-dark min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
+            <Link
+              to="/cart"
+              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-semibold mb-3 transition-colors"
+            >
+              <ArrowLeft size={15} />
+              <span>Quay lại giỏ hàng</span>
+            </Link>
             <h1 className="text-3xl font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)]">
-              Xác Nhận Đặt Món Mang Về (Pick-up)
+              Xác Nhận Đặt Món Mang Về
             </h1>
             <p className="text-xs text-text-secondary dark:text-text-light mt-1">
-              Chọn chi nhánh và khung giờ hẹn ghé lấy món để nhà hàng chuẩn bị sẵn sàng (RRMS-32)
+              Chọn chi nhánh và khung giờ hẹn ghé lấy món để nhà hàng chuẩn bị sẵn sàng
             </p>
           </div>
 
@@ -230,18 +239,18 @@ const Checkout = () => {
                     <label className="block text-xs font-semibold text-text-secondary dark:text-text-light mb-1.5">
                       Chi nhánh ghé lấy món *
                     </label>
-                    <select
+                    <Select
                       value={selectedBranchId}
-                      onChange={(e) => setSelectedBranchId(e.target.value)}
-                      className="w-full px-4 py-2.5 text-xs bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
-                      required
-                    >
-                      {branches.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.name} — {b.streetAddress || b.address}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setSelectedBranchId}
+                      icon={Building2}
+                      placeholder="Chọn chi nhánh ghé lấy món"
+                      aria-label="Chi nhánh ghé lấy món"
+                      options={branches.map((b) => ({
+                        value: b.id,
+                        label: b.name,
+                        description: b.streetAddress || b.address || undefined,
+                      }))}
+                    />
                   </div>
 
                   {/* Ngày hẹn lấy */}
@@ -254,7 +263,7 @@ const Checkout = () => {
                       min={toLocalDateString(new Date())}
                       value={pickupDate}
                       onChange={(e) => setPickupDate(e.target.value)}
-                      className="w-full px-3 py-2.5 text-xs bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white outline-none"
+                      className="w-full px-3.5 py-2.5 text-xs bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white outline-none focus:border-primary transition-colors cursor-pointer"
                       required
                     />
                   </div>
@@ -265,23 +274,22 @@ const Checkout = () => {
                       Khung giờ hẹn ghé lấy *
                     </label>
                     {timeSlots.length === 0 ? (
-                      <div className="p-2.5 bg-amber-50 rounded-xl text-amber-800 text-xs flex items-center gap-1.5">
+                      <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 rounded-xl text-amber-800 dark:text-amber-300 text-xs flex items-center gap-1.5 border border-amber-200 dark:border-amber-900/40">
                         <AlertCircle size={14} />
                         <span>Đã hết khung giờ phục vụ trong ngày đã chọn.</span>
                       </div>
                     ) : (
-                      <select
+                      <Select
                         value={pickupTime}
-                        onChange={(e) => setPickupTime(e.target.value)}
-                        className="w-full px-4 py-2.5 text-xs bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-xl text-text-primary dark:text-white font-bold outline-none"
-                        required
-                      >
-                        {timeSlots.map((slot) => (
-                          <option key={slot} value={slot}>
-                            {slot}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setPickupTime}
+                        icon={Clock}
+                        placeholder="Chọn khung giờ hẹn lấy"
+                        aria-label="Khung giờ hẹn ghé lấy"
+                        options={timeSlots.map((slot) => ({
+                          value: slot,
+                          label: slot,
+                        }))}
+                      />
                     )}
                   </div>
                 </div>

@@ -58,10 +58,10 @@ export const ProfilePickupOrdersTab: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
             <ShoppingBag className="text-primary" size={22} />
-            <span>Đơn Đặt Món Mang Về (Pick-up)</span>
+            <span>Đơn Đặt Món Mang Về</span>
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Danh sách các đơn đặt món mang về hẹn giờ ghé lấy tại chi nhánh (RRMS-32)
+            Danh sách các đơn đặt món mang về hẹn giờ ghé lấy tại chi nhánh
           </p>
         </div>
 

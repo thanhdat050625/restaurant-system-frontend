@@ -141,7 +141,7 @@ const OrderTracking = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
-                    Đơn Mang Về (Pick-up)
+                    Đơn Mang Về
                   </span>
                   <h1 className="text-2xl font-extrabold text-text-primary dark:text-white font-mono mt-1">
                     #{order.orderCode}
