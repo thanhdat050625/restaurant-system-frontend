@@ -54,54 +54,105 @@ const Tables: React.FC = () => {
 
   // Lắng nghe sự kiện WebSocket realtime khi chọn một chi nhánh cụ thể
   useEffect(() => {
-    if (selectedBranchId && selectedBranchId !== 'ALL') {
-      socketService.connect();
-      socketService.joinBranch(selectedBranchId);
+    socketService.connect();
 
-      const handleTableLocked = (lockInfo: any) => {
-        setTables((prev) =>
-          prev.map((t) =>
-            t.id === lockInfo.tableId
-              ? {
-                  ...t,
-                  lockStatus: {
-                    isLocked: true,
-                    lockedByMe: false,
-                    expiresIn: 600,
-                  },
-                }
-              : t
-          )
-        );
-      };
-
-      const handleTableReleased = ({ tableId }: { tableId: string }) => {
-        setTables((prev) =>
-          prev.map((t) =>
-            t.id === tableId
-              ? {
-                  ...t,
-                  lockStatus: {
-                    isLocked: false,
-                    lockedByMe: false,
-                    expiresIn: null,
-                  },
-                }
-              : t
-          )
-        );
-      };
-
-      socketService.on('table:locked', handleTableLocked);
-      socketService.on('table:released', handleTableReleased);
-
-      return () => {
-        socketService.off('table:locked', handleTableLocked);
-        socketService.off('table:released', handleTableReleased);
-        socketService.leaveBranch(selectedBranchId);
-      };
+    const branchIdsToJoin: string[] = [];
+    if (selectedBranchId === 'ALL') {
+      branches.forEach((b) => branchIdsToJoin.push(b.id));
+    } else if (selectedBranchId) {
+      branchIdsToJoin.push(selectedBranchId);
     }
-  }, [selectedBranchId]);
+
+    branchIdsToJoin.forEach((bId) => socketService.joinBranch(bId));
+
+    const handleTableLocked = (lockInfo: any) => {
+      setTables((prev) =>
+        prev.map((t) =>
+          t.id === lockInfo.tableId
+            ? {
+                ...t,
+                lockStatus: {
+                  isLocked: true,
+                  lockedByMe: false,
+                  expiresIn: lockInfo.expiresIn || 600,
+                },
+              }
+            : t
+        )
+      );
+    };
+
+    const handleTableReleased = ({ tableId }: { tableId: string }) => {
+      setTables((prev) =>
+        prev.map((t) =>
+          t.id === tableId
+            ? {
+                ...t,
+                lockStatus: {
+                  isLocked: false,
+                  lockedByMe: false,
+                  expiresIn: null,
+                },
+              }
+            : t
+        )
+      );
+    };
+
+    const handleTableReserved = ({ tableId }: { tableId: string }) => {
+      setTables((prev) =>
+        prev.map((t) =>
+          t.id === tableId
+            ? {
+                ...t,
+                isReserved: true,
+                lockStatus: {
+                  isLocked: false,
+                  lockedByMe: false,
+                  expiresIn: null,
+                },
+              }
+            : t
+        )
+      );
+    };
+
+    const handleTableStatusChanged = (tableData: any) => {
+      setTables((prev) =>
+        prev.map((t) =>
+          t.id === tableData.id
+            ? {
+                ...t,
+                status: tableData.status,
+                dirtySince: tableData.dirtySince !== undefined ? tableData.dirtySince : t.dirtySince,
+                note: tableData.note !== undefined ? tableData.note : t.note,
+              }
+            : t
+        )
+      );
+    };
+
+    const handleReservationChanged = () => {
+      fetchTablesOnly(false);
+    };
+
+    socketService.on('table:locked', handleTableLocked);
+    socketService.on('table:released', handleTableReleased);
+    socketService.on('table:reserved', handleTableReserved);
+    socketService.on('table:status_changed', handleTableStatusChanged);
+    socketService.on('reservation:created', handleReservationChanged);
+    socketService.on('reservation:updated', handleReservationChanged);
+
+    return () => {
+      socketService.off('table:locked', handleTableLocked);
+      socketService.off('table:released', handleTableReleased);
+      socketService.off('table:reserved', handleTableReserved);
+      socketService.off('table:status_changed', handleTableStatusChanged);
+      socketService.off('reservation:created', handleReservationChanged);
+      socketService.off('reservation:updated', handleReservationChanged);
+      branchIdsToJoin.forEach((bId) => socketService.leaveBranch(bId));
+    };
+  }, [selectedBranchId, branches]);
 
   const fetchInitialData = async () => {
     try {

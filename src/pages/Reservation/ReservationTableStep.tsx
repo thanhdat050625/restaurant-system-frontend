@@ -143,6 +143,7 @@ export const ReservationTableStep: React.FC<ReservationTableStepProps> = ({
     socketService.on('table:locked', scheduleRefresh);
     socketService.on('table:released', scheduleRefresh);
     socketService.on('table:reserved', scheduleRefresh);
+    socketService.on('table:status_changed', scheduleRefresh);
     socketService.on('table:lock_success', handleLockSuccess);
     socketService.on('table:lock_failed', handleLockFailed);
 
@@ -151,6 +152,7 @@ export const ReservationTableStep: React.FC<ReservationTableStepProps> = ({
       socketService.off('table:locked', scheduleRefresh);
       socketService.off('table:released', scheduleRefresh);
       socketService.off('table:reserved', scheduleRefresh);
+      socketService.off('table:status_changed', scheduleRefresh);
       socketService.off('table:lock_success', handleLockSuccess);
       socketService.off('table:lock_failed', handleLockFailed);
       socketService.leaveBranch(branchId);
