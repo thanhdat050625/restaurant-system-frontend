@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Users, Building2, Phone, QrCode, XCircle, UtensilsCrossed } from 'lucide-react';
+import { Calendar, Users, Building2, Phone, QrCode, XCircle, UtensilsCrossed, Eye, MapPin } from 'lucide-react';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { formatPrice } from '../../utils/helpers';
 
@@ -7,6 +7,8 @@ interface ReservationHistoryCardProps {
   reservation: IReservation;
   onOpenQR: (res: IReservation) => void;
   onOpenCancel: (res: IReservation) => void;
+  onOpenOrderFood?: (res: IReservation) => void;
+  onOpenDetail?: (res: IReservation) => void;
 }
 
 const statusConfig: Record<ReservationStatus, { label: string; bg: string; text: string }> = {
@@ -22,6 +24,8 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
   reservation,
   onOpenQR,
   onOpenCancel,
+  onOpenOrderFood,
+  onOpenDetail,
 }) => {
   const status = statusConfig[reservation.status] || {
     label: reservation.status,
@@ -55,9 +59,13 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
       <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-700/60">
         <div>
           <span className="text-[11px] text-slate-400 font-medium block">Mã đặt bàn</span>
-          <span className="font-mono font-bold text-sm text-slate-800 dark:text-slate-100">
-            {reservation.reservationCode}
-          </span>
+          <button
+            type="button"
+            onClick={() => onOpenDetail && onOpenDetail(reservation)}
+            className="font-mono font-bold text-sm text-primary hover:underline cursor-pointer"
+          >
+            #{reservation.reservationCode}
+          </button>
         </div>
         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${status.bg} ${status.text}`}>
           {status.label}
@@ -84,8 +92,16 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Phone size={15} className="text-primary shrink-0" />
-          <span>{reservation.customerName} - {reservation.customerPhone}</span>
+          <MapPin size={15} className="text-primary shrink-0" />
+          <span className="line-clamp-1">
+            {reservation.table ? (
+              <>Bàn <strong className="text-primary font-bold">{reservation.table.tableNumber}</strong> (Tầng {reservation.table.floor})</>
+            ) : reservation.tableType ? (
+              <>{reservation.tableType.name}</>
+            ) : (
+              <span className="text-slate-400">Chưa xếp số bàn</span>
+            )}
+          </span>
         </div>
       </div>
 
@@ -112,28 +128,54 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
       )}
 
       {/* Action buttons */}
-      <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60">
-        {canCancel && (
-          <button
-            type="button"
-            onClick={() => onOpenCancel(reservation)}
-            className="px-3 py-1.5 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors flex items-center gap-1"
-          >
-            <XCircle size={14} />
-            <span>Hủy đặt bàn</span>
-          </button>
-        )}
+      <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60">
+        <div>
+          {onOpenDetail && (
+            <button
+              type="button"
+              onClick={() => onOpenDetail(reservation)}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Eye size={14} />
+              <span>Xem chi tiết</span>
+            </button>
+          )}
+        </div>
 
-        {canShowQR && (
-          <button
-            type="button"
-            onClick={() => onOpenQR(reservation)}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm"
-          >
-            <QrCode size={14} />
-            <span>Mã QR Check-in</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {reservation.status === 'SEATED' && onOpenOrderFood && (
+            <button
+              type="button"
+              onClick={() => onOpenOrderFood(reservation)}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <UtensilsCrossed size={14} />
+              <span>Gọi thêm món</span>
+            </button>
+          )}
+
+          {canCancel && (
+            <button
+              type="button"
+              onClick={() => onOpenCancel(reservation)}
+              className="px-3 py-1.5 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <XCircle size={14} />
+              <span>Hủy đặt bàn</span>
+            </button>
+          )}
+
+          {canShowQR && (
+            <button
+              type="button"
+              onClick={() => onOpenQR(reservation)}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <QrCode size={14} />
+              <span>Mã QR Check-in</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
