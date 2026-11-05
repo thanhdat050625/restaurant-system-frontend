@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrushCleaning, Users, UserCheck, CheckCircle, Clock, ShieldAlert } from 'lucide-react';
+import { BrushCleaning, Users, UserCheck, CheckCircle, Clock, ShieldAlert, Lock } from 'lucide-react';
 import { ITable } from '../../types/admin/table.type';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
@@ -125,6 +125,21 @@ export const TableTurnoverCard: React.FC<TableTurnoverCardProps> = ({
                 <span>Chờ dọn:</span>
               </div>
               <span className="font-mono font-bold text-sm">{timerText}</span>
+            </div>
+          )}
+
+          {/* Cảnh báo bàn đang giữ chỗ online */}
+          {table.lockStatus?.isLocked && (
+            <div className="mt-2 px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 font-bold">
+                <Lock size={13} className="text-amber-600 animate-pulse" />
+                <span>Đã có khách giữ chỗ</span>
+              </div>
+              {table.lockStatus.expiresIn && (
+                <span className="font-mono font-bold text-xs">
+                  {Math.floor(table.lockStatus.expiresIn / 60)}p
+                </span>
+              )}
             </div>
           )}
 

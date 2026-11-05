@@ -59,10 +59,18 @@ export const StaffTableTurnover: React.FC = () => {
 
     socketService.on('table:status_changed', handleStatusChanged);
     socketService.on('table:reserved', handleStatusChanged);
+    socketService.on('table:locked', handleStatusChanged);
+    socketService.on('table:released', handleStatusChanged);
+    socketService.on('reservation:created', handleStatusChanged);
+    socketService.on('reservation:updated', handleStatusChanged);
 
     return () => {
       socketService.off('table:status_changed', handleStatusChanged);
       socketService.off('table:reserved', handleStatusChanged);
+      socketService.off('table:locked', handleStatusChanged);
+      socketService.off('table:released', handleStatusChanged);
+      socketService.off('reservation:created', handleStatusChanged);
+      socketService.off('reservation:updated', handleStatusChanged);
       socketService.leaveBranch(branchId);
     };
   }, [branchId, user, fetchTurnover]);
@@ -166,7 +174,7 @@ export const StaffTableTurnover: React.FC = () => {
       </div>
 
       {/* KPI Stats summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-1">
           <span className="text-xs text-gray-500 font-medium">Tỷ lệ lấp đầy</span>
           <p className="text-2xl font-extrabold text-gray-800">{summary.occupancyRate}%</p>
@@ -177,6 +185,12 @@ export const StaffTableTurnover: React.FC = () => {
           <span className="text-xs text-blue-600 font-medium">Đang có khách</span>
           <p className="text-2xl font-extrabold text-blue-700">{summary.occupied}</p>
           <span className="text-[11px] text-gray-400">Bàn đang dùng bữa</span>
+        </div>
+
+        <div className="p-4 bg-white rounded-2xl border border-amber-200 shadow-sm space-y-1 bg-amber-50/40">
+          <span className="text-xs text-amber-700 font-medium">Đang giữ chỗ online</span>
+          <p className="text-2xl font-extrabold text-amber-700">{(summary as any)?.locked || 0}</p>
+          <span className="text-[11px] text-amber-600">Khách đang chọn bàn</span>
         </div>
 
         <div

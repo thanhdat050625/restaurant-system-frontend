@@ -171,14 +171,21 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-64 overflow-y-auto custom-scrollbar p-1">
             {displayedTables.map((t) => {
-              const statusCfg = statusDisplay[t.status] || {
-                label: t.status,
-                badge: 'bg-gray-100 text-gray-600',
-                isSelectable: false,
-              };
+              const isLockedOnline = Boolean(t.lockStatus?.isLocked);
+              const statusCfg = isLockedOnline
+                ? {
+                    label: 'Đã có khách giữ chỗ',
+                    badge: 'bg-amber-100 text-amber-800 border-amber-300',
+                    isSelectable: false,
+                  }
+                : statusDisplay[t.status] || {
+                    label: t.status,
+                    badge: 'bg-gray-100 text-gray-600',
+                    isSelectable: false,
+                  };
               const isSelected = selectedTableId === t.id;
               const isSuitableCapacity = (t.tableType?.capacity || 4) >= reservation.guestCount;
-              const isSelectable = statusCfg.isSelectable || isSelected;
+              const isSelectable = (statusCfg.isSelectable || isSelected) && (!isLockedOnline || isSelected);
 
               return (
                 <button
