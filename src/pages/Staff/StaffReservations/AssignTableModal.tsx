@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Users, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, Check, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '../../../components/ui/Modal';
 import { IReservation } from '../../../types/reservation.type';

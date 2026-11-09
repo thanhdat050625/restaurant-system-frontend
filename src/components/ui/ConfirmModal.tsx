@@ -12,6 +12,7 @@ export interface ConfirmModalProps {
   cancelText?: string;
   type?: 'danger' | 'warning' | 'info';
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -24,6 +25,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   cancelText = 'Hủy',
   type = 'danger',
   isLoading = false,
+  children,
 }) => {
   // Prevent scrolling when modal is open
   useEffect(() => {
@@ -115,6 +117,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                   <p className="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
                     {message}
                   </p>
+                  {children}
                 </div>
               </div>
 
