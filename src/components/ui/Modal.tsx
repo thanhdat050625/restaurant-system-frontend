@@ -71,17 +71,17 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ type: 'spring', bounce: 0, duration: 0.28 }}
-            className={`relative w-full ${effectiveMaxWidth} bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh] overflow-hidden font-sans z-10 pointer-events-auto`}
+            className={`relative w-full ${effectiveMaxWidth} bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 flex flex-col max-h-[90vh] overflow-hidden font-sans z-10 pointer-events-auto`}
           >
             {/* Header */}
             {title && (
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white shrink-0">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900 shrink-0">
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight font-sans">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight font-sans">
                     {title}
                   </h3>
                   {subtitle && (
-                    <p className="text-xs text-gray-500 mt-0.5 font-medium">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
                       {subtitle}
                     </p>
                   )}
@@ -89,7 +89,7 @@ const Modal: React.FC<ModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
                   title="Đóng (Esc)"
                 >
                   <X size={18} />
@@ -98,7 +98,7 @@ const Modal: React.FC<ModalProps> = ({
             )}
 
             {/* Body */}
-            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white">
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-100">
               {children}
             </div>
           </motion.div>

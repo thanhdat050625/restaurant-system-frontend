@@ -43,21 +43,21 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3 px-2 border-t border-gray-100 mt-4 text-sm text-gray-600">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3 px-2 border-t border-gray-100 dark:border-slate-700 mt-4 text-sm text-gray-600 dark:text-gray-400">
       {/* Items count info */}
       <div className="flex items-center gap-3">
         <span>
-          Hiển thị <span className="font-semibold text-gray-900">{startItem}</span> -{' '}
-          <span className="font-semibold text-gray-900">{endItem}</span> trên tổng số{' '}
-          <span className="font-semibold text-gray-900">{totalItems}</span> mục
+          Hiển thị <span className="font-semibold text-gray-900 dark:text-gray-100">{startItem}</span> -{' '}
+          <span className="font-semibold text-gray-900 dark:text-gray-100">{endItem}</span> trên tổng số{' '}
+          <span className="font-semibold text-gray-900 dark:text-gray-100">{totalItems}</span> mục
         </span>
 
         {onLimitChange && (
           <div className="flex items-center gap-1.5 ml-2">
-            <span className="text-xs text-gray-500">Mỗi trang:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Mỗi trang:</span>
             <Select<number>
               size="sm"
-              tone="light"
+              tone="auto"
               className="w-20"
               searchable={false}
               value={limit}
@@ -75,7 +75,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(1)}
           disabled={!hasPrevPage}
-          className="p-1.5 rounded border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors text-gray-700"
+          className="p-1.5 rounded border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-200"
           title="Trang đầu tiên"
         >
           <ChevronsLeft size={16} />
@@ -85,7 +85,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={!hasPrevPage}
-          className="p-1.5 rounded border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors text-gray-700"
+          className="p-1.5 rounded border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-200"
           title="Trang trước"
         >
           <ChevronLeft size={16} />
@@ -112,7 +112,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 className={`min-w-[32px] h-8 px-2.5 rounded text-xs font-medium transition-colors ${
                   isActive
                     ? 'bg-primary text-white font-semibold shadow-sm'
-                    : 'border border-gray-200 text-gray-700 hover:bg-gray-100'
+                    : 'border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700'
                 }`}
               >
                 {pageNum}
@@ -125,7 +125,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={!hasNextPage}
-          className="p-1.5 rounded border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors text-gray-700"
+          className="p-1.5 rounded border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-200"
           title="Trang sau"
         >
           <ChevronRight size={16} />
@@ -135,7 +135,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(totalPages)}
           disabled={!hasNextPage}
-          className="p-1.5 rounded border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors text-gray-700"
+          className="p-1.5 rounded border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-200"
           title="Trang cuối cùng"
         >
           <ChevronsRight size={16} />

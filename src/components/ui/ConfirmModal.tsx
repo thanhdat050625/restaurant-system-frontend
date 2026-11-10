@@ -50,19 +50,19 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   const typeConfig = {
     danger: {
-      icon: <AlertTriangle className="w-6 h-6 text-red-600" />,
-      iconBg: 'bg-red-50 border-red-100',
-      confirmButton: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-sm shadow-red-200',
+      icon: <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />,
+      iconBg: 'bg-red-50 border-red-100 dark:bg-red-950/40 dark:border-red-900/50',
+      confirmButton: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-sm shadow-red-200 dark:shadow-none',
     },
     warning: {
-      icon: <AlertCircle className="w-6 h-6 text-amber-600" />,
-      iconBg: 'bg-amber-50 border-amber-100',
-      confirmButton: 'bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500 shadow-sm shadow-amber-200',
+      icon: <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400" />,
+      iconBg: 'bg-amber-50 border-amber-100 dark:bg-amber-950/40 dark:border-amber-900/50',
+      confirmButton: 'bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500 shadow-sm shadow-amber-200 dark:shadow-none',
     },
     info: {
-      icon: <Info className="w-6 h-6 text-blue-600" />,
-      iconBg: 'bg-blue-50 border-blue-100',
-      confirmButton: 'bg-primary hover:bg-primary-dark text-white focus:ring-primary shadow-sm shadow-primary/20',
+      icon: <Info className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
+      iconBg: 'bg-blue-50 border-blue-100 dark:bg-blue-950/40 dark:border-blue-900/50',
+      confirmButton: 'bg-primary hover:bg-primary-dark text-white focus:ring-primary shadow-sm shadow-primary/20 dark:shadow-none',
     },
   };
 
@@ -90,13 +90,13 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92, y: 16 }}
               transition={{ type: 'spring', bounce: 0, duration: 0.25 }}
-              className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-md pointer-events-auto p-6 overflow-hidden relative"
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 w-full max-w-md pointer-events-auto p-6 overflow-hidden relative"
             >
               {/* Close Button */}
               <button
                 onClick={onClose}
                 disabled={isLoading}
-                className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+                className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors disabled:opacity-50"
               >
                 <X size={18} />
               </button>
@@ -111,10 +111,10 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
                 {/* Content */}
                 <div className="flex-1 pr-6">
-                  <h3 className="text-lg font-bold text-gray-900 leading-snug">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">
                     {title}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed whitespace-pre-line">
                     {message}
                   </p>
                   {children}
@@ -122,12 +122,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={isLoading}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 dark:focus:ring-slate-600 transition-colors disabled:opacity-50"
                 >
                   {cancelText}
                 </button>

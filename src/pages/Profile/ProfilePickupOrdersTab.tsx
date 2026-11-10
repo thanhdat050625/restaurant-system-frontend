@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { ShoppingBag, Clock, Building2, QrCode, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { pickupOrderService } from '../../services/pickupOrderService';
@@ -16,15 +17,14 @@ export const ProfilePickupOrdersTab: React.FC = () => {
 
   // Cancel Modal
   const [cancelTarget, setCancelTarget] = useState<IPickupOrder | null>(null);
-  const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
 
   const fetchMyOrders = useCallback(async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
     try {
-      const res: any = await pickupOrderService.getMyPickupOrders({ limit: 50 });
-      const data = res?.data?.items || res?.items || res?.data || [];
-      setOrders(Array.isArray(data) ? data : []);
+      const res = await pickupOrderService.getMyPickupOrders({ limit: 50 });
+      const items = res?.data?.items;
+      setOrders(Array.isArray(items) ? items : []);
     } catch {
       setOrders([]);
     } finally {
@@ -40,13 +40,16 @@ export const ProfilePickupOrdersTab: React.FC = () => {
     if (!cancelTarget) return;
     setIsCancelling(true);
     try {
-      await pickupOrderService.cancelPickupOrder(cancelTarget.id, cancelReason);
+      await pickupOrderService.cancelPickupOrder(cancelTarget.id);
       toast.success('Hủy đơn hàng mang về thành công.');
       setCancelTarget(null);
-      setCancelReason('');
       fetchMyOrders(false);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Không thể hủy đơn.');
+    } catch (err: unknown) {
+      const message =
+        axios.isAxiosError<{ message?: string }>(err) && err.response?.data?.message
+          ? err.response.data.message
+          : 'Không thể hủy đơn.';
+      toast.error(message);
     } finally {
       setIsCancelling(false);
     }
@@ -100,16 +103,16 @@ export const ProfilePickupOrdersTab: React.FC = () => {
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                     order.status === 'COMPLETED'
-                      ? 'bg-gray-100 text-gray-700'
+                      ? 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-gray-200'
                       : order.status === 'READY'
-                        ? 'bg-emerald-100 text-emerald-800'
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
                         : order.status === 'PREPARING'
-                          ? 'bg-purple-100 text-purple-800'
+                          ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300'
                           : order.status === 'CONFIRMED'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
                             : order.status === 'CANCELLED'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-amber-100 text-amber-800'
+                              ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
                   }`}
                 >
                   {order.status === 'COMPLETED'
@@ -197,14 +200,14 @@ export const ProfilePickupOrdersTab: React.FC = () => {
       >
         {selectedQrOrder && (
           <div className="text-center space-y-4 p-2">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Vui lòng xuất trình mã này cho nhân viên chi nhánh <strong>{selectedQrOrder.branch?.name}</strong> để nhận món nhanh chóng.
             </p>
 
-            <div className="p-6 bg-white border border-gray-200 rounded-2xl inline-block shadow-inner">
+            <div className="p-6 bg-white border border-gray-200 dark:border-slate-700 rounded-2xl inline-block shadow-inner">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                  selectedQrOrder.qrPayload || selectedQrOrder.orderCode,
+                  selectedQrOrder.qrPayload ?? selectedQrOrder.orderCode,
                 )}`}
                 alt="QR Code"
                 className="w-48 h-48 mx-auto"
@@ -216,7 +219,7 @@ export const ProfilePickupOrdersTab: React.FC = () => {
               <p className="text-2xl font-mono font-extrabold text-primary tracking-wider">
                 {selectedQrOrder.orderCode}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Khung giờ hẹn lấy: <strong>{selectedQrOrder.pickupTime}</strong>
               </p>
             </div>
@@ -234,10 +237,7 @@ export const ProfilePickupOrdersTab: React.FC = () => {
         type="danger"
         isLoading={isCancelling}
         onConfirm={handleCancelOrder}
-        onClose={() => {
-          setCancelTarget(null);
-          setCancelReason('');
-        }}
+        onClose={() => setCancelTarget(null)}
       />
     </div>
   );

@@ -132,17 +132,17 @@ const ScannerView: React.FC<{
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         Hướng camera của thiết bị vào mã QR trên điện thoại của khách hàng để tự động xác thực và bàn giao món.
       </p>
 
       {scannerError ? (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-start gap-2">
-          <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-500" />
+        <div className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl text-red-700 dark:text-red-300 text-xs flex items-start gap-2">
+          <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-500 dark:text-red-400" />
           <div>
             <p className="font-bold">Lỗi khởi động camera:</p>
             <p>{scannerError}</p>
-            <p className="mt-1 text-gray-500">
+            <p className="mt-1 text-gray-500 dark:text-gray-400">
               Gợi ý: Nếu không có camera hoặc trình duyệt chặn quyền, bạn có thể nhập trực tiếp mã đơn (PU-...) vào ô bên cạnh.
             </p>
           </div>
@@ -160,11 +160,11 @@ const ScannerView: React.FC<{
         </div>
       )}
 
-      <div className="flex justify-end pt-2 border-t border-gray-100">
+      <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-slate-700">
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs rounded-xl cursor-pointer"
+          className="px-4 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 font-semibold text-xs rounded-xl cursor-pointer transition-colors"
         >
           Đóng
         </button>
@@ -184,7 +184,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
       <ErrorBoundary
         fallback={
           <div className="p-6 text-center space-y-3">
-            <p className="text-xs text-gray-600">Đã đóng luồng camera.</p>
+            <p className="text-xs text-gray-600 dark:text-gray-300">Đã đóng luồng camera.</p>
             <button
               type="button"
               onClick={onClose}

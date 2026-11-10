@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import {
   ShoppingBag,
   Search,
@@ -16,7 +17,11 @@ import {
 import toast from 'react-hot-toast';
 import { pickupOrderService } from '../../../services/pickupOrderService';
 import { branchService } from '../../../services/admin/branchService';
-import { IPickupOrder, PickupOrderStatus } from '../../../types/pickup-order.type';
+import {
+  IPickupOrder,
+  IQueryPickupOrderParams,
+  PickupOrderStatus,
+} from '../../../types/pickup-order.type';
 import { IBranch } from '../../../types/admin/branch.type';
 import { PaginationMeta } from '../../../types/api-response.type';
 import Pagination from '../../../components/common/Pagination';
@@ -27,46 +32,44 @@ import { formatPrice } from '../../../utils/helpers';
 import { socketService } from '../../../services/socketService';
 import { useAuth } from '../../../features/auth/AuthContext';
 
-const statusConfig: Record<
-  PickupOrderStatus,
-  { label: string; bg: string; text: string; badge: string }
-> = {
+const statusConfig: Record<PickupOrderStatus, { label: string; badge: string }> = {
   PENDING: {
     label: 'Chờ duyệt',
-    bg: 'bg-amber-100',
-    text: 'text-amber-800',
-    badge: 'bg-amber-100 text-amber-800 border-amber-200',
+    badge:
+      'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60',
   },
   CONFIRMED: {
     label: 'Đã nhận đơn',
-    bg: 'bg-blue-100',
-    text: 'text-blue-800',
-    badge: 'bg-blue-100 text-blue-800 border-blue-200',
+    badge:
+      'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60',
   },
   PREPARING: {
     label: 'Bếp đang làm',
-    bg: 'bg-purple-100',
-    text: 'text-purple-800',
-    badge: 'bg-purple-100 text-purple-800 border-purple-200',
+    badge:
+      'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800/60',
   },
   READY: {
     label: 'Sẵn sàng lấy',
-    bg: 'bg-emerald-100',
-    text: 'text-emerald-800',
-    badge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    badge:
+      'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60',
   },
   COMPLETED: {
     label: 'Đã giao',
-    bg: 'bg-gray-100',
-    text: 'text-gray-800',
-    badge: 'bg-gray-100 text-gray-800 border-gray-200',
+    badge:
+      'bg-gray-100 text-gray-800 border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700',
   },
   CANCELLED: {
     label: 'Đã hủy',
-    bg: 'bg-red-100',
-    text: 'text-red-800',
-    badge: 'bg-red-100 text-red-800 border-red-200',
+    badge:
+      'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800/60',
   },
+};
+
+const getApiErrorMessage = (err: unknown, fallbackMessage: string): string => {
+  if (axios.isAxiosError<{ message?: string }>(err) && err.response?.data?.message) {
+    return err.response.data.message;
+  }
+  return fallbackMessage;
 };
 
 export const AdminPickupOrders: React.FC = () => {
@@ -82,14 +85,13 @@ export const AdminPickupOrders: React.FC = () => {
   const [limit, setLimit] = useState<number>(10);
   const [search, setSearch] = useState<string>('');
   const [selectedBranchId, setSelectedBranchId] = useState<string>('ALL');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [statusFilter, setStatusFilter] = useState<PickupOrderStatus | 'ALL'>('ALL');
 
   // Detail Modal
   const [selectedOrder, setSelectedOrder] = useState<IPickupOrder | null>(null);
 
   // Cancel Modal
   const [cancelOrderTarget, setCancelOrderTarget] = useState<IPickupOrder | null>(null);
-  const [cancelReason, setCancelReason] = useState<string>('');
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
 
   // Scanner Modal
@@ -101,9 +103,8 @@ export const AdminPickupOrders: React.FC = () => {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const res: any = await branchService.getBranches({ limit: 100 });
-        const list = Array.isArray(res) ? res : res?.data || [];
-        setBranches(list);
+        const res = await branchService.getBranches({ limit: 100 });
+        setBranches(Array.isArray(res?.data) ? res.data : []);
       } catch {
         setBranches([]);
       }
@@ -115,17 +116,17 @@ export const AdminPickupOrders: React.FC = () => {
     async (showSpinner = true) => {
       try {
         if (showSpinner) setLoading(true);
-        const params: any = { page, limit };
+        const params: IQueryPickupOrderParams = { page, limit };
         if (search.trim()) params.search = search.trim();
         if (selectedBranchId !== 'ALL') params.branchId = selectedBranchId;
         if (statusFilter !== 'ALL') params.status = statusFilter;
 
-        const res: any = await pickupOrderService.getPickupOrders(params);
-        const data = res?.data?.items || res?.items || res?.data || [];
-        const resMeta = res?.data?.meta || res?.meta || null;
+        const res = await pickupOrderService.getPickupOrders(params);
+        const items = res?.data?.items;
+        const resMeta = res?.data?.meta;
 
-        setOrders(Array.isArray(data) ? data : []);
-        setMeta(resMeta);
+        setOrders(Array.isArray(items) ? items : []);
+        setMeta(resMeta ?? null);
       } catch {
         setOrders([]);
         setMeta(null);
@@ -161,13 +162,14 @@ export const AdminPickupOrders: React.FC = () => {
     setUpdatingOrderId(orderId);
     try {
       await pickupOrderService.updatePickupOrderStatus(orderId, newStatus);
-      toast.success(`Cập nhật đơn sang "${statusConfig[newStatus]?.label || newStatus}" thành công!`);
+      const statusLabel = statusConfig[newStatus] ? statusConfig[newStatus].label : newStatus;
+      toast.success(`Cập nhật đơn sang "${statusLabel}" thành công!`);
       await fetchOrders(false);
       if (selectedOrder?.id === orderId) {
         setSelectedOrder((prev) => (prev ? { ...prev, status: newStatus } : null));
       }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Không thể cập nhật trạng thái đơn.');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Không thể cập nhật trạng thái đơn.'));
     } finally {
       setUpdatingOrderId(null);
     }
@@ -175,36 +177,34 @@ export const AdminPickupOrders: React.FC = () => {
 
   const handleConfirmCancel = async () => {
     if (!cancelOrderTarget) return;
+    const target = cancelOrderTarget;
+    const reason = 'Quản trị viên hủy đơn';
     setIsCancelling(true);
     try {
-      await pickupOrderService.cancelPickupOrder(
-        cancelOrderTarget.id,
-        cancelReason.trim() || 'Quản trị viên hủy đơn'
-      );
-      toast.success(`Đã hủy đơn hàng #${cancelOrderTarget.orderCode}`);
+      await pickupOrderService.cancelPickupOrder(target.id, reason);
+      toast.success(`Đã hủy đơn hàng #${target.orderCode}`);
       setCancelOrderTarget(null);
-      setCancelReason('');
       await fetchOrders(false);
-      if (selectedOrder?.id === cancelOrderTarget.id) {
+      if (selectedOrder?.id === target.id) {
         setSelectedOrder((prev) =>
           prev
             ? {
                 ...prev,
                 status: 'CANCELLED',
-                cancelledReason: cancelReason.trim() || 'Quản trị viên hủy đơn',
+                cancelledReason: reason,
               }
             : null
         );
       }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Không thể hủy đơn hàng.');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Không thể hủy đơn hàng.'));
     } finally {
       setIsCancelling(false);
     }
   };
 
   const handleVerifyCode = async (codeOverride?: string) => {
-    let code = (codeOverride || verifyCodeInput).trim();
+    let code = (codeOverride ?? verifyCodeInput).trim();
     try {
       const parsed = JSON.parse(code);
       if (parsed && typeof parsed === 'object' && parsed.code) {
@@ -221,14 +221,14 @@ export const AdminPickupOrders: React.FC = () => {
     }
     setIsVerifying(true);
     try {
-      const res: any = await pickupOrderService.verifyPickupCode(code);
-      const updated = res?.data || res;
+      const res = await pickupOrderService.verifyPickupCode(code);
+      const updated = res?.data;
       toast.success(`Xác minh mã ${code} thành công! Đã hoàn tất giao món cho khách.`);
       setVerifyCodeInput('');
       await fetchOrders(false);
       if (updated) setSelectedOrder(updated);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Không tìm thấy đơn hàng với mã này.');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Không tìm thấy đơn hàng với mã này.'));
     } finally {
       setIsVerifying(false);
     }
@@ -236,18 +236,18 @@ export const AdminPickupOrders: React.FC = () => {
 
   const totalRevenue = orders
     .filter((o) => o.status === 'COMPLETED')
-    .reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+    .reduce((sum, o) => sum + Number(o.totalAmount), 0);
 
   return (
     <div className="p-6 space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
             <ShoppingBag className="text-primary" size={24} />
             <span>Quản Lý Đơn Mang Về Toàn Chuỗi</span>
           </h1>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             Theo dõi, tra cứu và kiểm soát tình hình đặt món mang về ghé lấy tại các chi nhánh
           </p>
         </div>
@@ -257,7 +257,7 @@ export const AdminPickupOrders: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsScanModalOpen(true)}
-            className="px-3.5 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+            className="px-3.5 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 dark:border-primary/30 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
             title="Bật Camera để quét mã QR trên điện thoại của khách hàng"
           >
             <Camera size={14} />
@@ -265,7 +265,7 @@ export const AdminPickupOrders: React.FC = () => {
           </button>
 
           {/* Quick verification input / Barcode gun */}
-          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-1 shadow-sm">
             <QrCode size={15} className="text-primary ml-1" />
             <input
               type="text"
@@ -273,7 +273,7 @@ export const AdminPickupOrders: React.FC = () => {
               value={verifyCodeInput}
               onChange={(e) => setVerifyCodeInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleVerifyCode()}
-              className="text-xs px-2 py-1 outline-none w-44"
+              className="text-xs px-2 py-1 bg-transparent text-gray-800 dark:text-gray-100 placeholder-gray-400 outline-none w-44"
             />
             <button
               type="button"
@@ -289,7 +289,7 @@ export const AdminPickupOrders: React.FC = () => {
             type="button"
             onClick={() => fetchOrders(true)}
             disabled={loading}
-            className="px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 rounded-xl flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+            className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 text-xs font-semibold text-gray-700 dark:text-gray-200 rounded-xl flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             <span>Làm mới</span>
@@ -299,37 +299,43 @@ export const AdminPickupOrders: React.FC = () => {
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-1">
-          <span className="text-xs text-gray-500 font-medium">Tổng số đơn (trang hiện tại)</span>
-          <p className="text-2xl font-extrabold text-gray-800">{orders.length}</p>
-          <span className="text-[11px] text-gray-400">Tổng toàn hệ thống: {meta?.totalItems || 0}</span>
+        <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm space-y-1">
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+            Tổng số đơn (trang hiện tại)
+          </span>
+          <p className="text-2xl font-extrabold text-gray-800 dark:text-gray-100">{orders.length}</p>
+          <span className="text-[11px] text-gray-400">
+            Tổng toàn hệ thống: {meta ? meta.totalItems : 0}
+          </span>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-blue-200 bg-blue-50/50 shadow-sm space-y-1">
-          <span className="text-xs text-blue-700 font-medium">Đang xử lý</span>
-          <p className="text-2xl font-extrabold text-blue-700">
+        <div className="p-4 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl border border-blue-200 dark:border-blue-900/40 shadow-sm space-y-1">
+          <span className="text-xs text-blue-700 dark:text-blue-400 font-medium">Đang xử lý</span>
+          <p className="text-2xl font-extrabold text-blue-700 dark:text-blue-300">
             {orders.filter((o) => ['PENDING', 'CONFIRMED', 'PREPARING'].includes(o.status)).length}
           </p>
-          <span className="text-[11px] text-blue-600">Chờ nhận & đang làm</span>
+          <span className="text-[11px] text-blue-600 dark:text-blue-400">Chờ nhận & đang làm</span>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-emerald-200 bg-emerald-50/50 shadow-sm space-y-1">
-          <span className="text-xs text-emerald-700 font-medium">Đã giao thành công</span>
-          <p className="text-2xl font-extrabold text-emerald-700">
+        <div className="p-4 bg-emerald-50/50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-900/40 shadow-sm space-y-1">
+          <span className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+            Đã giao thành công
+          </span>
+          <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">
             {orders.filter((o) => o.status === 'COMPLETED').length}
           </p>
-          <span className="text-[11px] text-emerald-600">Khách đã nhận món</span>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400">Khách đã nhận món</span>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-primary/20 bg-primary/5 shadow-sm space-y-1">
+        <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/20 dark:border-primary/30 shadow-sm space-y-1">
           <span className="text-xs text-primary font-medium">Doanh thu hoàn tất</span>
           <p className="text-2xl font-extrabold text-primary">{formatPrice(totalRevenue)}</p>
-          <span className="text-[11px] text-gray-400">Từ các đơn COMPLETED</span>
+          <span className="text-[11px] text-gray-500 dark:text-gray-400">Từ các đơn COMPLETED</span>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -340,7 +346,7 @@ export const AdminPickupOrders: React.FC = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           />
         </div>
 
@@ -351,7 +357,7 @@ export const AdminPickupOrders: React.FC = () => {
               setSelectedBranchId(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-700 outline-none"
+            className="px-3 py-2 text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl font-medium text-gray-700 dark:text-gray-200 outline-none focus:border-primary"
           >
             <option value="ALL">Tất cả chi nhánh</option>
             {branches.map((b) => (
@@ -364,10 +370,10 @@ export const AdminPickupOrders: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => {
-              setStatusFilter(e.target.value);
+              setStatusFilter(e.target.value as PickupOrderStatus | 'ALL');
               setPage(1);
             }}
-            className="px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-700 outline-none"
+            className="px-3 py-2 text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl font-medium text-gray-700 dark:text-gray-200 outline-none focus:border-primary"
           >
             <option value="ALL">Tất cả trạng thái</option>
             <option value="PENDING">Chờ duyệt</option>
@@ -381,10 +387,10 @@ export const AdminPickupOrders: React.FC = () => {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-gray-50/80 text-gray-500 font-semibold border-b border-gray-100">
+            <thead className="bg-gray-50/80 dark:bg-slate-900/60 text-gray-500 dark:text-gray-400 font-semibold border-b border-gray-100 dark:border-slate-700">
               <tr>
                 <th className="p-3.5">MÃ ĐƠN</th>
                 <th className="p-3.5">KHÁCH HÀNG</th>
@@ -395,38 +401,42 @@ export const AdminPickupOrders: React.FC = () => {
                 <th className="p-3.5 text-right">THAO TÁC</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/60">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-400">
+                  <td colSpan={7} className="p-8 text-center text-gray-400 dark:text-gray-500">
                     <RefreshCw size={20} className="animate-spin inline mr-2 text-primary" />
                     Đang tải danh sách đơn mang về...
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-400">
+                  <td colSpan={7} className="p-8 text-center text-gray-400 dark:text-gray-500">
                     Không tìm thấy đơn hàng mang về nào.
                   </td>
                 </tr>
               ) : (
                 orders.map((order) => {
                   const isUpdating = updatingOrderId === order.id;
+                  const statusBadge = statusConfig[order.status];
 
                   return (
-                    <tr key={order.id} className="hover:bg-gray-50/60 transition-colors">
+                    <tr
+                      key={order.id}
+                      className="hover:bg-gray-50/60 dark:hover:bg-slate-700/40 transition-colors"
+                    >
                       <td className="p-3.5 font-bold font-mono text-primary text-[11px]">
                         {order.orderCode}
                       </td>
                       <td className="p-3.5">
-                        <p className="font-bold text-gray-800">{order.customerName}</p>
+                        <p className="font-bold text-gray-800 dark:text-gray-100">{order.customerName}</p>
                         <p className="text-[11px] text-gray-400 font-mono">{order.customerPhone}</p>
                       </td>
-                      <td className="p-3.5 text-gray-600 font-medium">
-                        {order.branch?.name || 'Chi nhánh'}
+                      <td className="p-3.5 text-gray-600 dark:text-gray-300 font-medium">
+                        {order.branch ? order.branch.name : '—'}
                       </td>
-                      <td className="p-3.5 text-gray-600">
-                        <div className="flex items-center gap-1 font-semibold text-gray-800">
+                      <td className="p-3.5 text-gray-600 dark:text-gray-300">
+                        <div className="flex items-center gap-1 font-semibold text-gray-800 dark:text-gray-100">
                           <Clock size={12} className="text-gray-400" />
                           <span>{order.pickupTime}</span>
                         </div>
@@ -434,16 +444,18 @@ export const AdminPickupOrders: React.FC = () => {
                           {new Date(order.pickupDate).toLocaleDateString('vi-VN')}
                         </span>
                       </td>
-                      <td className="p-3.5 font-bold text-gray-800">
+                      <td className="p-3.5 font-bold text-gray-800 dark:text-gray-100">
                         {formatPrice(Number(order.totalAmount))}
                       </td>
                       <td className="p-3.5">
                         <span
                           className={`px-2.5 py-1 rounded-full text-[11px] font-bold inline-block border ${
-                            statusConfig[order.status]?.badge || 'bg-gray-100 text-gray-800'
+                            statusBadge
+                              ? statusBadge.badge
+                              : 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700'
                           }`}
                         >
-                          {statusConfig[order.status]?.label || order.status}
+                          {statusBadge ? statusBadge.label : order.status}
                         </span>
                       </td>
                       <td className="p-3.5 text-right">
@@ -454,7 +466,7 @@ export const AdminPickupOrders: React.FC = () => {
                               type="button"
                               onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
                               disabled={isUpdating}
-                              className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
+                              className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:hover:bg-blue-900/60 dark:text-blue-300 font-semibold rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
                               title="Xác nhận nhận đơn"
                             >
                               <CheckCircle2 size={13} />
@@ -467,7 +479,7 @@ export const AdminPickupOrders: React.FC = () => {
                               type="button"
                               onClick={() => handleUpdateStatus(order.id, 'PREPARING')}
                               disabled={isUpdating}
-                              className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
+                              className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:hover:bg-purple-900/60 dark:text-purple-300 font-semibold rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
                               title="Chuyển bếp làm món"
                             >
                               <ChefHat size={13} />
@@ -480,7 +492,7 @@ export const AdminPickupOrders: React.FC = () => {
                               type="button"
                               onClick={() => handleUpdateStatus(order.id, 'READY')}
                               disabled={isUpdating}
-                              className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
+                              className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 dark:text-emerald-300 font-semibold rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
                               title="Món đã sẵn sàng lấy"
                             >
                               <PackageCheck size={13} />
@@ -493,7 +505,7 @@ export const AdminPickupOrders: React.FC = () => {
                               type="button"
                               onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
                               disabled={isUpdating}
-                              className="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
+                              className="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-semibold rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
                               title="Khách đã nhận món"
                             >
                               <CheckCircle2 size={13} />
@@ -505,7 +517,7 @@ export const AdminPickupOrders: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setSelectedOrder(order)}
-                            className="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
+                            className="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-gray-200 rounded-lg font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Eye size={13} />
                             <span>Xem</span>
@@ -515,11 +527,8 @@ export const AdminPickupOrders: React.FC = () => {
                           {['PENDING', 'CONFIRMED', 'PREPARING'].includes(order.status) && (
                             <button
                               type="button"
-                              onClick={() => {
-                                setCancelOrderTarget(order);
-                                setCancelReason('');
-                              }}
-                              className="px-2 py-1.5 text-red-600 hover:bg-red-50 rounded-lg font-medium inline-flex items-center gap-0.5 cursor-pointer transition-colors"
+                              onClick={() => setCancelOrderTarget(order)}
+                              className="px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg font-medium inline-flex items-center gap-0.5 cursor-pointer transition-colors"
                               title="Hủy đơn hàng"
                             >
                               <XCircle size={13} />
@@ -536,7 +545,7 @@ export const AdminPickupOrders: React.FC = () => {
         </div>
 
         {meta && meta.totalPages > 1 && (
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-gray-100 dark:border-slate-700">
             <Pagination
               meta={meta}
               onPageChange={(p) => setPage(p)}
@@ -558,17 +567,23 @@ export const AdminPickupOrders: React.FC = () => {
         {selectedOrder && (
           <div className="space-y-4 text-xs">
             {/* Header / Customer Info */}
-            <div className="flex justify-between items-start p-3.5 bg-gray-50 rounded-xl">
+            <div className="flex justify-between items-start p-3.5 bg-gray-50 dark:bg-slate-800/80 border border-gray-200/70 dark:border-slate-700 rounded-xl">
               <div>
-                <p className="font-bold text-sm text-gray-800">{selectedOrder.customerName}</p>
-                <p className="text-gray-500 font-mono text-xs">{selectedOrder.customerPhone}</p>
+                <p className="font-bold text-sm text-gray-800 dark:text-gray-100">
+                  {selectedOrder.customerName}
+                </p>
+                <p className="text-gray-500 dark:text-gray-400 font-mono text-xs">
+                  {selectedOrder.customerPhone}
+                </p>
                 {selectedOrder.customerEmail && (
                   <p className="text-gray-400 text-[11px]">{selectedOrder.customerEmail}</p>
                 )}
               </div>
               <div className="text-right">
-                <span className="font-bold text-gray-800 text-xs">{selectedOrder.branch?.name}</span>
-                <p className="text-[11px] text-gray-500 mt-0.5">
+                <span className="font-bold text-gray-800 dark:text-gray-100 text-xs">
+                  {selectedOrder.branch?.name}
+                </span>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                   Giờ hẹn: <strong>{selectedOrder.pickupTime}</strong> —{' '}
                   {new Date(selectedOrder.pickupDate).toLocaleDateString('vi-VN')}
                 </p>
@@ -577,15 +592,15 @@ export const AdminPickupOrders: React.FC = () => {
 
             {/* Special Notes */}
             {selectedOrder.specialNotes && (
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-300">
                 <span className="font-bold">Ghi chú của khách:</span> "{selectedOrder.specialNotes}"
               </div>
             )}
 
             {/* Cancelled Reason */}
             {selectedOrder.status === 'CANCELLED' && selectedOrder.cancelledReason && (
-              <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-red-900 flex items-start gap-2">
-                <AlertCircle size={15} className="text-red-500 shrink-0 mt-0.5" />
+              <div className="p-3 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-200 dark:border-red-900/40 text-red-900 dark:text-red-300 flex items-start gap-2">
+                <AlertCircle size={15} className="text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold">Lý do hủy đơn:</span> {selectedOrder.cancelledReason}
                 </div>
@@ -593,15 +608,21 @@ export const AdminPickupOrders: React.FC = () => {
             )}
 
             {/* Status Management Box for Admin */}
-            <div className="p-4 bg-gradient-to-r from-gray-50 to-amber-50/30 rounded-xl border border-gray-200 space-y-3">
+            <div className="p-4 bg-gradient-to-r from-gray-50 to-amber-50/30 dark:from-slate-800 dark:to-amber-950/20 rounded-xl border border-gray-200 dark:border-slate-700 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-gray-800">Cập nhật trạng thái đơn hàng:</span>
+                <span className="font-bold text-gray-800 dark:text-gray-100">
+                  Cập nhật trạng thái đơn hàng:
+                </span>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                    statusConfig[selectedOrder.status]?.badge || 'bg-gray-100 text-gray-800'
+                    statusConfig[selectedOrder.status]
+                      ? statusConfig[selectedOrder.status].badge
+                      : 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700'
                   }`}
                 >
-                  {statusConfig[selectedOrder.status]?.label || selectedOrder.status}
+                  {statusConfig[selectedOrder.status]
+                    ? statusConfig[selectedOrder.status].label
+                    : selectedOrder.status}
                 </span>
               </div>
 
@@ -648,7 +669,7 @@ export const AdminPickupOrders: React.FC = () => {
                     type="button"
                     onClick={() => handleUpdateStatus(selectedOrder.id, 'COMPLETED')}
                     disabled={updatingOrderId === selectedOrder.id}
-                    className="px-3.5 py-2 bg-gray-900 hover:bg-black text-white font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                    className="px-3.5 py-2 bg-gray-900 hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <CheckCircle2 size={14} />
                     <span>Khách đã nhận món - Hoàn tất (COMPLETED)</span>
@@ -658,11 +679,8 @@ export const AdminPickupOrders: React.FC = () => {
                 {['PENDING', 'CONFIRMED', 'PREPARING'].includes(selectedOrder.status) && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setCancelOrderTarget(selectedOrder);
-                      setCancelReason('');
-                    }}
-                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
+                    onClick={() => setCancelOrderTarget(selectedOrder)}
+                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-950/50 dark:hover:bg-red-900/60 dark:text-red-300 font-bold rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
                   >
                     <XCircle size={14} />
                     <span>Hủy đơn</span>
@@ -671,15 +689,17 @@ export const AdminPickupOrders: React.FC = () => {
               </div>
 
               {/* Direct Status Selector for Administrator Override */}
-              <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between gap-2">
-                <span className="text-[11px] text-gray-500 font-medium">Chuyển trực tiếp trạng thái:</span>
+              <div className="pt-2 border-t border-gray-200/60 dark:border-slate-700 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
+                  Chuyển trực tiếp trạng thái:
+                </span>
                 <select
                   value={selectedOrder.status}
                   onChange={(e) =>
                     handleUpdateStatus(selectedOrder.id, e.target.value as PickupOrderStatus)
                   }
                   disabled={updatingOrderId === selectedOrder.id}
-                  className="px-2.5 py-1 text-xs bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 outline-none focus:ring-1 focus:ring-primary cursor-pointer disabled:opacity-50"
+                  className="px-2.5 py-1 text-xs bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg font-semibold text-gray-700 dark:text-gray-200 outline-none focus:ring-1 focus:ring-primary cursor-pointer disabled:opacity-50"
                 >
                   <option value="PENDING">Chờ duyệt (PENDING)</option>
                   <option value="CONFIRMED">Đã nhận đơn (CONFIRMED)</option>
@@ -693,24 +713,28 @@ export const AdminPickupOrders: React.FC = () => {
 
             {/* Items List */}
             <div>
-              <h4 className="font-bold text-gray-700 mb-2">Món đã đặt ({selectedOrder.items?.length || 0}):</h4>
-              <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
-                {(selectedOrder.items || []).map((item) => (
+              <h4 className="font-bold text-gray-700 dark:text-gray-200 mb-2">
+                Món đã đặt ({selectedOrder.items?.length ?? 0}):
+              </h4>
+              <div className="divide-y divide-gray-100 dark:divide-slate-700 border border-gray-100 dark:border-slate-700 rounded-xl overflow-hidden">
+                {(selectedOrder.items ?? []).map((item) => (
                   <div key={item.id} className="p-3 flex justify-between items-center">
                     <div>
-                      <p className="font-semibold text-gray-800">
-                        {item.quantity}x {item.menuItem?.name}
+                      <p className="font-semibold text-gray-800 dark:text-gray-100">
+                        {item.quantity}x {item.menuItem ? item.menuItem.name : '—'}
                       </p>
                       {item.note && <p className="text-[11px] text-gray-400 italic">"{item.note}"</p>}
                     </div>
-                    <span className="font-bold text-gray-700">{formatPrice(Number(item.subtotal))}</span>
+                    <span className="font-bold text-gray-700 dark:text-gray-200">
+                      {formatPrice(Number(item.subtotal))}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Total */}
-            <div className="pt-2 flex justify-between items-center text-sm font-bold border-t border-gray-100">
+            <div className="pt-2 flex justify-between items-center text-sm font-bold border-t border-gray-100 dark:border-slate-700 text-gray-800 dark:text-gray-100">
               <span>Tổng cộng:</span>
               <span className="text-primary text-base">{formatPrice(Number(selectedOrder.totalAmount))}</span>
             </div>
@@ -720,7 +744,7 @@ export const AdminPickupOrders: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedOrder(null)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl cursor-pointer"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-gray-200 font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Đóng
               </button>
@@ -739,10 +763,7 @@ export const AdminPickupOrders: React.FC = () => {
         type="danger"
         isLoading={isCancelling}
         onConfirm={handleConfirmCancel}
-        onClose={() => {
-          setCancelOrderTarget(null);
-          setCancelReason('');
-        }}
+        onClose={() => setCancelOrderTarget(null)}
       />
 
       {/* Camera QR Scanner Modal */}
