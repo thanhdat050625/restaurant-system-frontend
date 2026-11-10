@@ -1,3 +1,6 @@
+# Lockfiles other than npm
+pnpm-lock.yaml
+
 # Logs
 logs
 *.log
