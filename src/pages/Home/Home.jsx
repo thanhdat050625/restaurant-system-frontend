@@ -36,7 +36,6 @@ const Home = () => {
 
   return (
     <PageWrapper>
-      {/* ===== HERO SECTION ===== */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0">
@@ -132,7 +131,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ===== HOW IT WORKS ===== */}
       <section className="py-20 bg-light dark:bg-dark overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -177,7 +175,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ===== CATEGORIES ===== */}
       <section className="py-16 bg-white dark:bg-dark-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -236,7 +233,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ===== COMBO ĐẶC BIỆT ===== */}
       <section className="py-20 bg-light dark:bg-dark">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -285,7 +281,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ===== RESERVATION CTA ===== */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0">
           <img
@@ -326,7 +321,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ===== REVIEWS ===== */}
       <section className="py-20 bg-white dark:bg-dark-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -359,7 +353,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ===== QUICK VIEW MODAL ===== */}
       <Modal
         isOpen={!!selectedItem}
         onClose={() => { setSelectedItem(null); setSelectedOption(null); }}

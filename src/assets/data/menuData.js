@@ -22,7 +22,6 @@ export const menuItems = [
   { id: 21, name: 'Bún Chay Huế', slug: 'bun-chay', categoryId: 8, price: 75000, originalPrice: null, image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1920&q=85', description: 'Bún chay kiểu Huế với nấm và đậu hũ.', rating: 4.6, reviewCount: 78, isPopular: false, isNew: true, dietary: ['Chay'], preparationTime: 15, options: [] },
   { id: 22, name: 'Salad Quinoa & Bơ', slug: 'salad-quinoa', categoryId: 8, price: 95000, originalPrice: null, image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1920&q=85', description: 'Salad quinoa với bơ tươi và sốt mè rang.', rating: 4.7, reviewCount: 65, isPopular: false, isNew: false, dietary: ['Chay', 'Không Gluten'], preparationTime: 10, options: [] },
 
-  // ===== COMBO ITEMS =====
   {
     id: 101, name: 'Set Bò Thượng Hạng', slug: 'set-bo-thuong-hang', categoryId: 2,
     price: 499000, originalPrice: 620000,

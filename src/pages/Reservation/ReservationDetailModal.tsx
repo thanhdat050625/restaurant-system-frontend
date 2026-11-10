@@ -91,7 +91,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
 
   const orders = reservation.orders || [];
   const totalPreOrderAmount = orders.reduce(
-    (sum, o) => sum + Number(o.unitPrice || o.menuItem?.price || 0) * o.quantity,
+    (sum, o) => sum + Number(o.unitPrice || 0) * o.quantity,
     0,
   );
 
@@ -268,7 +268,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
               {orders.map((o) => {
-                const itemPrice = Number(o.unitPrice || o.menuItem?.price || 0);
+                const itemPrice = Number(o.unitPrice || 0);
                 const subtotal = itemPrice * o.quantity;
                 return (
                   <div

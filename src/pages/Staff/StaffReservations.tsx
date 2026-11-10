@@ -14,14 +14,13 @@ import {
   Users,
   Eye,
   AlertTriangle,
-  Calendar,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../features/auth/AuthContext';
 import { reservationService } from '../../services/reservationService';
 import { socketService } from '../../services/socketService';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
-import { ReservationDetailModal } from './StaffReservations/ReservationDetailModal';
+import { ReservationDetailModal } from '../Reservation/ReservationDetailModal';
 import { AssignTableModal } from './StaffReservations/AssignTableModal';
 import { OrderFoodModal } from '../Reservation/OrderFoodModal';
 import QrScannerModal from '../../components/common/QrScannerModal';

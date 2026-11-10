@@ -3,8 +3,6 @@
 
 @variant dark (&:where(.dark, .dark *));
 
-/* ===== FoodHub Design System - Tailwind CSS v4 ===== */
-
 @theme {
   /* Primary Colors */
   --color-primary: #FF6B35;
@@ -67,8 +65,6 @@
 }
 
 
-
-/* ===== Global Reset & Base Styles ===== */
 
 @layer base {
   html {
@@ -135,7 +131,6 @@
   }
 }
 
-/* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -162,7 +157,6 @@ body.dark ::-webkit-scrollbar-thumb {
   background: var(--color-dark-border);
 }
 
-/* ===== Keyframe Animations ===== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -265,7 +259,6 @@ body.dark ::-webkit-scrollbar-thumb {
   }
 }
 
-/* ===== Utility animation classes ===== */
 .animate-fadeIn {
   animation: fadeIn 0.6s ease forwards;
 }
@@ -338,7 +331,6 @@ body.dark ::-webkit-scrollbar-thumb {
   animation-delay: 0.8s;
 }
 
-/* ===== Glass morphism ===== */
 .glass {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(12px);
@@ -351,7 +343,6 @@ body.dark .glass {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* ===== Gradient text ===== */
 .gradient-text {
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   -webkit-background-clip: text;
@@ -359,7 +350,6 @@ body.dark .glass {
   background-clip: text;
 }
 
-/* ===== Custom Sleek Scrollbar ===== */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
   height: 5px;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UtensilsCrossed, Plus, Minus, Search, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import { UtensilsCrossed, Plus, Minus, Search, RefreshCw, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '../../components/ui/Modal';
 import { IReservation, IPreOrderItem } from '../../types/reservation.type';

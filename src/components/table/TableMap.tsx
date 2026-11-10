@@ -117,7 +117,6 @@ export const TableMap: React.FC<TableMapProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* ─── 1. BẢNG CHÚ THÍCH & THỐNG KÊ NHANH ─── */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-dark-surface/60 rounded-xl border border-gray-200 dark:border-dark-border text-xs">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1.5 font-medium">
@@ -156,7 +155,6 @@ export const TableMap: React.FC<TableMapProps> = ({
         )}
       </div>
 
-      {/* ─── 2. TABS CHUYỂN TẦNG ─── */}
       <div className="flex items-center gap-2 border-b border-gray-200 dark:border-dark-border pb-2 overflow-x-auto">
         {mode === 'admin' && floorMap.floors.length > 1 && (
           <button
@@ -204,7 +202,6 @@ export const TableMap: React.FC<TableMapProps> = ({
         })}
       </div>
 
-      {/* ─── 3. SƠ ĐỒ BÀN (GRID MAP) ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         <AnimatePresence mode="popLayout">
           {currentFloorTables.map((table) => {

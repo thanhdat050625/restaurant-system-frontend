@@ -10,21 +10,18 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { ProfileReservationsTab } from './ProfileReservationsTab';
 import { ProfilePickupOrdersTab } from './ProfilePickupOrdersTab';
 
-/* ─── Gender display helper ───────────────────────────────────────────────── */
 const GenderIcon = ({ gender }) => {
   if (gender === 'MALE') return <span className="inline-flex items-center gap-1 text-blue-500"><Mars size={14} /> Nam</span>;
   if (gender === 'FEMALE') return <span className="inline-flex items-center gap-1 text-pink-500"><Venus size={14} /> Nữ</span>;
   return <span className="inline-flex items-center gap-1 text-text-light"><CircleDot size={14} /> Khác</span>;
 };
 
-/* ─── Sidebar tabs ────────────────────────────────────────────────────────── */
 const TABS = [
   { id: 'info', label: 'Thông tin cá nhân', Icon: User },
   { id: 'reservations', label: 'Lịch sử đặt bàn', Icon: Calendar },
   { id: 'pickup-orders', label: 'Đơn đặt mang về', Icon: ShoppingBag },
 ];
 
-/* ════════════════════════════════════════════════════════════════════════════ */
 const Profile = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -44,7 +41,6 @@ const Profile = () => {
     navigate('/');
   };
 
-  /* ── Shared field row ─────────────────────────────────────────────────── */
   const Field = ({ IconComp, label, value, mono = false }) => (
     <div className="flex items-start gap-4 py-4 border-b border-light-border dark:border-dark-border last:border-0">
       <div className="mt-0.5 w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -59,7 +55,6 @@ const Profile = () => {
     </div>
   );
 
-  /* ── Personal info tab ────────────────────────────────────────────────── */
   const InfoTab = () => (
     <motion.div key="info" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
       <div className="flex items-center justify-between mb-6">
@@ -108,13 +103,11 @@ const Profile = () => {
     </motion.div>
   );
 
-  /* ══════════════════════════════════════════════════════════════════════════ */
   return (
     <PageWrapper>
       <section className="pt-28 pb-20 bg-light dark:bg-dark min-h-screen">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          {/* ── Top banner ─────────────────────────────────────────────── */}
           <motion.div
             initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
             className="relative bg-gradient-to-r from-primary via-primary-dark to-accent rounded-3xl p-8 mb-8 overflow-hidden"
@@ -152,10 +145,8 @@ const Profile = () => {
             </div>
           </motion.div>
 
-          {/* ── Main layout: Sidebar + Content ─────────────────────────── */}
           <div className="flex flex-col lg:flex-row gap-6">
 
-            {/* ── Sidebar ──────────────────────────────────────────────── */}
             <motion.aside
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
               className="lg:w-64 shrink-0"
@@ -190,7 +181,6 @@ const Profile = () => {
               </div>
             </motion.aside>
 
-            {/* ── Content panel ────────────────────────────────────────── */}
             <motion.main
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
               className="flex-1 bg-white dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border p-6 lg:p-8"

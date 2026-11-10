@@ -20,7 +20,6 @@ const toSlug = (str) => {
 import { useCart } from '../../../features/menu/CartContext';
 import { formatPrice } from '../../../utils/helpers';
 
-// ─── SLIDE ──────────────────────────────────────────────────────────────────
 const Slide = ({ item, isActive, isPrev, onAddToCart, onOpenDetail, isAdding }) => {
   // Determine position: active = 0%, prev (above) = -100%, next (below) = +100%
   // We only animate bg + content, position is handled by parent
@@ -133,7 +132,6 @@ const Slide = ({ item, isActive, isPrev, onAddToCart, onOpenDetail, isAdding }) 
   );
 };
 
-// ─── DETAIL PANEL ─────────────────────────────────────────────────────────────
 const DetailPanel = ({ item, onClose, onAdd }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   return (
@@ -210,7 +208,6 @@ const DetailPanel = ({ item, onClose, onAdd }) => {
   );
 };
 
-// ─── MAIN ─────────────────────────────────────────────────────────────────────
 const ParallaxMenu = () => {
   const { categorySlug } = useParams();
   const categoryParam = categorySlug || 'all';
@@ -287,7 +284,6 @@ const ParallaxMenu = () => {
 
   const total = showcaseItems.length;
 
-  // ── Throttled navigation ────────────────────────────────────────────────────
   const isCooling = useRef(false);
   const cooldown = 750; // ms between transitions
 
