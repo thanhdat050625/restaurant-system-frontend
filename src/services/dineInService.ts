@@ -64,3 +64,4 @@ export const dineInService = {
     return apiClient.get<ApiResponse<IInvoice>>(`/dine-in/invoices/${invoiceId}`);
   },
 };
+

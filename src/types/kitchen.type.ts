@@ -75,3 +75,4 @@ export interface IUpdateKitchenBatchStatusDto {
 }
 
 export type KitchenPickupTransitionStatus = Extract<PickupOrderStatus, 'PREPARING' | 'READY' | 'COMPLETED'>;
+

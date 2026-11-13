@@ -288,3 +288,4 @@ export const KitchenDineInBatchCard: React.FC<KitchenDineInBatchCardProps> = ({
   );
 };
 export default KitchenDineInBatchCard;
+

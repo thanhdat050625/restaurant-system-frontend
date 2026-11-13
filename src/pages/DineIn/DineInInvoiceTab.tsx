@@ -344,3 +344,4 @@ export const DineInInvoiceTab: React.FC<DineInInvoiceTabProps> = ({
   );
 };
 export default DineInInvoiceTab;
+

@@ -12,13 +12,13 @@ const ForgotPassword = () => {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  
+
   const { forgotPassword, resetPassword, resendOtp, isLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -27,12 +27,13 @@ const ForgotPassword = () => {
     e.preventDefault();
     setError('');
     try {
-      const success = await forgotPassword(email);
-      if (success) {
+      const response = await forgotPassword({ email });
+      if (response?.success) {
         setStep(2);
       }
     } catch (err) {
-      setError(err.message);
+      const resMsg = err?.response?.data?.message || err.message;
+      setError(Array.isArray(resMsg) ? resMsg.join(', ') : resMsg);
     }
   };
 
@@ -49,13 +50,14 @@ const ForgotPassword = () => {
     }
     setError('');
     try {
-      const success = await resetPassword(email, otp, newPassword);
-      if (success) {
+      const response = await resetPassword({ email, otp, newPassword });
+      if (response?.success) {
         setStep(3); // Hiện màn hình thành công
         setTimeout(() => navigate('/login'), 3000); // Tự động chuyển về login sau 3s
       }
     } catch (err) {
-      setError(err.message);
+      const resMsg = err?.response?.data?.message || err.message;
+      setError(Array.isArray(resMsg) ? resMsg.join(', ') : resMsg);
     }
   };
 
@@ -63,12 +65,13 @@ const ForgotPassword = () => {
     setError('');
     setSuccessMessage('');
     try {
-      const success = await resendOtp(email);
-      if (success) {
-        setSuccessMessage('Mã OTP mới đã được gửi!');
+      const response = await resendOtp({ email });
+      if (response?.success) {
+        setSuccessMessage(response?.message || 'Mã OTP mới đã được gửi!');
       }
     } catch (err) {
-      setError(err.message);
+      const resMsg = err?.response?.data?.message || err.message;
+      setError(Array.isArray(resMsg) ? resMsg.join(', ') : resMsg);
     }
   };
 
@@ -92,11 +95,11 @@ const ForgotPassword = () => {
         {/* Right - Form Container */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-light dark:bg-dark">
           <div className="w-full max-w-md overflow-hidden relative min-h-[500px] flex items-center">
-            
+
             <AnimatePresence mode="wait">
               {/* BƯỚC 1: NHẬP EMAIL */}
               {step === 1 && (
-                <motion.div 
+                <motion.div
                   key="step1"
                   initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
                   className="w-full"
@@ -104,7 +107,7 @@ const ForgotPassword = () => {
                   <Link to="/login" className="inline-flex items-center gap-2 text-text-secondary dark:text-text-light hover:text-primary mb-6 font-medium">
                     <ArrowLeft size={18} /> Quay lại đăng nhập
                   </Link>
-                  
+
                   <h1 className="text-3xl font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)] mb-2">Quên Mật Khẩu</h1>
                   <p className="text-text-secondary dark:text-text-light mb-6">Vui lòng nhập email đã đăng ký tài khoản.</p>
 
@@ -116,7 +119,7 @@ const ForgotPassword = () => {
                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="your@email.com" className="w-full pl-10 pr-4 py-3 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-sm text-text-primary dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
                       </div>
                     </div>
-                    
+
                     {error && <p className="text-error text-sm text-center bg-error/10 p-2 rounded-lg">{error}</p>}
 
                     <button type="submit" disabled={isLoading || !email} className="w-full py-3.5 mt-4 bg-primary hover:bg-primary-dark disabled:opacity-70 text-white font-semibold rounded-xl transition-all hover:shadow-glow flex items-center justify-center gap-2">
@@ -128,7 +131,7 @@ const ForgotPassword = () => {
 
               {/* BƯỚC 2: NHẬP OTP & MẬT KHẨU MỚI */}
               {step === 2 && (
-                <motion.div 
+                <motion.div
                   key="step2"
                   initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
                   className="w-full text-center"
@@ -145,14 +148,14 @@ const ForgotPassword = () => {
                     <div>
                       <div className="relative max-w-[240px] mx-auto mb-4">
                         <KeyRound size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light" />
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           maxLength="6"
-                          value={otp} 
+                          value={otp}
                           onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                          placeholder="000000" 
-                          className="w-full pl-12 pr-4 py-3 bg-white dark:bg-dark-surface border-2 border-light-border dark:border-dark-border rounded-xl text-xl font-bold tracking-[0.5em] text-center text-text-primary dark:text-white focus:border-primary focus:ring-0 outline-none transition-all" 
-                          required 
+                          placeholder="000000"
+                          className="w-full pl-12 pr-4 py-3 bg-white dark:bg-dark-surface border-2 border-light-border dark:border-dark-border rounded-xl text-xl font-bold tracking-[0.5em] text-center text-text-primary dark:text-white focus:border-primary focus:ring-0 outline-none transition-all"
+                          required
                         />
                       </div>
                     </div>
@@ -165,7 +168,7 @@ const ForgotPassword = () => {
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-text-primary dark:text-white mb-1.5">Xác nhận mật khẩu mới</label>
                       <div className="relative">
@@ -195,7 +198,7 @@ const ForgotPassword = () => {
 
               {/* BƯỚC 3: THÀNH CÔNG */}
               {step === 3 && (
-                <motion.div 
+                <motion.div
                   key="step3"
                   initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                   className="w-full text-center py-10"

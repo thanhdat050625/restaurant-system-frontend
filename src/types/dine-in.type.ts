@@ -151,3 +151,4 @@ export interface ICheckoutInvoiceDto {
   discountAmount?: number;
   notes?: string;
 }
+

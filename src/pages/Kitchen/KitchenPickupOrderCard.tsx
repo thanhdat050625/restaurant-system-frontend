@@ -162,3 +162,4 @@ export const KitchenPickupOrderCard: React.FC<KitchenPickupOrderCardProps> = ({
   );
 };
 export default KitchenPickupOrderCard;
+

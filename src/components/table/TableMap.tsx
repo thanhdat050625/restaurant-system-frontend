@@ -162,17 +162,15 @@ export const TableMap: React.FC<TableMapProps> = ({
           <button
             type="button"
             onClick={() => setActiveFloor(-1)}
-            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeFloor === -1
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeFloor === -1
                 ? 'bg-primary text-white shadow-md shadow-primary/25 scale-[1.02]'
                 : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-border'
-            }`}
+              }`}
           >
             <span>Tất cả tầng</span>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full ${
-                activeFloor === -1 ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
-              }`}
+              className={`text-xs px-2 py-0.5 rounded-full ${activeFloor === -1 ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
+                }`}
             >
               {tables.length} bàn
             </span>
@@ -185,17 +183,15 @@ export const TableMap: React.FC<TableMapProps> = ({
             <button
               key={floor}
               onClick={() => setActiveFloor(floor)}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${
-                isActive
+              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${isActive
                   ? 'bg-primary text-white shadow-md shadow-primary/25 scale-[1.02]'
                   : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-border'
-              }`}
+                }`}
             >
               <span>Tầng {floor}</span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
-                }`}
+                className={`text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
+                  }`}
               >
                 {count} bàn
               </span>

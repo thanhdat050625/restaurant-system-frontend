@@ -31,3 +31,4 @@ export const KitchenRoute: React.FC<KitchenRouteProps> = ({ children }) => {
 };
 
 export default KitchenRoute;
+
