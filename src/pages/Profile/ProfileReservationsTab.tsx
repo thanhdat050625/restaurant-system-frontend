@@ -4,20 +4,26 @@ import { Calendar, PlusCircle, UtensilsCrossed } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { reservationService } from '../../services/reservationService';
+import { socketService } from '../../services/socketService';
+import { useAuth } from '../../features/auth/AuthContext';
 import { IReservation } from '../../types/reservation.type';
 import { ReservationHistoryCard } from '../Reservation/ReservationHistoryCard';
 import { ReservationQRModal } from '../Reservation/ReservationQRModal';
 import { ReservationDetailModal } from '../Reservation/ReservationDetailModal';
 import { OrderFoodModal } from '../Reservation/OrderFoodModal';
+import TableQRModal, { TableQRTarget } from '../../components/table/TableQRModal';
+import { buildTableQrTarget } from '../Reservation/reservationUi';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
 export const ProfileReservationsTab: React.FC = () => {
+  const { user } = useAuth();
   const [timeline, setTimeline] = useState<'UPCOMING' | 'PAST'>('UPCOMING');
   const [reservations, setReservations] = useState<IReservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedDetailReservation, setSelectedDetailReservation] = useState<IReservation | null>(null);
   const [selectedQRReservation, setSelectedQRReservation] = useState<IReservation | null>(null);
+  const [selectedTableQR, setSelectedTableQR] = useState<TableQRTarget | null>(null);
   const [orderingFoodReservation, setOrderingFoodReservation] = useState<IReservation | null>(null);
   const [cancellingReservation, setCancellingReservation] = useState<IReservation | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -39,6 +45,71 @@ export const ProfileReservationsTab: React.FC = () => {
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
+
+  // Lắng nghe cập nhật trạng thái đặt bàn & món ăn tại bàn theo thời gian thực qua user:${user.id}
+  useEffect(() => {
+    if (!user?.id) return;
+
+    socketService.connect(user.id);
+
+    const handleCreated = () => {
+      fetchReservations();
+    };
+
+    const handleUpdated = (updated?: Partial<IReservation>) => {
+      if (updated?.status === 'SEATED' && updated?.table?.tableNumber) {
+        toast.success(
+          `Nhân viên đã mở bàn ${updated.table.tableNumber}! Mã QR gọi món tại bàn đã sẵn sàng.`,
+        );
+      }
+      fetchReservations();
+    };
+
+    const handleBillOrBatchChanged = () => {
+      fetchReservations();
+    };
+
+    socketService.on('reservation:created', handleCreated);
+    socketService.on('reservation:updated', handleUpdated);
+    socketService.on('table:batch_created', handleBillOrBatchChanged);
+    socketService.on('table:bill_updated', handleBillOrBatchChanged);
+    socketService.on('table:invoice_closed', handleBillOrBatchChanged);
+
+    return () => {
+      socketService.off('reservation:created', handleCreated);
+      socketService.off('reservation:updated', handleUpdated);
+      socketService.off('table:batch_created', handleBillOrBatchChanged);
+      socketService.off('table:bill_updated', handleBillOrBatchChanged);
+      socketService.off('table:invoice_closed', handleBillOrBatchChanged);
+    };
+  }, [user?.id, fetchReservations]);
+
+  const seatedTableIdsKey = Array.from(
+    new Set(
+      reservations
+        .filter((r) => r.status === 'SEATED')
+        .map((r) => r.table?.id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  )
+    .sort()
+    .join(',');
+
+  // Tham gia room table:${tableId} cho các đơn đang ngồi tại bàn để nhận cập nhật gọi món / hóa đơn realtime
+  useEffect(() => {
+    if (!user?.id || !seatedTableIdsKey) return;
+
+    const tableIds = seatedTableIdsKey.split(',').filter(Boolean);
+    tableIds.forEach((tableId) => {
+      socketService.joinTable(tableId);
+    });
+
+    return () => {
+      tableIds.forEach((tableId) => {
+        socketService.leaveTable(tableId);
+      });
+    };
+  }, [user?.id, seatedTableIdsKey]);
 
   const handleConfirmCancel = async () => {
     if (!cancellingReservation) return;
@@ -135,6 +206,7 @@ export const ProfileReservationsTab: React.FC = () => {
               reservation={res}
               onOpenDetail={setSelectedDetailReservation}
               onOpenQR={setSelectedQRReservation}
+              onOpenTableQR={(r) => setSelectedTableQR(buildTableQrTarget(r))}
               onOpenCancel={setCancellingReservation}
               onOpenOrderFood={setOrderingFoodReservation}
             />
@@ -151,17 +223,28 @@ export const ProfileReservationsTab: React.FC = () => {
           setSelectedDetailReservation(null);
           setSelectedQRReservation(res);
         }}
+        onOpenTableQR={(res) => {
+          setSelectedDetailReservation(null);
+          setSelectedTableQR(buildTableQrTarget(res));
+        }}
         onOrderFood={(res) => {
           setSelectedDetailReservation(null);
           setOrderingFoodReservation(res);
         }}
       />
 
-      {/* QR Modal */}
+      {/* QR Check-in Modal */}
       <ReservationQRModal
         reservation={selectedQRReservation}
         isOpen={Boolean(selectedQRReservation)}
         onClose={() => setSelectedQRReservation(null)}
+      />
+
+      {/* QR Gọi món tại bàn Modal */}
+      <TableQRModal
+        table={selectedTableQR}
+        isOpen={Boolean(selectedTableQR)}
+        onClose={() => setSelectedTableQR(null)}
       />
 
       {/* Order Food Modal */}

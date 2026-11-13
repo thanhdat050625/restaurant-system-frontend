@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -15,10 +16,12 @@ import {
   AlertTriangle,
   Building2,
   QrCode,
+  ExternalLink,
 } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { formatPrice } from '../../utils/helpers';
+import { getReservationDisplayFoodInfo } from './reservationUi';
 
 export interface ReservationDetailModalProps {
   isOpen: boolean;
@@ -27,6 +30,7 @@ export interface ReservationDetailModalProps {
   onAssignTable?: (reservation: IReservation) => void;
   onOrderFood?: (reservation: IReservation) => void;
   onOpenQR?: (reservation: IReservation) => void;
+  onOpenTableQR?: (reservation: IReservation) => void;
 }
 
 const statusBadgeMap: Record<
@@ -78,6 +82,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
   onAssignTable,
   onOrderFood,
   onOpenQR,
+  onOpenTableQR,
 }) => {
   if (!reservation) return null;
 
@@ -90,10 +95,9 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
   const StatusIcon = statusInfo.icon;
 
   const orders = reservation.orders || [];
-  const totalPreOrderAmount = orders.reduce(
-    (sum, o) => sum + Number(o.unitPrice || 0) * o.quantity,
-    0,
-  );
+  const foodInfo = getReservationDisplayFoodInfo(reservation);
+  const isSeatedWithTable =
+    reservation.status === 'SEATED' && Boolean(reservation.table?.id);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Chi tiết đặt bàn #${reservation.reservationCode}`}>
@@ -236,12 +240,17 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
           </div>
         )}
 
-        {/* Pre-ordered Food Items */}
+        {/* Pre-ordered / Live Table Food Items */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
               <UtensilsCrossed size={14} className="text-primary" />
-              Món ăn tại bàn ({orders.length} món)
+              Món ăn tại bàn ({foodInfo.itemCount} phần)
+              {foodInfo.invoice?.invoiceCode && (
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary normal-case">
+                  {foodInfo.invoice.invoiceCode}
+                </span>
+              )}
             </h4>
             <div className="flex items-center gap-3">
               {['PENDING', 'CONFIRMED', 'SEATED'].includes(reservation.status) && onOrderFood && (
@@ -250,21 +259,56 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
                   onClick={() => onOrderFood(reservation)}
                   className="text-xs font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
                 >
-                  {orders.length > 0 ? '+ Gọi thêm món' : '+ Gọi món ngay'}
+                  {foodInfo.itemCount > 0 ? '+ Gọi thêm món' : '+ Gọi món ngay'}
                 </button>
               )}
-              {orders.length > 0 && (
+              {foodInfo.itemCount > 0 && (
                 <span className="text-xs font-bold text-primary font-mono">
-                  Tổng: {formatPrice(totalPreOrderAmount)}
+                  Tổng: {formatPrice(foodInfo.totalAmount)}
                 </span>
               )}
             </div>
           </div>
 
-          {orders.length === 0 ? (
+          {foodInfo.itemCount === 0 ? (
             <p className="text-xs text-gray-400 italic py-2 text-center bg-gray-50 dark:bg-slate-800/40 rounded-xl">
               Chưa có món ăn nào được gọi cho bàn này.
             </p>
+          ) : foodInfo.isDineInInvoice && foodInfo.invoice?.batches?.length ? (
+            <div className="space-y-2.5 max-h-56 overflow-y-auto custom-scrollbar">
+              {foodInfo.invoice.batches.map((batch) => (
+                <div
+                  key={batch.id}
+                  className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700/60 space-y-2"
+                >
+                  <div className="flex items-center justify-between text-[11px] font-bold text-primary">
+                    <span>Đợt #{batch.batchNumber}</span>
+                    {batch.note && (
+                      <span className="text-gray-400 font-normal italic truncate max-w-[180px]">
+                        {batch.note}
+                      </span>
+                    )}
+                  </div>
+                  {(batch.items || []).map((it) => {
+                    const itemPrice = Number(it.unitPrice || 0);
+                    const subtotal = Number(it.subtotal || itemPrice * it.quantity);
+                    return (
+                      <div key={it.id} className="flex items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-semibold text-gray-800 dark:text-gray-100 truncate">
+                            {it.menuItem?.name || 'Món ăn'}
+                          </span>
+                          <span className="text-gray-400 shrink-0">× {it.quantity}</span>
+                        </div>
+                        <span className="font-bold font-mono text-gray-800 dark:text-gray-200 shrink-0">
+                          {formatPrice(subtotal)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
               {orders.map((o) => {
@@ -308,9 +352,9 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
         </div>
 
         {/* Footer actions */}
-        <div className="pt-2 flex items-center justify-between">
-          <div>
-            {onOpenQR && ['PENDING', 'CONFIRMED', 'SEATED'].includes(reservation.status) && (
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenQR && ['PENDING', 'CONFIRMED'].includes(reservation.status) && (
               <button
                 type="button"
                 onClick={() => onOpenQR(reservation)}
@@ -319,6 +363,26 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
                 <QrCode size={14} />
                 <span>Mã QR Check-in</span>
               </button>
+            )}
+            {isSeatedWithTable && onOpenTableQR && (
+              <button
+                type="button"
+                onClick={() => onOpenTableQR(reservation)}
+                className="px-3.5 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <QrCode size={14} />
+                <span>QR Gọi món bàn</span>
+              </button>
+            )}
+            {isSeatedWithTable && reservation.table && (
+              <Link
+                to={`/table-order/${reservation.table.id}`}
+                onClick={onClose}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
+              >
+                <ExternalLink size={14} />
+                <span>Mở Menu Bàn</span>
+              </Link>
             )}
           </div>
           <button

@@ -228,12 +228,17 @@ export const KitchenDashboard: React.FC = () => {
     const handleConnect = () => setSocketConnected(true);
     const handleDisconnect = () => setSocketConnected(false);
 
-    const handleNewBatch = (payload?: { tableNumber?: string; batchNumber?: number }) => {
+    const handleNewBatch = (payload?: {
+      table?: { tableNumber?: string };
+      batch?: { batchNumber?: number };
+      tableNumber?: string;
+      batchNumber?: number;
+    }) => {
+      const tableNum = payload?.table?.tableNumber || payload?.tableNumber || 'bàn ăn';
+      const batchNum = payload?.batch?.batchNumber || payload?.batchNumber;
       if (soundEnabledRef.current) playChimeSound();
       toast.success(
-        `Đơn mới tại ${payload?.tableNumber || 'bàn ăn'}${
-          payload?.batchNumber ? ` (Đợt #${payload.batchNumber})` : ''
-        }!`,
+        `Đơn mới tại ${tableNum}${batchNum ? ` (Đợt #${batchNum})` : ''}!`,
         { duration: 4500 },
       );
       fetchQueue(false);
@@ -726,3 +731,4 @@ export const KitchenDashboard: React.FC = () => {
   );
 };
 export default KitchenDashboard;
+

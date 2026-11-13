@@ -5,8 +5,16 @@ import toast from 'react-hot-toast';
 import Modal from '../ui/Modal';
 import { ITable } from '../../types/admin/table.type';
 
+export interface TableQRTarget {
+  id: string;
+  tableNumber: string;
+  floor: number;
+  branch?: { id?: string; name?: string } | null;
+  tableType?: { id?: string; name?: string; capacity?: number } | null;
+}
+
 interface TableQRModalProps {
-  table: ITable | null;
+  table: ITable | TableQRTarget | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -151,3 +159,4 @@ export const TableQRModal: React.FC<TableQRModalProps> = ({ table, isOpen, onClo
 };
 
 export default TableQRModal;
+

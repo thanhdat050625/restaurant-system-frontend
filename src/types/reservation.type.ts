@@ -1,3 +1,5 @@
+import { IInvoice } from './dine-in.type';
+
 export type ReservationStatus =
   | 'PENDING'
   | 'CONFIRMED'
@@ -106,4 +108,5 @@ export interface IReservation {
       imageUrl?: string;
     };
   }[];
+  invoices?: IInvoice[];
 }

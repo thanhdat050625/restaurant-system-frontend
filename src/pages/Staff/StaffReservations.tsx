@@ -14,6 +14,7 @@ import {
   Users,
   Eye,
   AlertTriangle,
+  QrCode,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../features/auth/AuthContext';
@@ -23,6 +24,8 @@ import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { ReservationDetailModal } from '../Reservation/ReservationDetailModal';
 import { AssignTableModal } from './StaffReservations/AssignTableModal';
 import { OrderFoodModal } from '../Reservation/OrderFoodModal';
+import TableQRModal, { TableQRTarget } from '../../components/table/TableQRModal';
+import { buildTableQrTarget, getReservationDisplayFoodInfo } from '../Reservation/reservationUi';
 import QrScannerModal from '../../components/common/QrScannerModal';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
@@ -82,6 +85,7 @@ export const StaffReservations: React.FC = () => {
   const [detailTarget, setDetailTarget] = useState<IReservation | null>(null);
   const [assignTableTarget, setAssignTableTarget] = useState<IReservation | null>(null);
   const [orderFoodTarget, setOrderFoodTarget] = useState<IReservation | null>(null);
+  const [qrTableTarget, setQrTableTarget] = useState<TableQRTarget | null>(null);
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -132,15 +136,27 @@ export const StaffReservations: React.FC = () => {
     socketService.on('reservation:updated', handleRefresh);
     socketService.on('table:status_changed', handleRefresh);
     socketService.on('table:reserved', handleRefresh);
+    socketService.on('table:batch_created', handleRefresh);
+    socketService.on('table:bill_updated', handleRefresh);
 
     return () => {
       socketService.off('reservation:created', handleNewReservation);
       socketService.off('reservation:updated', handleRefresh);
       socketService.off('table:status_changed', handleRefresh);
       socketService.off('table:reserved', handleRefresh);
+      socketService.off('table:batch_created', handleRefresh);
+      socketService.off('table:bill_updated', handleRefresh);
       socketService.leaveBranch(branchId);
     };
   }, [branchId, user, fetchReservations]);
+
+  const openTableQrAfterSeat = (resPayload: any, fallbackRes?: IReservation | null) => {
+    const updatedRes: IReservation | undefined = resPayload?.data?.data || resPayload?.data || resPayload;
+    const target = buildTableQrTarget(updatedRes) || buildTableQrTarget(fallbackRes);
+    if (target) {
+      setQrTableTarget(target);
+    }
+  };
 
   // Tiếp nhận / Xác nhận đơn
   const handleConfirmReservation = async (reservation: IReservation) => {
@@ -166,10 +182,11 @@ export const StaffReservations: React.FC = () => {
 
     setUpdatingId(reservation.id);
     try {
-      await reservationService.updateStatus(reservation.id, 'SEATED');
+      const res = await reservationService.updateStatus(reservation.id, 'SEATED');
       toast.success(
-        `Khách đã vào bàn ${reservation.table?.tableNumber || ''}. Bàn đã chuyển sang trạng thái Có khách.`,
+        `Khách đã vào bàn ${reservation.table?.tableNumber || ''}. Đưa mã QR bàn cho khách quét xem menu & gọi món!`,
       );
+      openTableQrAfterSeat(res, reservation);
       fetchReservations(false);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Không thể check-in khách vào bàn.');
@@ -229,13 +246,14 @@ export const StaffReservations: React.FC = () => {
   const handleAssignTableConfirm = async (tableId: string) => {
     if (!assignTableTarget) return;
     try {
-      await reservationService.updateStatus(
+      const res = await reservationService.updateStatus(
         assignTableTarget.id,
         'SEATED',
         'Xếp bàn và check-in phục vụ',
         tableId,
       );
-      toast.success('Đã xếp bàn thành công và đưa khách vào bàn.');
+      toast.success('Đã xếp bàn, đưa khách vào bàn & tạo mã QR gọi món!');
+      openTableQrAfterSeat(res, assignTableTarget);
       setAssignTableTarget(null);
       fetchReservations(false);
     } catch (err: any) {
@@ -256,6 +274,7 @@ export const StaffReservations: React.FC = () => {
       const res: any = await reservationService.checkInQr(code);
       const data = res?.data?.data || res?.data || res;
       toast.success(`Check-in thành công cho khách ${data?.customerName || code}!`);
+      openTableQrAfterSeat(res);
       fetchReservations(false);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || `Mã QR không hợp lệ hoặc không tìm thấy đơn: ${code}`);
@@ -447,7 +466,7 @@ export const StaffReservations: React.FC = () => {
             };
             const StatusIcon = statusCfg.icon;
             const isUpdating = updatingId === res.id;
-            const preOrdersCount = res.orders?.length || 0;
+            const foodInfo = getReservationDisplayFoodInfo(res);
 
             return (
               <div
@@ -485,10 +504,10 @@ export const StaffReservations: React.FC = () => {
                         <Users size={13} className="text-primary" />
                         {res.guestCount} người
                       </span>
-                      {preOrdersCount > 0 && (
+                      {foodInfo.itemCount > 0 && (
                         <span className="flex items-center gap-1 text-primary font-bold">
                           <UtensilsCrossed size={13} />
-                          {preOrdersCount} món đặt trước
+                          {foodInfo.itemCount} phần {foodInfo.isDineInInvoice ? 'tại bàn' : 'đặt trước'}
                         </span>
                       )}
                     </div>
@@ -581,14 +600,25 @@ export const StaffReservations: React.FC = () => {
                       </>
                     )}
 
-                    {/* Status SEATED: Gọi thêm món hoặc Hoàn thành bữa ăn */}
+                    {/* Status SEATED: QR Gọi món tại bàn, Gọi thêm món hoặc Hoàn thành bữa ăn */}
                     {res.status === 'SEATED' && (
                       <>
+                        {res.table && (
+                          <button
+                            type="button"
+                            onClick={() => setQrTableTarget(buildTableQrTarget(res))}
+                            className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer"
+                            title="Mở mã QR bàn cho khách quét xem thực đơn & gọi món"
+                          >
+                            <QrCode size={14} />
+                            <span>QR Bàn</span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => setOrderFoodTarget(res)}
                           className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer shadow-sm"
-                          title="Gọi thêm món tại bàn"
+                          title="Gọi thêm món tại bàn gửi thẳng xuống Bếp"
                         >
                           <UtensilsCrossed size={14} />
                           <span>Gọi món</span>
@@ -630,6 +660,16 @@ export const StaffReservations: React.FC = () => {
           setDetailTarget(null);
           setOrderFoodTarget(r);
         }}
+        onOpenTableQR={(r) => {
+          setDetailTarget(null);
+          setQrTableTarget(buildTableQrTarget(r));
+        }}
+      />
+
+      <TableQRModal
+        table={qrTableTarget}
+        isOpen={Boolean(qrTableTarget)}
+        onClose={() => setQrTableTarget(null)}
       />
 
       <OrderFoodModal
