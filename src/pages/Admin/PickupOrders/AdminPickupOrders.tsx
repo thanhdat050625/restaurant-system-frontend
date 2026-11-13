@@ -15,7 +15,10 @@ import {
   QrCode,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { pickupOrderService } from '../../../services/pickupOrderService';
+import {
+  pickupOrderService,
+  extractPickupOrdersPage,
+} from '../../../services/pickupOrderService';
 import { branchService } from '../../../services/admin/branchService';
 import {
   IPickupOrder,
@@ -122,11 +125,10 @@ export const AdminPickupOrders: React.FC = () => {
         if (statusFilter !== 'ALL') params.status = statusFilter;
 
         const res = await pickupOrderService.getPickupOrders(params);
-        const items = res?.data?.items;
-        const resMeta = res?.data?.meta;
+        const { items, meta: resMeta } = extractPickupOrdersPage(res);
 
-        setOrders(Array.isArray(items) ? items : []);
-        setMeta(resMeta ?? null);
+        setOrders(items);
+        setMeta(resMeta);
       } catch {
         setOrders([]);
         setMeta(null);
@@ -144,19 +146,36 @@ export const AdminPickupOrders: React.FC = () => {
   // WebSocket realtime update
   useEffect(() => {
     socketService.connect(user?.id);
+    socketService.joinAdmin();
+    if (selectedBranchId !== 'ALL') {
+      socketService.joinBranch(selectedBranchId);
+    }
 
-    const handleRefresh = () => {
+    const handleNewOrder = (order?: Partial<IPickupOrder>) => {
+      toast.success(
+        order?.orderCode
+          ? `Có đơn mang về mới: ${order.orderCode}!`
+          : 'Có đơn đặt món mang về mới!'
+      );
       fetchOrders(false);
     };
 
-    socketService.on('pickupOrder:created', handleRefresh);
-    socketService.on('pickupOrder:statusChanged', handleRefresh);
+    const handleStatusChanged = () => {
+      fetchOrders(false);
+    };
+
+    socketService.on('pickupOrder:created', handleNewOrder);
+    socketService.on('pickupOrder:statusChanged', handleStatusChanged);
 
     return () => {
-      socketService.off('pickupOrder:created', handleRefresh);
-      socketService.off('pickupOrder:statusChanged', handleRefresh);
+      socketService.off('pickupOrder:created', handleNewOrder);
+      socketService.off('pickupOrder:statusChanged', handleStatusChanged);
+      if (selectedBranchId !== 'ALL') {
+        socketService.leaveBranch(selectedBranchId);
+      }
+      socketService.leaveAdmin();
     };
-  }, [user, fetchOrders]);
+  }, [user, selectedBranchId, fetchOrders]);
 
   const handleUpdateStatus = async (orderId: string, newStatus: PickupOrderStatus) => {
     setUpdatingOrderId(orderId);

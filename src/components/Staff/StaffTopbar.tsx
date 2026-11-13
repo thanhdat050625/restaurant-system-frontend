@@ -38,6 +38,12 @@ const StaffTopbar: React.FC = () => {
         return 'Quản lý Menu Chi nhánh';
       case '/staff/operating-hours':
         return 'Quản lý Giờ & Sức chứa';
+      case '/staff/reservations':
+        return 'Quản lý Đặt bàn';
+      case '/staff/table-turnover':
+        return 'Vận hành Bàn tại quán';
+      case '/staff/pickup-orders':
+        return 'Đơn Đặt Món Mang Về';
       default:
         return 'Staff Portal';
     }

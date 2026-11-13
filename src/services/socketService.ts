@@ -30,10 +30,62 @@ export interface ITableLockEvent extends Partial<ITableSlot> {
 
 class SocketService {
   private socket: Socket | null = null;
-  private currentBranchId: string | null = null;
-  private currentKitchenBranchId: string | null = null;
-  private currentTableId: string | null = null;
+  private branchRefCounts = new Map<string, number>();
+  private kitchenRefCounts = new Map<string, number>();
+  private tableRefCounts = new Map<string, number>();
+  private adminRefCount = 0;
+  private listeners = new Map<string, Set<(...args: any[]) => void>>();
   private authKey: string | null = null;
+
+  /**
+   * Re-join toàn bộ room đang đăng ký (khi socket connect/reconnect)
+   */
+  private rejoinRooms() {
+    if (!this.socket) return;
+
+    this.branchRefCounts.forEach((count, branchId) => {
+      if (count > 0) this.socket?.emit('branch:join', { branchId });
+    });
+    this.kitchenRefCounts.forEach((count, branchId) => {
+      if (count > 0) this.socket?.emit('kitchen:join', { branchId });
+    });
+    this.tableRefCounts.forEach((count, tableId) => {
+      if (count > 0) this.socket?.emit('table:join', { tableId });
+    });
+    if (this.adminRefCount > 0) {
+      this.socket.emit('admin:join');
+    }
+  }
+
+  private incrementRoom(
+    refMap: Map<string, number>,
+    key: string,
+    emitEvent: string,
+    payload: Record<string, string>
+  ) {
+    const prev = refMap.get(key) ?? 0;
+    refMap.set(key, prev + 1);
+    if (prev === 0 && this.socket) {
+      this.socket.emit(emitEvent, payload);
+    }
+  }
+
+  private decrementRoom(
+    refMap: Map<string, number>,
+    key: string,
+    emitEvent: string,
+    payload: Record<string, string>
+  ) {
+    const prev = refMap.get(key) ?? 0;
+    if (prev <= 1) {
+      refMap.delete(key);
+      if (prev === 1 && this.socket) {
+        this.socket.emit(emitEvent, payload);
+      }
+    } else {
+      refMap.set(key, prev - 1);
+    }
+  }
 
   /**
    * Khởi tạo kết nối Socket.IO
@@ -62,18 +114,16 @@ class SocketService {
       auth: token ? { token } : undefined,
     });
 
+    // Re-attach registered event listeners when socket instance is recreated
+    this.listeners.forEach((callbacks, event) => {
+      callbacks.forEach((cb) => {
+        this.socket?.on(event, cb);
+      });
+    });
+
     this.socket.on('connect', () => {
       console.log('⚡ [Socket] Connected to server:', this.socket?.id);
-      // Re-join current rooms if reconnected
-      if (this.currentBranchId) {
-        this.joinBranch(this.currentBranchId);
-      }
-      if (this.currentKitchenBranchId) {
-        this.joinKitchen(this.currentKitchenBranchId);
-      }
-      if (this.currentTableId) {
-        this.joinTable(this.currentTableId);
-      }
+      this.rejoinRooms();
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -92,20 +142,24 @@ class SocketService {
    */
   disconnect() {
     if (this.socket) {
-      if (this.currentBranchId) {
-        this.leaveBranch(this.currentBranchId);
-      }
-      if (this.currentKitchenBranchId) {
-        this.leaveKitchen(this.currentKitchenBranchId);
-      }
-      if (this.currentTableId) {
-        this.leaveTable(this.currentTableId);
+      this.branchRefCounts.forEach((count, branchId) => {
+        if (count > 0) this.socket?.emit('branch:leave', { branchId });
+      });
+      this.kitchenRefCounts.forEach((count, branchId) => {
+        if (count > 0) this.socket?.emit('kitchen:leave', { branchId });
+      });
+      this.tableRefCounts.forEach((count, tableId) => {
+        if (count > 0) this.socket?.emit('table:leave', { tableId });
+      });
+      if (this.adminRefCount > 0) {
+        this.socket.emit('admin:leave');
       }
       this.socket.disconnect();
       this.socket = null;
-      this.currentBranchId = null;
-      this.currentKitchenBranchId = null;
-      this.currentTableId = null;
+      this.branchRefCounts.clear();
+      this.kitchenRefCounts.clear();
+      this.tableRefCounts.clear();
+      this.adminRefCount = 0;
       this.authKey = null;
     }
   }
@@ -114,21 +168,41 @@ class SocketService {
    * Tham gia phòng chi nhánh để nhận broadcast thời gian thực
    */
   joinBranch(branchId: string) {
-    this.currentBranchId = branchId;
-    if (this.socket) {
-      this.socket.emit('branch:join', { branchId });
-    }
+    if (!branchId) return;
+    this.incrementRoom(this.branchRefCounts, branchId, 'branch:join', { branchId });
   }
 
   /**
    * Rời khỏi phòng chi nhánh
    */
   leaveBranch(branchId: string) {
-    if (this.socket) {
-      this.socket.emit('branch:leave', { branchId });
-      if (this.currentBranchId === branchId) {
-        this.currentBranchId = null;
+    if (!branchId) return;
+    this.decrementRoom(this.branchRefCounts, branchId, 'branch:leave', { branchId });
+  }
+
+  /**
+   * Tham gia phòng giám sát toàn hệ thống dành cho Admin
+   */
+  joinAdmin() {
+    const prev = this.adminRefCount;
+    this.adminRefCount = prev + 1;
+    if (prev === 0 && this.socket) {
+      this.socket.emit('admin:join');
+    }
+  }
+
+  /**
+   * Rời khỏi phòng giám sát Admin
+   */
+  leaveAdmin() {
+    if (this.adminRefCount <= 1) {
+      const wasActive = this.adminRefCount === 1;
+      this.adminRefCount = 0;
+      if (wasActive && this.socket) {
+        this.socket.emit('admin:leave');
       }
+    } else {
+      this.adminRefCount -= 1;
     }
   }
 
@@ -136,44 +210,32 @@ class SocketService {
    * Màn hình Bếp tham gia phòng bếp chi nhánh
    */
   joinKitchen(branchId: string) {
-    this.currentKitchenBranchId = branchId;
-    if (this.socket) {
-      this.socket.emit('kitchen:join', { branchId });
-    }
+    if (!branchId) return;
+    this.incrementRoom(this.kitchenRefCounts, branchId, 'kitchen:join', { branchId });
   }
 
   /**
    * Rời khỏi phòng bếp chi nhánh
    */
   leaveKitchen(branchId: string) {
-    if (this.socket) {
-      this.socket.emit('kitchen:leave', { branchId });
-      if (this.currentKitchenBranchId === branchId) {
-        this.currentKitchenBranchId = null;
-      }
-    }
+    if (!branchId) return;
+    this.decrementRoom(this.kitchenRefCounts, branchId, 'kitchen:leave', { branchId });
   }
 
   /**
    * Khách tại bàn / Nhân viên tham gia kênh riêng của bàn ăn
    */
   joinTable(tableId: string) {
-    this.currentTableId = tableId;
-    if (this.socket) {
-      this.socket.emit('table:join', { tableId });
-    }
+    if (!tableId) return;
+    this.incrementRoom(this.tableRefCounts, tableId, 'table:join', { tableId });
   }
 
   /**
    * Rời khỏi kênh bàn ăn
    */
   leaveTable(tableId: string) {
-    if (this.socket) {
-      this.socket.emit('table:leave', { tableId });
-      if (this.currentTableId === tableId) {
-        this.currentTableId = null;
-      }
-    }
+    if (!tableId) return;
+    this.decrementRoom(this.tableRefCounts, tableId, 'table:leave', { tableId });
   }
 
   /**
@@ -198,7 +260,15 @@ class SocketService {
    * Đăng ký lắng nghe sự kiện
    */
   on(event: string, callback: (...args: any[]) => void) {
-    this.socket?.on(event, callback);
+    let callbacks = this.listeners.get(event);
+    if (!callbacks) {
+      callbacks = new Set();
+      this.listeners.set(event, callbacks);
+    }
+    if (!callbacks.has(callback)) {
+      callbacks.add(callback);
+      this.socket?.on(event, callback);
+    }
   }
 
   /**
@@ -206,8 +276,13 @@ class SocketService {
    */
   off(event: string, callback?: (...args: any[]) => void) {
     if (callback) {
+      this.listeners.get(event)?.delete(callback);
+      if (this.listeners.get(event)?.size === 0) {
+        this.listeners.delete(event);
+      }
       this.socket?.off(event, callback);
     } else {
+      this.listeners.delete(event);
       this.socket?.off(event);
     }
   }

@@ -2,13 +2,28 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { ShoppingBag, Clock, Building2, QrCode, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { pickupOrderService } from '../../services/pickupOrderService';
-import { IPickupOrder } from '../../types/pickup-order.type';
+import {
+  pickupOrderService,
+  extractPickupOrdersPage,
+} from '../../services/pickupOrderService';
+import { socketService } from '../../services/socketService';
+import { useAuth } from '../../features/auth/AuthContext';
+import { IPickupOrder, PickupOrderStatus } from '../../types/pickup-order.type';
 import { formatPrice } from '../../utils/helpers';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import Modal from '../../components/ui/Modal';
 
+const STATUS_LABELS: Record<PickupOrderStatus, string> = {
+  PENDING: 'Chờ duyệt',
+  CONFIRMED: 'Đã xác nhận',
+  PREPARING: 'Đang chuẩn bị món',
+  READY: 'Sẵn sàng nhận món',
+  COMPLETED: 'Đã hoàn tất',
+  CANCELLED: 'Đã hủy',
+};
+
 export const ProfilePickupOrdersTab: React.FC = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<IPickupOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,8 +38,8 @@ export const ProfilePickupOrdersTab: React.FC = () => {
     if (showSpinner) setLoading(true);
     try {
       const res = await pickupOrderService.getMyPickupOrders({ limit: 50 });
-      const items = res?.data?.items;
-      setOrders(Array.isArray(items) ? items : []);
+      const { items } = extractPickupOrdersPage(res);
+      setOrders(items);
     } catch {
       setOrders([]);
     } finally {
@@ -35,6 +50,33 @@ export const ProfilePickupOrdersTab: React.FC = () => {
   useEffect(() => {
     fetchMyOrders(true);
   }, [fetchMyOrders]);
+
+  // Lắng nghe cập nhật đơn mang về theo thời gian thực qua kênh user:${user.id}
+  useEffect(() => {
+    if (!user?.id) return;
+
+    socketService.connect(user.id);
+
+    const handleOrderCreated = () => {
+      fetchMyOrders(false);
+    };
+
+    const handleOrderStatusChanged = (updatedOrder?: Partial<IPickupOrder>) => {
+      if (updatedOrder?.orderCode && updatedOrder?.status) {
+        const statusLabel = STATUS_LABELS[updatedOrder.status] ?? updatedOrder.status;
+        toast.success(`Đơn ${updatedOrder.orderCode}: ${statusLabel}`);
+      }
+      fetchMyOrders(false);
+    };
+
+    socketService.on('pickupOrder:created', handleOrderCreated);
+    socketService.on('pickupOrder:statusChanged', handleOrderStatusChanged);
+
+    return () => {
+      socketService.off('pickupOrder:created', handleOrderCreated);
+      socketService.off('pickupOrder:statusChanged', handleOrderStatusChanged);
+    };
+  }, [user?.id, fetchMyOrders]);
 
   const handleCancelOrder = async () => {
     if (!cancelTarget) return;

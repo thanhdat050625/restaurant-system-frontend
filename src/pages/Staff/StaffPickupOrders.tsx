@@ -17,7 +17,10 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../features/auth/AuthContext';
-import { pickupOrderService } from '../../services/pickupOrderService';
+import {
+  pickupOrderService,
+  extractPickupOrdersPage,
+} from '../../services/pickupOrderService';
 import { socketService } from '../../services/socketService';
 import { IPickupOrder, PickupOrderStatus } from '../../types/pickup-order.type';
 import { formatPrice } from '../../utils/helpers';
@@ -95,8 +98,8 @@ export const StaffPickupOrders: React.FC = () => {
         branchId,
         limit: 100,
       });
-      const items = res?.data?.items;
-      setOrders(Array.isArray(items) ? items : []);
+      const { items } = extractPickupOrdersPage(res);
+      setOrders(items);
     } catch {
       setOrders([]);
     } finally {
@@ -115,8 +118,12 @@ export const StaffPickupOrders: React.FC = () => {
     socketService.connect(user?.id);
     socketService.joinBranch(branchId);
 
-    const handleNewOrder = () => {
-      toast.success('Có đơn đặt món mang về mới!');
+    const handleNewOrder = (order?: Partial<IPickupOrder>) => {
+      toast.success(
+        order?.orderCode
+          ? `Có đơn đặt món mang về mới: ${order.orderCode}!`
+          : 'Có đơn đặt món mang về mới!'
+      );
       fetchOrders(false);
     };
 
