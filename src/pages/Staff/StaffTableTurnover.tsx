@@ -12,6 +12,8 @@ import { tableService, ITableTurnoverResponse } from '../../services/admin/table
 import { socketService } from '../../services/socketService';
 import { TableTurnoverCard } from './TableTurnoverCard';
 import { ITable } from '../../types/admin/table.type';
+import { TableQRModal } from '../../components/table/TableQRModal';
+import { TableInvoiceModal } from '../../components/table/TableInvoiceModal';
 
 export const StaffTableTurnover: React.FC = () => {
   const { user } = useAuth();
@@ -24,6 +26,8 @@ export const StaffTableTurnover: React.FC = () => {
 
   const [selectedFloor, setSelectedFloor] = useState<number | 'ALL'>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [qrTable, setQrTable] = useState<ITable | null>(null);
+  const [invoiceTable, setInvoiceTable] = useState<ITable | null>(null);
 
   const fetchTurnover = useCallback(
     async (showLoading = false) => {
@@ -57,12 +61,25 @@ export const StaffTableTurnover: React.FC = () => {
       fetchTurnover(false);
     };
 
+    const handlePaymentRequested = (payload?: { tableName?: string; tableNumber?: string; invoiceCode?: string }) => {
+      const tableLabel = payload?.tableName || payload?.tableNumber || 'một bàn';
+      toast(`Khách ${tableLabel} vừa yêu cầu thanh toán!`, {
+        icon: '💳',
+        duration: 5000,
+      });
+      fetchTurnover(false);
+    };
+
     socketService.on('table:status_changed', handleStatusChanged);
     socketService.on('table:reserved', handleStatusChanged);
     socketService.on('table:locked', handleStatusChanged);
     socketService.on('table:released', handleStatusChanged);
     socketService.on('reservation:created', handleStatusChanged);
     socketService.on('reservation:updated', handleStatusChanged);
+    socketService.on('table:batch_created', handleStatusChanged);
+    socketService.on('table:bill_updated', handleStatusChanged);
+    socketService.on('table:invoice_closed', handleStatusChanged);
+    socketService.on('table:payment_requested', handlePaymentRequested);
 
     return () => {
       socketService.off('table:status_changed', handleStatusChanged);
@@ -71,6 +88,10 @@ export const StaffTableTurnover: React.FC = () => {
       socketService.off('table:released', handleStatusChanged);
       socketService.off('reservation:created', handleStatusChanged);
       socketService.off('reservation:updated', handleStatusChanged);
+      socketService.off('table:batch_created', handleStatusChanged);
+      socketService.off('table:bill_updated', handleStatusChanged);
+      socketService.off('table:invoice_closed', handleStatusChanged);
+      socketService.off('table:payment_requested', handlePaymentRequested);
       socketService.leaveBranch(branchId);
     };
   }, [branchId, user, fetchTurnover]);
@@ -265,6 +286,8 @@ export const StaffTableTurnover: React.FC = () => {
                 key={table.id}
                 table={table}
                 onUpdateStatus={handleUpdateStatus}
+                onViewQr={setQrTable}
+                onViewInvoice={setInvoiceTable}
                 isUpdating={updatingTableId === table.id}
               />
             ))}
@@ -339,12 +362,27 @@ export const StaffTableTurnover: React.FC = () => {
                 key={table.id}
                 table={table}
                 onUpdateStatus={handleUpdateStatus}
+                onViewQr={setQrTable}
+                onViewInvoice={setInvoiceTable}
                 isUpdating={updatingTableId === table.id}
               />
             ))}
           </div>
         )}
       </div>
+
+      <TableQRModal
+        table={qrTable}
+        isOpen={Boolean(qrTable)}
+        onClose={() => setQrTable(null)}
+      />
+
+      <TableInvoiceModal
+        table={invoiceTable}
+        isOpen={Boolean(invoiceTable)}
+        onClose={() => setInvoiceTable(null)}
+        onCheckoutSuccess={() => fetchTurnover(false)}
+      />
     </div>
   );
 };

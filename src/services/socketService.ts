@@ -31,6 +31,8 @@ export interface ITableLockEvent extends Partial<ITableSlot> {
 class SocketService {
   private socket: Socket | null = null;
   private currentBranchId: string | null = null;
+  private currentKitchenBranchId: string | null = null;
+  private currentTableId: string | null = null;
   private authKey: string | null = null;
 
   /**
@@ -62,9 +64,15 @@ class SocketService {
 
     this.socket.on('connect', () => {
       console.log('⚡ [Socket] Connected to server:', this.socket?.id);
-      // Re-join current branch room if reconnected
+      // Re-join current rooms if reconnected
       if (this.currentBranchId) {
         this.joinBranch(this.currentBranchId);
+      }
+      if (this.currentKitchenBranchId) {
+        this.joinKitchen(this.currentKitchenBranchId);
+      }
+      if (this.currentTableId) {
+        this.joinTable(this.currentTableId);
       }
     });
 
@@ -87,9 +95,17 @@ class SocketService {
       if (this.currentBranchId) {
         this.leaveBranch(this.currentBranchId);
       }
+      if (this.currentKitchenBranchId) {
+        this.leaveKitchen(this.currentKitchenBranchId);
+      }
+      if (this.currentTableId) {
+        this.leaveTable(this.currentTableId);
+      }
       this.socket.disconnect();
       this.socket = null;
       this.currentBranchId = null;
+      this.currentKitchenBranchId = null;
+      this.currentTableId = null;
       this.authKey = null;
     }
   }
@@ -112,6 +128,50 @@ class SocketService {
       this.socket.emit('branch:leave', { branchId });
       if (this.currentBranchId === branchId) {
         this.currentBranchId = null;
+      }
+    }
+  }
+
+  /**
+   * Màn hình Bếp tham gia phòng bếp chi nhánh
+   */
+  joinKitchen(branchId: string) {
+    this.currentKitchenBranchId = branchId;
+    if (this.socket) {
+      this.socket.emit('kitchen:join', { branchId });
+    }
+  }
+
+  /**
+   * Rời khỏi phòng bếp chi nhánh
+   */
+  leaveKitchen(branchId: string) {
+    if (this.socket) {
+      this.socket.emit('kitchen:leave', { branchId });
+      if (this.currentKitchenBranchId === branchId) {
+        this.currentKitchenBranchId = null;
+      }
+    }
+  }
+
+  /**
+   * Khách tại bàn / Nhân viên tham gia kênh riêng của bàn ăn
+   */
+  joinTable(tableId: string) {
+    this.currentTableId = tableId;
+    if (this.socket) {
+      this.socket.emit('table:join', { tableId });
+    }
+  }
+
+  /**
+   * Rời khỏi kênh bàn ăn
+   */
+  leaveTable(tableId: string) {
+    if (this.socket) {
+      this.socket.emit('table:leave', { tableId });
+      if (this.currentTableId === tableId) {
+        this.currentTableId = null;
       }
     }
   }

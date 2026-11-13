@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { BrushCleaning, Users, UserCheck, CheckCircle, Clock, ShieldAlert, Lock } from 'lucide-react';
+import { BrushCleaning, Users, UserCheck, CheckCircle, Clock, ShieldAlert, Lock, QrCode, Receipt } from 'lucide-react';
 import { ITable } from '../../types/admin/table.type';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
 interface TableTurnoverCardProps {
   table: ITable;
   onUpdateStatus: (tableId: string, status: string) => void;
+  onViewQr?: (table: ITable) => void;
+  onViewInvoice?: (table: ITable) => void;
   isUpdating: boolean;
 }
 
@@ -39,6 +41,8 @@ const statusMap: Record<string, { label: string; bg: string; text: string; borde
 export const TableTurnoverCard: React.FC<TableTurnoverCardProps> = ({
   table,
   onUpdateStatus,
+  onViewQr,
+  onViewInvoice,
   isUpdating,
 }) => {
   const [showConfirmLeave, setShowConfirmLeave] = useState(false);
@@ -161,7 +165,34 @@ export const TableTurnoverCard: React.FC<TableTurnoverCardProps> = ({
         </div>
 
         {/* Nút hành động dọn dẹp hoặc chuyển trạng thái */}
-        <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center gap-1.5">
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 space-y-1.5">
+          {(onViewQr || onViewInvoice) && table.status !== 'MAINTENANCE' && (
+            <div className="grid grid-cols-2 gap-1.5">
+              {onViewQr && (
+                <button
+                  type="button"
+                  onClick={() => onViewQr(table)}
+                  className="py-1.5 px-2 bg-orange-50 hover:bg-orange-100 text-primary dark:bg-orange-950/40 dark:hover:bg-orange-900/50 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  title="Xem mã QR gọi món của bàn"
+                >
+                  <QrCode size={13} />
+                  <span>QR Bàn</span>
+                </button>
+              )}
+              {onViewInvoice && (
+                <button
+                  type="button"
+                  onClick={() => onViewInvoice(table)}
+                  className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 dark:text-emerald-300 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  title="Xem hóa đơn bàn ăn & thanh toán"
+                >
+                  <Receipt size={13} />
+                  <span>Hóa đơn</span>
+                </button>
+              )}
+            </div>
+          )}
+
           {table.status === 'DIRTY' ? (
             <button
               type="button"

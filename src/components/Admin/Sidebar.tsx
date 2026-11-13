@@ -14,6 +14,7 @@ import {
   BookOpenCheck,
   Clock,
   ShoppingBag,
+  ChefHat,
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
@@ -32,6 +33,7 @@ const Sidebar: React.FC = () => {
     { name: 'Loại bàn', path: '/admin/table-types', icon: <Layers size={18} /> },
     { name: 'Bàn & Sơ đồ', path: '/admin/tables', icon: <LayoutGrid size={18} /> },
     { name: 'Đơn mang về', path: '/admin/pickup-orders', icon: <ShoppingBag size={18} /> },
+    { name: 'Màn hình Bếp (KDS)', path: '/kitchen', icon: <ChefHat size={18} /> },
     { name: 'Danh mục món', path: '/admin/menu-categories', icon: <UtensilsCrossed size={18} /> },
     { name: 'Món ăn', path: '/admin/menu-items', icon: <Utensils size={18} /> },
     { name: 'Menu chi nhánh', path: '/admin/branch-menu', icon: <BookOpenCheck size={18} /> },

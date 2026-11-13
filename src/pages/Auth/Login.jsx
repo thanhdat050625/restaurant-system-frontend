@@ -29,6 +29,8 @@ const Login = () => {
           navigate('/admin');
         } else if (role === 'STAFF') {
           navigate('/staff');
+        } else if (role === 'KITCHEN') {
+          navigate('/kitchen');
         } else {
           navigate('/');
         }

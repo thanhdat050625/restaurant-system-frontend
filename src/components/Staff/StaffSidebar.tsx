@@ -11,6 +11,7 @@ import {
   BrushCleaning,
   ShoppingBag,
   CalendarCheck,
+  ChefHat,
 } from 'lucide-react';
 
 const StaffSidebar: React.FC = () => {
@@ -49,6 +50,7 @@ const StaffSidebar: React.FC = () => {
     { name: 'Quản lý đặt bàn', path: '/staff/reservations', icon: <CalendarCheck size={18} /> },
     { name: 'Dọn & Xoay vòng bàn', path: '/staff/table-turnover', icon: <BrushCleaning size={18} /> },
     { name: 'Đơn mang về', path: '/staff/pickup-orders', icon: <ShoppingBag size={18} /> },
+    { name: 'Màn hình Bếp (KDS)', path: '/kitchen', icon: <ChefHat size={18} /> },
     { name: 'Menu chi nhánh', path: '/staff/menu', icon: <BookOpenCheck size={18} /> },
     { name: 'Giờ & Sức chứa', path: '/staff/operating-hours', icon: <Clock size={18} /> },
   ];

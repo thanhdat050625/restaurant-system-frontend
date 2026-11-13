@@ -11,8 +11,9 @@ import ConfirmModal from '../../../components/ui/ConfirmModal';
 import TableForm, { TableFormData } from './TableForm';
 import BulkTableForm, { BulkTableFormData } from './BulkTableForm';
 import Pagination from '../../../components/common/Pagination';
-import { Search, Filter, Plus, Layers, LayoutGrid, List, Building2 } from 'lucide-react';
+import { Search, Filter, Plus, Layers, LayoutGrid, List, Building2, QrCode } from 'lucide-react';
 import TableMap from '../../../components/table/TableMap';
+import TableQRModal from '../../../components/table/TableQRModal';
 import { socketService } from '../../../services/socketService';
 import toast from 'react-hot-toast';
 import Select from '../../../components/ui/Select';
@@ -43,6 +44,9 @@ const Tables: React.FC = () => {
   // Confirm delete state
   const [deleteTable, setDeleteTable] = useState<ITable | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // QR Modal state
+  const [qrTable, setQrTable] = useState<ITable | null>(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -474,6 +478,7 @@ const Tables: React.FC = () => {
           tables={tables}
           mode="admin"
           onTableAction={(table) => handleOpenModal(table)}
+          onViewQr={(table) => setQrTable(table)}
           loading={loading}
         />
       ) : (
@@ -517,6 +522,14 @@ const Tables: React.FC = () => {
                       </td>
                       <td className="p-3 text-sm text-center">
                         <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => setQrTable(table)}
+                            className="text-primary hover:text-primary-dark font-medium text-xs px-2 py-1 bg-orange-50 rounded hover:bg-orange-100 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            title="Xem & tạo mã QR gọi món tại bàn"
+                          >
+                            <QrCode size={13} />
+                            <span>QR Bàn</span>
+                          </button>
                           <button
                             onClick={() => handleOpenModal(table)}
                             className="text-info hover:text-blue-700 font-medium text-xs px-2 py-1 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
@@ -581,6 +594,13 @@ const Tables: React.FC = () => {
           selectedBranchId={selectedBranchId !== 'ALL' ? selectedBranchId : ''}
         />
       </Modal>
+
+      {/* Table QR Modal */}
+      <TableQRModal
+        table={qrTable}
+        isOpen={!!qrTable}
+        onClose={() => setQrTable(null)}
+      />
 
       {/* Custom Confirm Modal */}
       <ConfirmModal
