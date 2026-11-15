@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import {
   Clock,
   ChefHat,
@@ -12,10 +12,17 @@ import {
   QrCode,
   AlertCircle,
   RefreshCw,
+  CreditCard,
+  Banknote,
+  RotateCcw,
+  ExternalLink,
+  Loader2,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import PageWrapper from '../../layouts/PageWrapper';
 import { formatPrice } from '../../utils/helpers';
 import { pickupOrderService } from '../../services/pickupOrderService';
+import { paymentService } from '../../services/paymentService';
 import { socketService } from '../../services/socketService';
 
 const statusStepIndex = {
@@ -32,8 +39,9 @@ const OrderTracking = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [payingProvider, setPayingProvider] = useState(null);
 
-  const fetchOrder = async () => {
+  const handleRefresh = useCallback(async () => {
     if (!id) return;
     try {
       const res = await pickupOrderService.getPickupOrderById(id);
@@ -41,13 +49,31 @@ const OrderTracking = () => {
       setOrder(data);
     } catch {
       setError(true);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    fetchOrder();
+    let isMounted = true;
+    const loadOrder = async () => {
+      if (!id) return;
+      try {
+        const res = await pickupOrderService.getPickupOrderById(id);
+        if (!isMounted) return;
+        const data = res?.data || res;
+        setOrder(data);
+      } catch {
+        if (!isMounted) return;
+        setError(true);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    void loadOrder();
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   // Realtime update via socket
@@ -63,13 +89,45 @@ const OrderTracking = () => {
       }
     };
 
+    const handlePaymentUpdated = (payload) => {
+      if (payload?.pickupOrderId === order.id || payload?.transactionCode) {
+        void handleRefresh();
+      }
+    };
+
     socketService.on('pickupOrder:statusChanged', handleStatusChanged);
+    socketService.on('payment:updated', handlePaymentUpdated);
 
     return () => {
       socketService.off('pickupOrder:statusChanged', handleStatusChanged);
+      socketService.off('payment:updated', handlePaymentUpdated);
       socketService.leaveBranch(order.branchId);
     };
-  }, [order?.branchId, order?.id, order?.orderCode]);
+  }, [order?.branchId, order?.id, order?.orderCode, handleRefresh]);
+
+  const handleOnlinePay = async (provider) => {
+    if (!order?.id) return;
+    setPayingProvider(provider);
+    try {
+      const res = await paymentService.createPayment({
+        provider,
+        purpose: 'PICKUP_ORDER',
+        pickupOrderId: order.id,
+      });
+      const data = res?.data || res;
+      if (data?.payUrl) {
+        toast.success('Đang chuyển hướng sang cổng thanh toán...');
+        window.location.href = data.payUrl;
+      } else {
+        toast.error('Không nhận được liên kết thanh toán từ cổng.');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Có lỗi xảy ra khi tạo giao dịch thanh toán.';
+      toast.error(msg);
+    } finally {
+      setPayingProvider(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -106,6 +164,15 @@ const OrderTracking = () => {
   const currentStep = statusStepIndex[order.status] ?? 0;
   const isCancelled = order.status === 'CANCELLED';
 
+  const successfulPayment = Array.isArray(order.payments)
+    ? order.payments.find((p) => p.status === 'SUCCESS')
+    : null;
+  const refundedPayment = Array.isArray(order.payments)
+    ? order.payments.find((p) => p.status === 'REFUNDED')
+    : null;
+  const isPaid = !!successfulPayment;
+  const isRefunded = !!refundedPayment;
+
   const orderSteps = [
     { label: 'Chờ duyệt', desc: 'Quán đang tiếp nhận', icon: Clock },
     { label: 'Đã nhận đơn', desc: 'Đã vào hàng chờ', icon: CheckCircle2 },
@@ -127,7 +194,7 @@ const OrderTracking = () => {
             </Link>
 
             <button
-              onClick={fetchOrder}
+              onClick={handleRefresh}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl text-xs font-semibold text-text-secondary dark:text-text-light hover:bg-gray-50 transition-colors"
             >
               <RefreshCw size={13} />
@@ -135,7 +202,7 @@ const OrderTracking = () => {
             </button>
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             {/* Order Header */}
             <div className="bg-white dark:bg-dark-surface p-6 rounded-3xl border border-light-border dark:border-dark-border shadow-sm">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
@@ -151,27 +218,48 @@ const OrderTracking = () => {
                   </p>
                 </div>
 
-                <span
-                  className={`px-3 py-1.5 rounded-full font-bold text-xs ${
-                    isCancelled
-                      ? 'bg-red-100 text-red-800'
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Payment status badge */}
+                  {isPaid && successfulPayment ? (
+                    <span className="px-3 py-1.5 rounded-full font-bold text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300 flex items-center gap-1.5">
+                      <CheckCircle2 size={13} />
+                      <span>Đã thanh toán ({successfulPayment.provider === 'MOMO' ? 'MoMo' : 'VNPay'})</span>
+                    </span>
+                  ) : isRefunded ? (
+                    <span className="px-3 py-1.5 rounded-full font-bold text-xs bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-300 flex items-center gap-1.5">
+                      <RotateCcw size={13} />
+                      <span>Đã hoàn tiền</span>
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1.5 rounded-full font-bold text-xs bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300 flex items-center gap-1.5">
+                      <Banknote size={13} />
+                      <span>Thanh toán tại quầy</span>
+                    </span>
+                  )}
+
+                  {/* Order status badge */}
+                  <span
+                    className={`px-3 py-1.5 rounded-full font-bold text-xs ${
+                      isCancelled
+                        ? 'bg-red-100 text-red-800'
+                        : order.status === 'READY'
+                          ? 'bg-emerald-100 text-emerald-800 ring-2 ring-emerald-300 animate-pulse'
+                          : order.status === 'COMPLETED'
+                            ? 'bg-gray-100 text-gray-700'
+                            : 'bg-primary/10 text-primary'
+                    }`}
+                  >
+                    {isCancelled
+                      ? 'Đã hủy đơn'
                       : order.status === 'READY'
-                        ? 'bg-emerald-100 text-emerald-800 ring-2 ring-emerald-300 animate-pulse'
+                        ? 'Món đã sẵn sàng ghé lấy!'
                         : order.status === 'COMPLETED'
-                          ? 'bg-gray-100 text-gray-700'
-                          : 'bg-primary/10 text-primary'
-                  }`}
-                >
-                  {isCancelled
-                    ? 'Đã hủy đơn'
-                    : order.status === 'READY'
-                      ? 'Món đã sẵn sàng ghé lấy!'
-                      : order.status === 'COMPLETED'
-                        ? 'Đã lấy món'
-                        : order.status === 'PREPARING'
-                          ? 'Bếp đang nấu món'
-                          : 'Đang chuẩn bị'}
-                </span>
+                          ? 'Đã lấy món'
+                          : order.status === 'PREPARING'
+                            ? 'Bếp đang nấu món'
+                            : 'Đang chuẩn bị'}
+                  </span>
+                </div>
               </div>
 
               {/* ETA Banner */}
@@ -283,11 +371,120 @@ const OrderTracking = () => {
               </div>
 
               <div className="pt-2 flex justify-between items-center text-sm font-bold border-t border-light-border dark:border-dark-border">
-                <span className="text-text-primary dark:text-white">Tổng tiền thanh toán:</span>
+                <span className="text-text-primary dark:text-white">Tổng tiền đơn hàng:</span>
                 <span className="text-xl font-extrabold text-primary">{formatPrice(Number(order.totalAmount))}</span>
               </div>
             </div>
-          </motion.div>
+
+            {/* Thông tin thanh toán */}
+            <div className="bg-white dark:bg-dark-surface p-6 rounded-3xl border border-light-border dark:border-dark-border shadow-sm space-y-4">
+              <h3 className="text-xs font-bold text-text-primary dark:text-white flex items-center gap-2">
+                <CreditCard size={16} className="text-primary" />
+                <span>Trạng Thái Thanh Toán</span>
+              </h3>
+
+              {isPaid && successfulPayment && (
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold">
+                    <CheckCircle2 size={16} />
+                    <span>Đơn hàng đã được thanh toán thành công trực tuyến</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-text-secondary dark:text-text-light pt-1">
+                    <div>
+                      Cổng thanh toán:{' '}
+                      <strong className="text-text-primary dark:text-white">
+                        {successfulPayment.provider === 'MOMO' ? 'Ví điện tử MoMo' : 'Cổng VNPay'}
+                      </strong>
+                    </div>
+                    <div>
+                      Mã giao dịch:{' '}
+                      <strong className="font-mono text-text-primary dark:text-white">
+                        {successfulPayment.transactionCode}
+                      </strong>
+                    </div>
+                    {successfulPayment.paidAt && (
+                      <div>
+                        Thời gian:{' '}
+                        <strong className="text-text-primary dark:text-white">
+                          {new Date(successfulPayment.paidAt).toLocaleTimeString('vi-VN')}{' '}
+                          {new Date(successfulPayment.paidAt).toLocaleDateString('vi-VN')}
+                        </strong>
+                      </div>
+                    )}
+                    <div>
+                      Số tiền:{' '}
+                      <strong className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        {formatPrice(Number(successfulPayment.amount))}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isRefunded && refundedPayment && (
+                <div className="p-4 bg-purple-50 dark:bg-purple-950/30 rounded-2xl border border-purple-200 dark:border-purple-800/40 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-bold">
+                    <RotateCcw size={16} />
+                    <span>Đã hoàn tiền cho giao dịch {refundedPayment.transactionCode}</span>
+                  </div>
+                  <p className="text-text-secondary dark:text-text-light">
+                    Lý do hoàn tiền: <em>{refundedPayment.refundReason || 'Hủy đơn hàng mang về'}</em>
+                  </p>
+                  {refundedPayment.refundedAt && (
+                    <p className="text-text-secondary dark:text-text-light">
+                      Thời gian hoàn: {new Date(refundedPayment.refundedAt).toLocaleString('vi-VN')}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {!isPaid && !isRefunded && (
+                <div className="space-y-3">
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800/40 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+                    <Banknote size={18} className="shrink-0 text-amber-600 mt-0.5" />
+                    <div>
+                      <p className="font-bold">Đơn hàng chưa thanh toán trực tuyến</p>
+                      <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
+                        Bạn có thể thanh toán trực tiếp khi ghé lấy món tại quầy thu ngân, hoặc thanh toán trực tuyến ngay bên dưới để nhà hàng ưu tiên chuẩn bị món ngay.
+                      </p>
+                    </div>
+                  </div>
+
+                  {!isCancelled && order.status !== 'COMPLETED' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => handleOnlinePay('MOMO')}
+                        disabled={payingProvider !== null}
+                        className="py-3 px-4 bg-[#A50064] hover:bg-[#8F0057] text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {payingProvider === 'MOMO' ? (
+                          <Loader2 size={15} className="animate-spin" />
+                        ) : (
+                          <ExternalLink size={15} />
+                        )}
+                        <span>Thanh toán ngay bằng MoMo</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOnlinePay('VNPAY')}
+                        disabled={payingProvider !== null}
+                        className="py-3 px-4 bg-[#005BAA] hover:bg-[#004A8B] text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {payingProvider === 'VNPAY' ? (
+                          <Loader2 size={15} className="animate-spin" />
+                        ) : (
+                          <ExternalLink size={15} />
+                        )}
+                        <span>Thanh toán ngay bằng VNPay</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </Motion.div>
         </div>
       </section>
     </PageWrapper>
