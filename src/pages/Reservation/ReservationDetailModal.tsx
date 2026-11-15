@@ -16,6 +16,7 @@ import {
   Building2,
   QrCode,
   CreditCard,
+  Printer,
 } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
@@ -323,7 +324,16 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
                 >
                   <div>
                     <p className="font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                      <span>{p.provider === 'MOMO' ? 'Ví MoMo' : 'Cổng VNPay'}</span>
+                      <span>
+                        {p.provider === 'CASH'
+                          ? 'Tiền mặt'
+                          : p.provider === 'MOMO'
+                            ? 'Ví MoMo'
+                            : 'Cổng VNPay'}
+                      </span>
+                      <span className="text-[10px] text-primary font-bold">
+                        {p.purpose === 'RESERVATION_DEPOSIT' ? '· Tiền cọc' : '· Quyết toán'}
+                      </span>
                       <span className="font-mono text-gray-400 text-[11px]">#{p.transactionCode}</span>
                     </p>
                     <p className="text-[11px] text-gray-400">
@@ -358,7 +368,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
 
         {/* Footer actions */}
         <div className="pt-2 flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-2">
             {onOpenQR && ['PENDING', 'CONFIRMED', 'SEATED'].includes(reservation.status) && (
               <button
                 type="button"
@@ -367,6 +377,17 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
               >
                 <QrCode size={14} />
                 <span>Mã QR Check-in</span>
+              </button>
+            )}
+
+            {reservation.status === 'COMPLETED' && (
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer size={14} />
+                <span>In hóa đơn</span>
               </button>
             )}
           </div>

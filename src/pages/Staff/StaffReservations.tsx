@@ -14,6 +14,7 @@ import {
   Users,
   Eye,
   AlertTriangle,
+  ReceiptText,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../features/auth/AuthContext';
@@ -23,6 +24,7 @@ import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { ReservationDetailModal } from '../Reservation/ReservationDetailModal';
 import { AssignTableModal } from './StaffReservations/AssignTableModal';
 import { OrderFoodModal } from '../Reservation/OrderFoodModal';
+import { ReservationSettlementModal } from './StaffReservations/ReservationSettlementModal';
 import QrScannerModal from '../../components/common/QrScannerModal';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 
@@ -82,6 +84,7 @@ export const StaffReservations: React.FC = () => {
   const [detailTarget, setDetailTarget] = useState<IReservation | null>(null);
   const [assignTableTarget, setAssignTableTarget] = useState<IReservation | null>(null);
   const [orderFoodTarget, setOrderFoodTarget] = useState<IReservation | null>(null);
+  const [settlementTarget, setSettlementTarget] = useState<IReservation | null>(null);
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -581,7 +584,7 @@ export const StaffReservations: React.FC = () => {
                       </>
                     )}
 
-                    {/* Status SEATED: Gọi thêm món hoặc Hoàn thành bữa ăn */}
+                    {/* Status SEATED: Gọi thêm món hoặc Quyết toán / Hoàn thành */}
                     {res.status === 'SEATED' && (
                       <>
                         <button
@@ -592,6 +595,15 @@ export const StaffReservations: React.FC = () => {
                         >
                           <UtensilsCrossed size={14} />
                           <span>Gọi món</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSettlementTarget(res)}
+                          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer shadow-sm"
+                          title="Quyết toán hóa đơn bữa ăn"
+                        >
+                          <ReceiptText size={14} />
+                          <span>Quyết toán</span>
                         </button>
                         <button
                           type="button"
@@ -645,6 +657,13 @@ export const StaffReservations: React.FC = () => {
         reservation={assignTableTarget}
         branchId={branchId}
         onConfirmAssign={handleAssignTableConfirm}
+      />
+
+      <ReservationSettlementModal
+        isOpen={Boolean(settlementTarget)}
+        onClose={() => setSettlementTarget(null)}
+        reservation={settlementTarget}
+        onSettledSuccess={() => fetchReservations(false)}
       />
 
       <QrScannerModal
