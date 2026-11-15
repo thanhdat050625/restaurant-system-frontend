@@ -1,3 +1,4 @@
+import { IInvoice } from './dine-in.type';
 import { PaymentProvider, IPaymentTransaction } from './payment.type';
 
 export type ReservationStatus =
@@ -109,6 +110,7 @@ export interface IReservation {
       imageUrl?: string;
     };
   }[];
+  invoices?: IInvoice[];
   payments?: IPaymentTransaction[];
   payUrl?: string;
   payment?: IPaymentTransaction;

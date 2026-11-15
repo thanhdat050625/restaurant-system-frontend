@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  ReceiptText,
   CreditCard,
   Banknote,
   CheckCircle2,
@@ -66,7 +65,7 @@ export const ReservationSettlementModal: React.FC<ReservationSettlementModalProp
     }
   }, [isOpen, reservation?.id, loadBill]);
 
-  // Lắng nghe sự kiện socket realtime khi khách quét mã thanh toán MoMo / VNPay thành công
+  // Lắng nghe sự kiện socket realtime khi thanh toán online thành công hoặc món tại bàn thay đổi
   useEffect(() => {
     if (!isOpen || !reservation?.id) return;
 
@@ -79,9 +78,20 @@ export const ReservationSettlementModal: React.FC<ReservationSettlementModalProp
       }
     };
 
+    const handleTableItemsUpdated = () => {
+      loadBill();
+    };
+
     socketService.on('reservation:statusChanged', handleStatusChanged);
+    socketService.on('table:batch_created', handleTableItemsUpdated);
+    socketService.on('table:bill_updated', handleTableItemsUpdated);
+    socketService.on('kitchen:item_updated', handleTableItemsUpdated);
+
     return () => {
       socketService.off('reservation:statusChanged', handleStatusChanged);
+      socketService.off('table:batch_created', handleTableItemsUpdated);
+      socketService.off('table:bill_updated', handleTableItemsUpdated);
+      socketService.off('kitchen:item_updated', handleTableItemsUpdated);
     };
   }, [isOpen, reservation?.id, loadBill, onSettledSuccess]);
 

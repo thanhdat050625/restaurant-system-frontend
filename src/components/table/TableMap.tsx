@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ITable } from '../../types/admin/table.type';
-import { Users, Lock, CheckCircle2, AlertTriangle, Sparkles, Coffee } from 'lucide-react';
+import { Users, Lock, CheckCircle2, AlertTriangle, Sparkles, Coffee, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface TableMapProps {
@@ -9,6 +9,7 @@ export interface TableMapProps {
   selectedTableId?: string | null;
   onSelectTable?: (table: ITable) => void;
   onTableAction?: (table: ITable) => void;
+  onViewQr?: (table: ITable) => void;
   partySize?: number;
   loading?: boolean;
 }
@@ -19,6 +20,7 @@ export const TableMap: React.FC<TableMapProps> = ({
   selectedTableId = null,
   onSelectTable,
   onTableAction,
+  onViewQr,
   partySize = 1,
   loading = false,
 }) => {
@@ -160,17 +162,15 @@ export const TableMap: React.FC<TableMapProps> = ({
           <button
             type="button"
             onClick={() => setActiveFloor(-1)}
-            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeFloor === -1
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeFloor === -1
                 ? 'bg-primary text-white shadow-md shadow-primary/25 scale-[1.02]'
                 : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-border'
-            }`}
+              }`}
           >
             <span>Tất cả tầng</span>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full ${
-                activeFloor === -1 ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
-              }`}
+              className={`text-xs px-2 py-0.5 rounded-full ${activeFloor === -1 ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
+                }`}
             >
               {tables.length} bàn
             </span>
@@ -183,17 +183,15 @@ export const TableMap: React.FC<TableMapProps> = ({
             <button
               key={floor}
               onClick={() => setActiveFloor(floor)}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${
-                isActive
+              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${isActive
                   ? 'bg-primary text-white shadow-md shadow-primary/25 scale-[1.02]'
                   : 'bg-white dark:bg-dark-card text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-border'
-              }`}
+                }`}
             >
               <span>Tầng {floor}</span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
-                }`}
+                className={`text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-dark-border text-gray-600 dark:text-gray-400'
+                  }`}
               >
                 {count} bàn
               </span>
@@ -284,6 +282,21 @@ export const TableMap: React.FC<TableMapProps> = ({
                 }}
                 className={`relative rounded-2xl p-4 border transition-all duration-200 flex flex-col justify-between ${mode === 'admin' ? 'min-h-[185px]' : 'min-h-[145px]'} ${cardStyle}`}
               >
+                {/* Nút xem nhanh QR bàn cho Admin */}
+                {mode === 'admin' && onViewQr && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewQr(table);
+                    }}
+                    title="Xem mã QR gọi món của bàn"
+                    className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-white/90 dark:bg-slate-800/90 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-xs transition-colors cursor-pointer z-10"
+                  >
+                    <QrCode size={14} />
+                  </button>
+                )}
+
                 {/* Ghế minh họa phía trên bàn (chỉ ở mode khách hàng) */}
                 {mode === 'customer' && (
                   <div className="flex justify-center gap-1.5 mb-2 opacity-60">

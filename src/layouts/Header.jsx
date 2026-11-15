@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown, Shield, Calendar } from 'lucide-react';
+import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown, Shield, Calendar, ChefHat } from 'lucide-react';
 import { useCart } from '../features/menu/CartContext';
 import { useAuth } from '../features/auth/AuthContext';
 import { useTheme } from '../hooks/ThemeContext';
@@ -341,6 +341,11 @@ const Header = () => {
                           <Shield size={16} /> Cổng nhân viên
                         </Link>
                       )}
+                      {['KITCHEN', 'STAFF', 'ADMIN'].includes(user?.role) && (
+                        <Link to="/kitchen" className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                          <ChefHat size={16} /> Màn hình Bếp (KDS)
+                        </Link>
+                      )}
                       <button
                         onClick={logout}
                         className="flex items-center gap-2 w-full px-4 py-3 text-sm text-error hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -416,6 +421,11 @@ const Header = () => {
                     {user?.role === 'STAFF' && (
                       <Link to="/staff" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
                         Cổng nhân viên
+                      </Link>
+                    )}
+                    {['KITCHEN', 'STAFF', 'ADMIN'].includes(user?.role) && (
+                      <Link to="/kitchen" className="block px-4 py-3 rounded-xl text-sm font-medium text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card transition-colors">
+                        Màn hình Bếp (KDS)
                       </Link>
                     )}
                     <button onClick={logout} className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-error hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">

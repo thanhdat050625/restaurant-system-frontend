@@ -1,5 +1,8 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, LucideIcon } from 'lucide-react';
+import { IReservation } from '../../types/reservation.type';
+import { TableQRTarget } from '../../components/table/TableQRModal';
+import { IInvoice } from '../../types/dine-in.type';
 
 /** Class dùng chung cho các bước đặt bàn (theo design token của site, hỗ trợ Light/Dark) */
 export const ui = {
@@ -80,4 +83,73 @@ export const formatReservationDate = (date: string) => {
     year: 'numeric',
   });
   return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
+/** Tạo object thông tin bàn dùng cho TableQRModal từ một đơn đặt bàn đã gán bàn */
+export const buildTableQrTarget = (
+  reservation?: IReservation | null,
+): TableQRTarget | null => {
+  if (!reservation?.table?.id) return null;
+  return {
+    id: reservation.table.id,
+    tableNumber: reservation.table.tableNumber,
+    floor: reservation.table.floor,
+    branch: reservation.branch ? { id: reservation.branch.id, name: reservation.branch.name } : null,
+    tableType: reservation.tableType
+      ? {
+          id: reservation.tableType.id,
+          name: reservation.tableType.name,
+          capacity: reservation.tableType.capacity,
+        }
+      : null,
+  };
+};
+
+export interface ReservationDisplayFoodInfo {
+  isDineInInvoice: boolean;
+  invoice: IInvoice | null;
+  itemCount: number;
+  totalAmount: number;
+  summaryText: string;
+}
+
+/** Tổng hợp danh sách món hiển thị trên thẻ đặt bàn (ưu tiên Hóa đơn bàn đang mở khi đã vào bàn) */
+export const getReservationDisplayFoodInfo = (
+  reservation: IReservation,
+): ReservationDisplayFoodInfo => {
+  const activeInvoice = reservation.invoices?.[0] ?? null;
+
+  if (activeInvoice && (activeInvoice.batches?.length || reservation.status === 'SEATED')) {
+    const activeItems = (activeInvoice.batches || []).flatMap((batch) =>
+      (batch.items || []).filter((item) => item.status !== 'CANCELLED'),
+    );
+    const itemCount = activeItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalAmount = Number(activeInvoice.finalAmount || 0);
+    const summaryText = activeItems
+      .map((item) => `${item.menuItem?.name || 'Món'} x${item.quantity}`)
+      .join(', ');
+
+    return {
+      isDineInInvoice: true,
+      invoice: activeInvoice,
+      itemCount,
+      totalAmount,
+      summaryText,
+    };
+  }
+
+  const orders = reservation.orders || [];
+  const itemCount = orders.reduce((sum, o) => sum + o.quantity, 0);
+  const totalAmount = orders.reduce((sum, o) => sum + Number(o.unitPrice || 0) * o.quantity, 0);
+  const summaryText = orders
+    .map((o) => `${o.menuItem?.name || 'Món'} x${o.quantity}`)
+    .join(', ');
+
+  return {
+    isDineInInvoice: false,
+    invoice: activeInvoice,
+    itemCount,
+    totalAmount,
+    summaryText,
+  };
 };

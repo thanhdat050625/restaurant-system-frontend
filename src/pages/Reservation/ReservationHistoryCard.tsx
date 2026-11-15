@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Calendar,
   Users,
@@ -8,14 +9,17 @@ import {
   UtensilsCrossed,
   Eye,
   MapPin,
+  ExternalLink,
   CreditCard,
 } from 'lucide-react';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { formatPrice } from '../../utils/helpers';
+import { getReservationDisplayFoodInfo } from './reservationUi';
 
 interface ReservationHistoryCardProps {
   reservation: IReservation;
   onOpenQR: (res: IReservation) => void;
+  onOpenTableQR?: (res: IReservation) => void;
   onOpenCancel: (res: IReservation) => void;
   onOpenOrderFood?: (res: IReservation) => void;
   onOpenDetail?: (res: IReservation) => void;
@@ -33,6 +37,7 @@ const statusConfig: Record<ReservationStatus, { label: string; bg: string; text:
 export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
   reservation,
   onOpenQR,
+  onOpenTableQR,
   onOpenCancel,
   onOpenOrderFood,
   onOpenDetail,
@@ -50,16 +55,11 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
     year: 'numeric',
   });
 
-  const orders = reservation.orders || [];
-  const totalFoodAmount = orders.reduce(
-    (sum, o) => sum + Number(o.unitPrice) * o.quantity,
-    0,
-  );
-
-  const canShowQR =
-    reservation.status === 'PENDING' ||
-    reservation.status === 'CONFIRMED' ||
-    reservation.status === 'SEATED';
+  const foodInfo = getReservationDisplayFoodInfo(reservation);
+  const canShowCheckInQR =
+    reservation.status === 'PENDING' || reservation.status === 'CONFIRMED';
+  const isSeatedWithTable =
+    reservation.status === 'SEATED' && Boolean(reservation.table?.id);
 
   const canCancel = (reservation as any).canCancel ?? (reservation.status === 'PENDING' || reservation.status === 'CONFIRMED');
 
@@ -115,42 +115,89 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
         </div>
       </div>
 
-      {/* Pre-ordered Food Summary */}
-      {orders.length > 0 && (
+      {/* Pre-ordered / Live Table Food Summary */}
+      {foodInfo.itemCount > 0 && (
         <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-700 space-y-1.5 text-xs">
           <div className="flex items-center justify-between font-semibold text-slate-800 dark:text-slate-200">
             <span className="flex items-center gap-1.5 text-primary">
-              <UtensilsCrossed size={14} /> Món gọi trước ({orders.length} món)
+              <UtensilsCrossed size={14} />
+              {foodInfo.isDineInInvoice ? 'Món đang dùng tại bàn' : 'Món gọi trước'} ({foodInfo.itemCount} phần)
+              {foodInfo.invoice?.invoiceCode && (
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                  {foodInfo.invoice.invoiceCode}
+                </span>
+              )}
             </span>
-            <span>{formatPrice(totalFoodAmount)}</span>
+            <span>{formatPrice(foodInfo.totalAmount)}</span>
           </div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-            {orders.map((o) => `${o.menuItem?.name || 'Món'} x${o.quantity}`).join(', ')}
-          </div>
+          {foodInfo.summaryText && (
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+              {foodInfo.summaryText}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Deposit Payment Badge */}
-      {reservation.payments && reservation.payments.length > 0 && (
-        <div className="flex items-center justify-between p-2.5 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 text-xs">
-          <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-200">
-            <CreditCard size={14} className="text-primary" />
-            <span>
-              Tiền cọc ({reservation.payments[0].provider === 'MOMO' ? 'MoMo' : 'VNPay'}):
-            </span>
+      {/* Seated Table Ordering Prompt */}
+      {isSeatedWithTable && reservation.table && (
+        <div className="p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="text-emerald-800 dark:text-emerald-300">
+            <p className="font-bold">
+              Bàn {reservation.table.tableNumber} đã sẵn sàng gọi món!
+            </p>
+            <p className="text-[11px] opacity-90">
+              Mở thực đơn bàn hoặc lấy mã QR cho bạn bè cùng bàn quét gọi món xuống Bếp.
+            </p>
           </div>
-          <span
-            className={`font-bold font-mono ${
-              reservation.payments[0].status === 'SUCCESS'
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : reservation.payments[0].status === 'REFUNDED'
-                  ? 'text-rose-600 dark:text-rose-400'
-                  : 'text-amber-600 dark:text-amber-400'
-            }`}
+          <Link
+            to={`/table-order/${reservation.table.id}`}
+            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors"
           >
-            {formatPrice(Number(reservation.payments[0].amount))}
-            {reservation.payments[0].status === 'REFUNDED' && ' (Đã hoàn)'}
-          </span>
+            <ExternalLink size={13} />
+            <span>Mở Menu Bàn</span>
+          </Link>
+        </div>
+      )}
+
+      {/* Payment Summary Badges */}
+      {reservation.payments && reservation.payments.length > 0 && (
+        <div className="space-y-1.5">
+          {reservation.payments.slice(0, 2).map((p) => {
+            const purposeLabel =
+              p.purpose === 'RESERVATION_SETTLEMENT' ? 'Quyết toán' : 'Tiền cọc';
+            const providerLabel =
+              p.provider === 'MOMO'
+                ? 'MoMo'
+                : p.provider === 'VNPAY'
+                  ? 'VNPay'
+                  : 'Tiền mặt';
+
+            return (
+              <div
+                key={p.id}
+                className="flex items-center justify-between p-2.5 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 text-xs"
+              >
+                <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-200">
+                  <CreditCard size={14} className="text-primary" />
+                  <span>
+                    {purposeLabel} ({providerLabel}):
+                  </span>
+                </div>
+                <span
+                  className={`font-bold font-mono ${
+                    p.status === 'SUCCESS'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : p.status === 'REFUNDED'
+                        ? 'text-rose-600 dark:text-rose-400'
+                        : 'text-amber-600 dark:text-amber-400'
+                  }`}
+                >
+                  {formatPrice(Number(p.amount))}
+                  {p.status === 'REFUNDED' && ' (Đã hoàn)'}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -162,7 +209,7 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
       )}
 
       {/* Action buttons */}
-      <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60">
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60">
         <div>
           {onOpenDetail && (
             <button
@@ -176,7 +223,18 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {isSeatedWithTable && onOpenTableQR && (
+            <button
+              type="button"
+              onClick={() => onOpenTableQR(reservation)}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <QrCode size={14} />
+              <span>QR Gọi món bàn</span>
+            </button>
+          )}
+
           {reservation.status === 'SEATED' && onOpenOrderFood && (
             <button
               type="button"
@@ -199,7 +257,7 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
             </button>
           )}
 
-          {canShowQR && (
+          {canShowCheckInQR && (
             <button
               type="button"
               onClick={() => onOpenQR(reservation)}

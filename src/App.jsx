@@ -22,6 +22,11 @@ import OrderTracking from './pages/OrderTracking/OrderTracking';
 import PaymentResult from './pages/Payment/PaymentResult';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
+import TableOrderPage from './pages/DineIn/TableOrderPage';
+
+// Kitchen Imports
+import KitchenRoute from './components/common/KitchenRoute';
+import KitchenDashboard from './pages/Kitchen/KitchenDashboard';
 
 // Staff Imports
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -56,6 +61,7 @@ const GuestRoute = ({ children }) => {
   if (isAuthenticated) {
     if (user?.role === 'ADMIN') return <Navigate to="/admin" replace />;
     if (user?.role === 'STAFF') return <Navigate to="/staff" replace />;
+    if (user?.role === 'KITCHEN') return <Navigate to="/kitchen" replace />;
     return <Navigate to="/" replace />;
   }
   return children;
@@ -65,7 +71,11 @@ const GuestRoute = ({ children }) => {
 const Layout = () => {
   const location = useLocation();
   const noLayoutPages = ['/login', '/register', '/forgot-password'];
-  const isDashboardRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/staff');
+  const isDashboardRoute =
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/staff') ||
+    location.pathname.startsWith('/kitchen') ||
+    location.pathname.startsWith('/table-order');
   const showLayout = !noLayoutPages.includes(location.pathname) && !isDashboardRoute;
 
   return (
@@ -87,6 +97,15 @@ const Layout = () => {
           <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/order/:id" element={<OrderTracking />} />
+          <Route path="/table-order/:tableId" element={<TableOrderPage />} />
+          <Route
+            path="/kitchen"
+            element={
+              <KitchenRoute>
+                <KitchenDashboard />
+              </KitchenRoute>
+            }
+          />
           <Route path="/payment/result" element={<PaymentResult />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
