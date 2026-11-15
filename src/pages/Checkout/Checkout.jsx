@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import {
   Phone,
   User,
@@ -12,6 +12,8 @@ import {
   AlertCircle,
   ShoppingBag,
   ArrowLeft,
+  QrCode,
+  CreditCard,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageWrapper from '../../layouts/PageWrapper';
@@ -45,18 +47,21 @@ const Checkout = () => {
     notes: '',
   });
 
+  const [paymentMethod, setPaymentMethod] = useState('COD');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdOrder, setCreatedOrder] = useState(null);
 
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+    const timer = setTimeout(() => {
       setForm((prev) => ({
         ...prev,
         name: prev.name || user.fullName || '',
         phone: prev.phone || user.phone || '',
         email: prev.email || user.email || '',
       }));
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [user]);
 
   // Load branches
@@ -67,14 +72,12 @@ const Checkout = () => {
         const list = Array.isArray(res) ? res : res?.data || [];
         const activeBranches = list.filter((b) => b.status === 'ACTIVE');
         setBranches(activeBranches);
-        if (activeBranches.length > 0 && !selectedBranchId) {
-          setSelectedBranchId(activeBranches[0].id);
-        }
+        setSelectedBranchId((current) => current || activeBranches[0]?.id || '');
       } catch {
         setBranches([]);
       }
     };
-    fetchBranches();
+    void fetchBranches();
   }, []);
 
   const selectedBranch = useMemo(() => {
@@ -110,7 +113,10 @@ const Checkout = () => {
   // Tự động chọn slot đầu tiên nếu chưa chọn hoặc slot cũ không hợp lệ
   useEffect(() => {
     if (timeSlots.length > 0 && (!pickupTime || !timeSlots.includes(pickupTime))) {
-      setPickupTime(timeSlots[0]);
+      const timer = setTimeout(() => {
+        setPickupTime(timeSlots[0]);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [timeSlots, pickupTime]);
 
@@ -141,6 +147,7 @@ const Checkout = () => {
         customerPhone: form.phone.trim(),
         customerEmail: form.email?.trim() || undefined,
         specialNotes: form.notes?.trim() || undefined,
+        paymentProvider: paymentMethod === 'COD' ? undefined : paymentMethod,
         items: items.map((i) => ({
           menuItemId: i.id,
           quantity: i.quantity || 1,
@@ -150,8 +157,15 @@ const Checkout = () => {
 
       const res = await pickupOrderService.createPickupOrder(payload);
       const order = res?.data || res;
-      setCreatedOrder(order);
       clearCart();
+
+      if (order?.payUrl) {
+        toast.success('Đang chuyển hướng đến cổng thanh toán...');
+        window.location.href = order.payUrl;
+        return;
+      }
+
+      setCreatedOrder(order);
       toast.success('Đặt món mang về thành công!');
     } catch (err) {
       const msg = err?.response?.data?.message || 'Có lỗi xảy ra khi đặt món mang về.';
@@ -165,7 +179,7 @@ const Checkout = () => {
     return (
       <PageWrapper>
         <section className="pt-32 pb-20 min-h-screen flex items-center justify-center bg-light dark:bg-dark">
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full mx-4 bg-white dark:bg-dark-surface p-8 rounded-3xl shadow-card border border-light-border dark:border-dark-border text-center">
+          <Motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full mx-4 bg-white dark:bg-dark-surface p-8 rounded-3xl shadow-card border border-light-border dark:border-dark-border text-center">
             <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-5">
               <CheckCircle2 size={44} className="text-success" />
             </div>
@@ -192,7 +206,7 @@ const Checkout = () => {
             >
               Theo dõi tiến trình chế biến & Xem mã QR
             </button>
-          </motion.div>
+          </Motion.div>
         </section>
       </PageWrapper>
     );
@@ -364,21 +378,112 @@ const Checkout = () => {
               </div>
 
               {/* Phương thức thanh toán */}
-              <div className="bg-white dark:bg-dark-surface p-6 rounded-2xl border border-light-border dark:border-dark-border shadow-sm space-y-3">
-                <h2 className="text-base font-bold text-text-primary dark:text-white flex items-center gap-2">
+              <fieldset className="bg-white dark:bg-dark-surface p-6 rounded-2xl border border-light-border dark:border-dark-border shadow-sm space-y-3">
+                <legend className="text-base font-bold text-text-primary dark:text-white flex items-center gap-2 mb-2 px-1">
                   <Banknote size={18} className="text-primary" />
                   <span>Phương Thức Thanh Toán</span>
-                </h2>
-                <div className="p-4 bg-light-card dark:bg-dark-card rounded-xl border border-primary/20 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <Banknote size={20} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-text-primary dark:text-white">Thanh toán trực tiếp tại quầy khi nhận món</p>
-                    <p className="text-[11px] text-text-secondary dark:text-text-light">Tiền mặt, thẻ ngân hàng hoặc ví điện tử tại quầy thu ngân</p>
-                  </div>
+                </legend>
+
+                <div className="space-y-3">
+                  {/* COD */}
+                  <label
+                    htmlFor="payment-cod"
+                    className={`p-4 rounded-xl border flex items-center gap-3.5 cursor-pointer transition-all ${
+                      paymentMethod === 'COD'
+                        ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-2 ring-primary/20'
+                        : 'border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-card'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      id="payment-cod"
+                      name="paymentMethod"
+                      value="COD"
+                      checked={paymentMethod === 'COD'}
+                      onChange={() => setPaymentMethod('COD')}
+                      className="accent-primary w-4 h-4 cursor-pointer"
+                    />
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <Banknote size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-text-primary dark:text-white">
+                        Thanh toán trực tiếp tại quầy khi nhận món
+                      </p>
+                      <p className="text-[11px] text-text-secondary dark:text-text-light">
+                        Tiền mặt, quẹt thẻ POS hoặc chuyển khoản tại quầy thu ngân chi nhánh
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* MoMo */}
+                  <label
+                    htmlFor="payment-momo"
+                    className={`p-4 rounded-xl border flex items-center gap-3.5 cursor-pointer transition-all ${
+                      paymentMethod === 'MOMO'
+                        ? 'border-[#A50064] bg-[#A50064]/5 dark:bg-[#A50064]/10 ring-2 ring-[#A50064]/20'
+                        : 'border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-card'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      id="payment-momo"
+                      name="paymentMethod"
+                      value="MOMO"
+                      checked={paymentMethod === 'MOMO'}
+                      onChange={() => setPaymentMethod('MOMO')}
+                      className="accent-[#A50064] w-4 h-4 cursor-pointer"
+                    />
+                    <div className="w-10 h-10 rounded-xl bg-[#A50064]/10 flex items-center justify-center text-[#A50064] shrink-0 font-extrabold text-xs">
+                      <QrCode size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold text-text-primary dark:text-white">
+                          Ví điện tử MoMo
+                        </p>
+                        <span className="text-[10px] font-bold text-[#A50064] bg-[#A50064]/10 px-2 py-0.5 rounded-full">
+                          Khuyên dùng
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-text-secondary dark:text-text-light">
+                        Quét mã QR MoMo hoặc mở ứng dụng MoMo để thanh toán bảo mật
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* VNPay */}
+                  <label
+                    htmlFor="payment-vnpay"
+                    className={`p-4 rounded-xl border flex items-center gap-3.5 cursor-pointer transition-all ${
+                      paymentMethod === 'VNPAY'
+                        ? 'border-[#005BAA] bg-[#005BAA]/5 dark:bg-[#005BAA]/10 ring-2 ring-[#005BAA]/20'
+                        : 'border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-card'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      id="payment-vnpay"
+                      name="paymentMethod"
+                      value="VNPAY"
+                      checked={paymentMethod === 'VNPAY'}
+                      onChange={() => setPaymentMethod('VNPAY')}
+                      className="accent-[#005BAA] w-4 h-4 cursor-pointer"
+                    />
+                    <div className="w-10 h-10 rounded-xl bg-[#005BAA]/10 flex items-center justify-center text-[#005BAA] shrink-0">
+                      <CreditCard size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-text-primary dark:text-white">
+                        Cổng thanh toán VNPay
+                      </p>
+                      <p className="text-[11px] text-text-secondary dark:text-text-light">
+                        Thẻ ATM nội địa, Internet Banking, VNPAY-QR, Thẻ Visa/Mastercard
+                      </p>
+                    </div>
+                  </label>
                 </div>
-              </div>
+              </fieldset>
             </div>
 
             {/* Order Summary */}
@@ -429,7 +534,13 @@ const Checkout = () => {
                   disabled={isSubmitting || timeSlots.length === 0}
                   className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-full transition-all hover:scale-[1.02] shadow-glow cursor-pointer disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Đang gửi đơn...' : `Đặt món (${formatPrice(total)})`}
+                  {isSubmitting
+                    ? 'Đang gửi đơn...'
+                    : paymentMethod === 'MOMO'
+                      ? `Thanh toán qua MoMo (${formatPrice(total)})`
+                      : paymentMethod === 'VNPAY'
+                        ? `Thanh toán qua VNPay (${formatPrice(total)})`
+                        : `Đặt món (${formatPrice(total)})`}
                 </button>
               </div>
             </div>

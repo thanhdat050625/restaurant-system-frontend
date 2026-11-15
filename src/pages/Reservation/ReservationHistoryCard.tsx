@@ -10,6 +10,7 @@ import {
   Eye,
   MapPin,
   ExternalLink,
+  CreditCard,
 } from 'lucide-react';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { formatPrice } from '../../utils/helpers';
@@ -155,6 +156,30 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
             <ExternalLink size={13} />
             <span>Mở Menu Bàn</span>
           </Link>
+        </div>
+      )}
+
+      {/* Deposit Payment Badge */}
+      {reservation.payments && reservation.payments.length > 0 && (
+        <div className="flex items-center justify-between p-2.5 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 text-xs">
+          <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-200">
+            <CreditCard size={14} className="text-primary" />
+            <span>
+              Tiền cọc ({reservation.payments[0].provider === 'MOMO' ? 'MoMo' : 'VNPay'}):
+            </span>
+          </div>
+          <span
+            className={`font-bold font-mono ${
+              reservation.payments[0].status === 'SUCCESS'
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : reservation.payments[0].status === 'REFUNDED'
+                  ? 'text-rose-600 dark:text-rose-400'
+                  : 'text-amber-600 dark:text-amber-400'
+            }`}
+          >
+            {formatPrice(Number(reservation.payments[0].amount))}
+            {reservation.payments[0].status === 'REFUNDED' && ' (Đã hoàn)'}
+          </span>
         </div>
       )}
 

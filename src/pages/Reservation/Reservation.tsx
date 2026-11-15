@@ -67,6 +67,12 @@ export const Reservation: React.FC = () => {
   );
 
   const [preOrders, setPreOrders] = useState<IPreOrderItem[]>([]);
+  const [paymentProvider, setPaymentProvider] = useState<'COD' | 'MOMO' | 'VNPAY'>('COD');
+
+  const preOrdersTotal = useMemo(
+    () => preOrders.reduce((sum, p) => sum + (p.menuItem?.price || 0) * p.quantity, 0),
+    [preOrders],
+  );
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -204,6 +210,8 @@ export const Reservation: React.FC = () => {
         customerPhone: phone.replace(/[\s.-]/g, ''),
         customerEmail: email.trim() || undefined,
         specialNotes: specialNotes.trim() || undefined,
+        paymentProvider:
+          preOrders.length > 0 && paymentProvider !== 'COD' ? paymentProvider : undefined,
         preOrders: preOrders.map((p) => ({
           menuItemId: p.menuItemId,
           quantity: p.quantity,
@@ -214,6 +222,13 @@ export const Reservation: React.FC = () => {
       const resData = (res as any)?.data?.data || (res as any)?.data;
       // Khóa giữ bàn đã được server chuyển thành đơn đặt bàn
       clearHold(false);
+
+      if (resData?.payUrl) {
+        toast.loading('Đang chuyển hướng tới cổng thanh toán cọc...');
+        window.location.href = resData.payUrl;
+        return;
+      }
+
       setCreatedReservation(resData);
       toast.success('Đặt bàn thành công! Nhà hàng sẽ liên hệ xác nhận.');
     } catch (err: any) {
@@ -236,6 +251,7 @@ export const Reservation: React.FC = () => {
     setTime('');
     clearHold(false);
     setPreOrders([]);
+    setPaymentProvider('COD');
     setSpecialNotes('');
   };
 
@@ -373,6 +389,10 @@ export const Reservation: React.FC = () => {
                       isSubmitting={isSubmitting}
                       onBack={() => setStep(3)}
                       onSubmit={handleSubmit}
+                      paymentProvider={paymentProvider}
+                      setPaymentProvider={setPaymentProvider}
+                      hasPreOrders={preOrders.length > 0}
+                      preOrdersTotal={preOrdersTotal}
                     />
                   </motion.div>
                 )}

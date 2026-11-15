@@ -19,6 +19,7 @@ import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import Profile from './pages/Profile/Profile';
 import OrderTracking from './pages/OrderTracking/OrderTracking';
+import PaymentResult from './pages/Payment/PaymentResult';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
 import TableOrderPage from './pages/DineIn/TableOrderPage';
@@ -105,6 +106,7 @@ const Layout = () => {
               </KitchenRoute>
             }
           />
+          <Route path="/payment/result" element={<PaymentResult />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           
