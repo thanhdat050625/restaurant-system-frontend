@@ -1,3 +1,5 @@
+import { PaymentProvider, IPaymentTransaction } from './payment.type';
+
 export type ReservationStatus =
   | 'PENDING'
   | 'CONFIRMED'
@@ -30,6 +32,7 @@ export interface ICreateReservationDto {
   tableTypeId?: string;
   tableId?: string;
   specialNotes?: string;
+  paymentProvider?: PaymentProvider;
   preOrders?: IPreOrderItem[];
 }
 
@@ -106,4 +109,7 @@ export interface IReservation {
       imageUrl?: string;
     };
   }[];
+  payments?: IPaymentTransaction[];
+  payUrl?: string;
+  payment?: IPaymentTransaction;
 }
