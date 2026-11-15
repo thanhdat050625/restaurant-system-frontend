@@ -1,6 +1,7 @@
 import { IBranch } from './admin/branch.type';
 import { MenuItem } from './menuItem.type';
 import { PaginationMeta } from './api-response.type';
+import { IPaymentTransaction, PaymentProvider } from './payment.type';
 
 export type PickupOrderStatus =
   | 'PENDING'
@@ -41,6 +42,8 @@ export interface IPickupOrder {
   updatedAt: string;
   branch?: IBranch;
   items?: IPickupOrderItem[];
+  payments?: IPaymentTransaction[];
+  paymentUrl?: string | null;
   qrPayload?: string;
   canCancel?: boolean;
 }
@@ -59,6 +62,7 @@ export interface ICreatePickupOrderRequest {
   customerPhone: string;
   customerEmail?: string;
   specialNotes?: string;
+  paymentProvider?: PaymentProvider;
   items: ICreatePickupOrderItemRequest[];
 }
 

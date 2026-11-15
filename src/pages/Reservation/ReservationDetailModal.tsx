@@ -15,6 +15,8 @@ import {
   AlertTriangle,
   Building2,
   QrCode,
+  CreditCard,
+  Printer,
 } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
@@ -307,9 +309,66 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
           )}
         </div>
 
+        {/* Payment & Deposit Transactions */}
+        {reservation.payments && reservation.payments.length > 0 && (
+          <div className="p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 space-y-2.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+              <CreditCard size={14} className="text-primary" />
+              Lịch sử giao dịch tiền cọc
+            </h4>
+            <div className="space-y-2">
+              {reservation.payments.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 dark:bg-slate-700/50 text-xs"
+                >
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                      <span>
+                        {p.provider === 'CASH'
+                          ? 'Tiền mặt'
+                          : p.provider === 'MOMO'
+                            ? 'Ví MoMo'
+                            : 'Cổng VNPay'}
+                      </span>
+                      <span className="text-[10px] text-primary font-bold">
+                        {p.purpose === 'RESERVATION_DEPOSIT' ? '· Tiền cọc' : '· Quyết toán'}
+                      </span>
+                      <span className="font-mono text-gray-400 text-[11px]">#{p.transactionCode}</span>
+                    </p>
+                    <p className="text-[11px] text-gray-400">
+                      {p.paidAt
+                        ? `Thanh toán lúc ${new Date(p.paidAt).toLocaleTimeString('vi-VN')} ${new Date(p.paidAt).toLocaleDateString('vi-VN')}`
+                        : 'Chờ giao dịch'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold font-mono text-primary">{formatPrice(Number(p.amount))}</p>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        p.status === 'SUCCESS'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
+                          : p.status === 'REFUNDED'
+                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400'
+                            : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
+                      }`}
+                    >
+                      {p.status === 'SUCCESS'
+                        ? 'Thành công'
+                        : p.status === 'REFUNDED'
+                          ? 'Đã hoàn tiền'
+                          : 'Đang xử lý'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Footer actions */}
         <div className="pt-2 flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-2">
             {onOpenQR && ['PENDING', 'CONFIRMED', 'SEATED'].includes(reservation.status) && (
               <button
                 type="button"
@@ -318,6 +377,17 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
               >
                 <QrCode size={14} />
                 <span>Mã QR Check-in</span>
+              </button>
+            )}
+
+            {reservation.status === 'COMPLETED' && (
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer size={14} />
+                <span>In hóa đơn</span>
               </button>
             )}
           </div>

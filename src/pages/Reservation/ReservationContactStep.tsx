@@ -1,6 +1,16 @@
 import React from 'react';
-import { CheckCircle2, UserRound, Phone, Mail, MessageSquareText } from 'lucide-react';
+import {
+  CheckCircle2,
+  UserRound,
+  Phone,
+  Mail,
+  MessageSquareText,
+  CreditCard,
+  Wallet,
+  Banknote,
+} from 'lucide-react';
 import { ui, SectionTitle, StepActions } from './reservationUi';
+import { formatPrice } from '../../utils/helpers';
 
 interface ReservationContactStepProps {
   name: string;
@@ -16,6 +26,10 @@ interface ReservationContactStepProps {
   isSubmitting: boolean;
   onBack: () => void;
   onSubmit: () => void;
+  paymentProvider: 'COD' | 'MOMO' | 'VNPAY';
+  setPaymentProvider: (provider: 'COD' | 'MOMO' | 'VNPAY') => void;
+  hasPreOrders: boolean;
+  preOrdersTotal: number;
 }
 
 const PHONE_PATTERN = /^[0-9+]{9,15}$/;
@@ -47,6 +61,10 @@ export const ReservationContactStep: React.FC<ReservationContactStepProps> = ({
   isSubmitting,
   onBack,
   onSubmit,
+  paymentProvider,
+  setPaymentProvider,
+  hasPreOrders,
+  preOrdersTotal,
 }) => {
   const normalizedPhone = phone.replace(/[\s.-]/g, '');
   const phoneInvalid = phone.trim() !== '' && !PHONE_PATTERN.test(normalizedPhone);
@@ -110,13 +128,118 @@ export const ReservationContactStep: React.FC<ReservationContactStepProps> = ({
         </div>
       </div>
 
+      {hasPreOrders && (
+        <div className={`${ui.card} p-5 sm:p-6`}>
+          <fieldset className="border-0 p-0 m-0">
+            <legend className="w-full mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-text-primary dark:text-white flex items-center gap-2">
+                    <Wallet size={18} className="text-primary" />
+                    Thanh toán tiền cọc món ăn
+                  </h3>
+                  <p className="text-xs text-text-secondary dark:text-text-light mt-0.5">
+                    Đơn có chọn trước món. Bạn có thể cọc online ngay để đảm bảo chuẩn bị chu đáo.
+                  </p>
+                </div>
+                <span className="text-sm font-extrabold text-primary font-mono bg-primary/10 px-3 py-1 rounded-xl">
+                  {formatPrice(preOrdersTotal)}
+                </span>
+              </div>
+            </legend>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label
+                className={`relative flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                  paymentProvider === 'COD'
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    : 'border-light-border dark:border-dark-border hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-dark-surface'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="reservationPaymentMethod"
+                  value="COD"
+                  checked={paymentProvider === 'COD'}
+                  onChange={() => setPaymentProvider('COD')}
+                  className="sr-only"
+                />
+                <div className="flex items-center gap-2 mb-2">
+                  <Banknote className="text-amber-500" size={20} />
+                  <span className="font-bold text-xs text-text-primary dark:text-white">Tại nhà hàng</span>
+                </div>
+                <p className="text-[11px] text-text-secondary dark:text-text-light">
+                  Thanh toán cọc hoặc toàn bộ khi đến dùng bữa tại quầy.
+                </p>
+              </label>
+
+              <label
+                className={`relative flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                  paymentProvider === 'MOMO'
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    : 'border-light-border dark:border-dark-border hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-dark-surface'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="reservationPaymentMethod"
+                  value="MOMO"
+                  checked={paymentProvider === 'MOMO'}
+                  onChange={() => setPaymentProvider('MOMO')}
+                  className="sr-only"
+                />
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-5 rounded-md bg-[#A50064] text-white flex items-center justify-center font-black text-[10px]">
+                    M
+                  </span>
+                  <span className="font-bold text-xs text-text-primary dark:text-white">Ví MoMo</span>
+                </div>
+                <p className="text-[11px] text-text-secondary dark:text-text-light">
+                  Thanh toán cọc tức thì qua ứng dụng MoMo hoặc quét mã QR.
+                </p>
+              </label>
+
+              <label
+                className={`relative flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                  paymentProvider === 'VNPAY'
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    : 'border-light-border dark:border-dark-border hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-dark-surface'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="reservationPaymentMethod"
+                  value="VNPAY"
+                  checked={paymentProvider === 'VNPAY'}
+                  onChange={() => setPaymentProvider('VNPAY')}
+                  className="sr-only"
+                />
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className="text-[#005BAA]" size={20} />
+                  <span className="font-bold text-xs text-text-primary dark:text-white">Cổng VNPay</span>
+                </div>
+                <p className="text-[11px] text-text-secondary dark:text-text-light">
+                  Thanh toán qua thẻ ATM, QR Pay hoặc thẻ Visa/Mastercard.
+                </p>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+      )}
+
       <div className="lg:hidden">{summary}</div>
 
       <StepActions
         onBack={onBack}
         onNext={onSubmit}
         nextIcon={CheckCircle2}
-        nextLabel={isSubmitting ? 'Đang ghi nhận đặt bàn...' : 'Xác nhận đặt bàn'}
+        nextLabel={
+          isSubmitting
+            ? 'Đang ghi nhận đặt bàn...'
+            : hasPreOrders && paymentProvider !== 'COD'
+              ? `Thanh toán cọc ${formatPrice(preOrdersTotal)}`
+              : 'Xác nhận đặt bàn'
+        }
         nextDisabled={!name.trim() || !phone.trim() || phoneInvalid}
         isLoading={isSubmitting}
       />

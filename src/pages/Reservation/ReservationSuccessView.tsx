@@ -12,10 +12,12 @@ import {
   RotateCcw,
   Armchair,
   History,
+  Wallet,
 } from 'lucide-react';
 import PageWrapper from '../../layouts/PageWrapper';
 import PageHero from '../../components/ui/PageHero';
 import { IReservation } from '../../types/reservation.type';
+import { formatPrice } from '../../utils/helpers';
 import { ui } from './reservationUi';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920';
@@ -36,6 +38,10 @@ export const ReservationSuccessView: React.FC<ReservationSuccessViewProps> = ({
     year: 'numeric',
   });
   const { table } = reservation;
+
+  const latestPayment = reservation.payments && reservation.payments.length > 0
+    ? reservation.payments[reservation.payments.length - 1]
+    : undefined;
 
   const details = [
     { icon: Building2, label: 'Chi nhánh', value: reservation.branch?.name || 'Chi nhánh FoodHub' },
@@ -61,6 +67,21 @@ export const ReservationSuccessView: React.FC<ReservationSuccessViewProps> = ({
       value: `${reservation.customerName} · ${reservation.customerPhone}`,
     },
   ];
+
+  if (latestPayment) {
+    const paymentLabel = latestPayment.provider === 'MOMO' ? 'Ví MoMo' : 'Cổng VNPay';
+    const statusText =
+      latestPayment.status === 'SUCCESS'
+        ? 'Đã thanh toán cọc'
+        : latestPayment.status === 'REFUNDED'
+          ? 'Đã hoàn tiền cọc'
+          : 'Chờ thanh toán';
+    details.push({
+      icon: Wallet,
+      label: 'Tiền cọc món',
+      value: `${formatPrice(Number(latestPayment.amount))} (${paymentLabel} · ${statusText})`,
+    });
+  }
 
   return (
     <PageWrapper className="bg-light dark:bg-dark">

@@ -1,11 +1,13 @@
 import apiClient from './api';
 import { ApiResponse } from '../types/api-response.type';
+import { PaymentProvider } from '../types/payment.type';
 import {
   ICreateReservationDto,
   IReservation,
   IAvailableSlotsResponse,
   IQueryAvailableSlotsParams,
   IPreOrderItem,
+  IReservationBill,
 } from '../types/reservation.type';
 
 export const reservationService = {
@@ -66,5 +68,16 @@ export const reservationService = {
     items: IPreOrderItem[],
   ): Promise<ApiResponse<any>> => {
     return await apiClient.put(`/reservations/${reservationId}/pre-orders`, { items });
+  },
+
+  getBill: async (id: string): Promise<ApiResponse<IReservationBill>> => {
+    return await apiClient.get(`/reservations/${id}/bill`);
+  },
+
+  settleBill: async (
+    id: string,
+    data: { paymentMethod: PaymentProvider; note?: string },
+  ): Promise<ApiResponse<IReservationBill | { payUrl?: string; transactionCode?: string }>> => {
+    return await apiClient.post(`/reservations/${id}/settle`, data);
   },
 };

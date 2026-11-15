@@ -19,6 +19,7 @@ import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import Profile from './pages/Profile/Profile';
 import OrderTracking from './pages/OrderTracking/OrderTracking';
+import PaymentResult from './pages/Payment/PaymentResult';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
 
@@ -86,6 +87,7 @@ const Layout = () => {
           <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/order/:id" element={<OrderTracking />} />
+          <Route path="/payment/result" element={<PaymentResult />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           
