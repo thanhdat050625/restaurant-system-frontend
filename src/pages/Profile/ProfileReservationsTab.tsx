@@ -71,6 +71,8 @@ export const ProfileReservationsTab: React.FC = () => {
 
     socketService.on('reservation:created', handleCreated);
     socketService.on('reservation:updated', handleUpdated);
+    socketService.on('reservation:statusChanged', handleUpdated);
+    socketService.on('payment:updated', handleBillOrBatchChanged);
     socketService.on('table:batch_created', handleBillOrBatchChanged);
     socketService.on('table:bill_updated', handleBillOrBatchChanged);
     socketService.on('table:invoice_closed', handleBillOrBatchChanged);
@@ -78,6 +80,8 @@ export const ProfileReservationsTab: React.FC = () => {
     return () => {
       socketService.off('reservation:created', handleCreated);
       socketService.off('reservation:updated', handleUpdated);
+      socketService.off('reservation:statusChanged', handleUpdated);
+      socketService.off('payment:updated', handleBillOrBatchChanged);
       socketService.off('table:batch_created', handleBillOrBatchChanged);
       socketService.off('table:bill_updated', handleBillOrBatchChanged);
       socketService.off('table:invoice_closed', handleBillOrBatchChanged);

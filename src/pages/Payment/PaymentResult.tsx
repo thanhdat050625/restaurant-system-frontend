@@ -49,7 +49,8 @@ export const PaymentResult = () => {
           res = await paymentService.verifyVnpayReturn(paramsObj);
         }
 
-        const data: IPaymentTransaction = (res as { data?: IPaymentTransaction })?.data || (res as IPaymentTransaction);
+        const data: IPaymentTransaction =
+          (res as { data?: IPaymentTransaction })?.data ?? (res as unknown as IPaymentTransaction);
 
         if (data.status === 'SUCCESS') {
           setTransaction(data);

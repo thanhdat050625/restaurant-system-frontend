@@ -137,6 +137,8 @@ export const StaffReservations: React.FC = () => {
 
     socketService.on('reservation:created', handleNewReservation);
     socketService.on('reservation:updated', handleRefresh);
+    socketService.on('reservation:statusChanged', handleRefresh);
+    socketService.on('payment:updated', handleRefresh);
     socketService.on('table:status_changed', handleRefresh);
     socketService.on('table:reserved', handleRefresh);
     socketService.on('table:batch_created', handleRefresh);
@@ -145,6 +147,8 @@ export const StaffReservations: React.FC = () => {
     return () => {
       socketService.off('reservation:created', handleNewReservation);
       socketService.off('reservation:updated', handleRefresh);
+      socketService.off('reservation:statusChanged', handleRefresh);
+      socketService.off('payment:updated', handleRefresh);
       socketService.off('table:status_changed', handleRefresh);
       socketService.off('table:reserved', handleRefresh);
       socketService.off('table:batch_created', handleRefresh);
@@ -555,7 +559,7 @@ export const StaffReservations: React.FC = () => {
                     <Eye size={15} />
                   </button>
 
-                  <div className="flex items-center gap-1.5 flex-1 justify-end">
+                  <div className="flex flex-wrap items-center gap-1.5 flex-1 justify-end">
                     {/* Status PENDING: Tiếp nhận hoặc Hủy */}
                     {res.status === 'PENDING' && (
                       <>
@@ -603,8 +607,7 @@ export const StaffReservations: React.FC = () => {
                       </>
                     )}
 
-                    {/* Status SEATED: QR Gọi món tại bàn, Gọi thêm món hoặc Hoàn thành bữa ăn */}
-                    {/* Status SEATED: Gọi thêm món hoặc Quyết toán / Hoàn thành */}
+                    {/* Status SEATED: QR Gọi món tại bàn, Gọi thêm món hoặc Quyết toán / Hoàn thành */}
                     {res.status === 'SEATED' && (
                       <>
                         {res.table && (
