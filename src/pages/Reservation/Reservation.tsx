@@ -67,7 +67,7 @@ export const Reservation: React.FC = () => {
   );
 
   const [preOrders, setPreOrders] = useState<IPreOrderItem[]>([]);
-  const [paymentProvider, setPaymentProvider] = useState<'COD' | 'MOMO'>('COD');
+  const [paymentProvider, setPaymentProvider] = useState<'COD' | 'MOMO' | 'SEPAY'>('COD');
 
   const preOrdersTotal = useMemo(
     () => preOrders.reduce((sum, p) => sum + (p.menuItem?.price || 0) * p.quantity, 0),

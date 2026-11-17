@@ -17,6 +17,12 @@ export const paymentService = {
     });
   },
 
+  verifySepayReturn: async (params: Record<string, unknown>) => {
+    return apiClient.get<ApiResponse<IPaymentTransaction>>('/payments/sepay/verify', {
+      params,
+    });
+  },
+
   getPaymentsByTarget: async (params: IQueryPaymentParams) => {
     return apiClient.get<ApiResponse<IPaymentTransaction[]>>('/payments', {
       params,

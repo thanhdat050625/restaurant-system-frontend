@@ -168,9 +168,11 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
             const providerLabel =
               p.provider === 'MOMO'
                 ? 'MoMo'
-                : p.provider === 'CASH'
-                  ? 'Tiền mặt'
-                  : p.provider;
+                : p.provider === 'SEPAY'
+                  ? 'SePay'
+                  : p.provider === 'CASH'
+                    ? 'Tiền mặt'
+                    : p.provider;
 
             return (
               <div

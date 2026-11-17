@@ -2,7 +2,7 @@ export type InvoiceStatus = 'OPEN' | 'PAYMENT_PENDING' | 'PAID' | 'CANCELLED';
 
 export type KitchenItemStatus = 'QUEUED' | 'PREPARING' | 'READY' | 'SERVED' | 'CANCELLED';
 
-export type PaymentMethodType = 'CASH' | 'BANKING' | 'MOMO' | 'CARD';
+export type PaymentMethodType = 'CASH' | 'BANKING' | 'MOMO' | 'SEPAY' | 'CARD';
 
 export interface IDineInMenuCategory {
   id: string;

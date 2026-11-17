@@ -37,6 +37,7 @@ const paymentOptions: { value: PaymentMethodType; label: string }[] = [
   { value: 'CASH', label: 'Tiền mặt (CASH)' },
   { value: 'BANKING', label: 'Chuyển khoản (BANKING)' },
   { value: 'MOMO', label: 'Ví MoMo' },
+  { value: 'SEPAY', label: 'Cổng SePay (VietQR / Thẻ)' },
   { value: 'CARD', label: 'Quẹt thẻ (CARD)' },
 ];
 

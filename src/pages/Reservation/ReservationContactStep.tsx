@@ -25,8 +25,8 @@ interface ReservationContactStepProps {
   isSubmitting: boolean;
   onBack: () => void;
   onSubmit: () => void;
-  paymentProvider: 'COD' | 'MOMO';
-  setPaymentProvider: (provider: 'COD' | 'MOMO') => void;
+  paymentProvider: 'COD' | 'MOMO' | 'SEPAY';
+  setPaymentProvider: (provider: 'COD' | 'MOMO' | 'SEPAY') => void;
   hasPreOrders: boolean;
   preOrdersTotal: number;
 }
@@ -195,6 +195,32 @@ export const ReservationContactStep: React.FC<ReservationContactStepProps> = ({
                 </div>
                 <p className="text-[11px] text-text-secondary dark:text-text-light">
                   Thanh toán cọc tức thì qua Ví MoMo, Thẻ ATM nội địa hoặc Thẻ quốc tế.
+                </p>
+              </label>
+
+              <label
+                className={`relative flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                  paymentProvider === 'SEPAY'
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    : 'border-light-border dark:border-dark-border hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-dark-surface'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="reservationPaymentMethod"
+                  value="SEPAY"
+                  checked={paymentProvider === 'SEPAY'}
+                  onChange={() => setPaymentProvider('SEPAY')}
+                  className="sr-only"
+                />
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-5 rounded-md bg-[#0052cc] text-white flex items-center justify-center font-black text-[10px]">
+                    S
+                  </span>
+                  <span className="font-bold text-xs text-text-primary dark:text-white">SePay</span>
+                </div>
+                <p className="text-[11px] text-text-secondary dark:text-text-light">
+                  Thanh toán cọc qua SePay (VietQR, NAPAS, Thẻ quốc tế).
                 </p>
               </label>
             </div>

@@ -1,4 +1,4 @@
-export type PaymentProvider = 'MOMO' | 'CASH';
+export type PaymentProvider = 'MOMO' | 'SEPAY' | 'CASH';
 
 export type PaymentPurpose =
   | 'RESERVATION_DEPOSIT'

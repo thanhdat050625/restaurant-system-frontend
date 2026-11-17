@@ -33,26 +33,62 @@ export const PaymentResult = () => {
       });
 
       const isMomo = searchParams.has('orderId') || searchParams.has('partnerCode');
+      const isSepay = searchParams.get('provider') === 'SEPAY' || searchParams.has('order_invoice_number');
 
-      if (!isMomo) {
+      if (!isMomo && !isSepay) {
         setState('FAILED');
         setErrorMessage('Không tìm thấy thông tin xác thực từ cổng thanh toán.');
         return;
       }
 
       try {
-        const res = await paymentService.verifyMomoReturn(paramsObj);
+        if (isMomo) {
+          const res = await paymentService.verifyMomoReturn(paramsObj);
+          const data: IPaymentTransaction =
+            (res as { data?: IPaymentTransaction })?.data ?? (res as unknown as IPaymentTransaction);
 
-        const data: IPaymentTransaction =
-          (res as { data?: IPaymentTransaction })?.data ?? (res as unknown as IPaymentTransaction);
+          if (data.status === 'SUCCESS') {
+            setTransaction(data);
+            setState('SUCCESS');
+          } else {
+            setTransaction(data);
+            setState('FAILED');
+            setErrorMessage('Giao dịch chưa được thanh toán thành công hoặc đã bị hủy.');
+          }
+        } else if (isSepay) {
+          const transactionCode =
+            searchParams.get('order_invoice_number') || searchParams.get('transactionCode') || '';
 
-        if (data.status === 'SUCCESS') {
-          setTransaction(data);
-          setState('SUCCESS');
-        } else {
-          setTransaction(data);
-          setState('FAILED');
-          setErrorMessage('Giao dịch chưa được thanh toán thành công hoặc đã bị hủy.');
+          if (!transactionCode) {
+            setState('FAILED');
+            setErrorMessage('Không tìm thấy mã giao dịch SePay.');
+            return;
+          }
+
+          let data: IPaymentTransaction | null = null;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            const res = await paymentService.getTransactionByCode(transactionCode);
+            const currentTx =
+              (res as { data?: IPaymentTransaction })?.data ?? (res as unknown as IPaymentTransaction);
+            if (currentTx) {
+              data = currentTx;
+              if (data.status === 'SUCCESS' || data.status === 'FAILED') {
+                break;
+              }
+            }
+            if (attempt < 2) {
+              await new Promise((resolve) => setTimeout(resolve, 1500));
+            }
+          }
+
+          if (data && data.status === 'SUCCESS') {
+            setTransaction(data);
+            setState('SUCCESS');
+          } else {
+            setTransaction(data);
+            setState('FAILED');
+            setErrorMessage('Giao dịch chưa được thanh toán thành công hoặc đang chờ xác nhận từ ngân hàng.');
+          }
         }
       } catch (err: unknown) {
         setState('FAILED');
@@ -121,7 +157,11 @@ export const PaymentResult = () => {
                 <div className="flex justify-between items-center pt-2 border-t border-light-border dark:border-dark-border">
                   <span className="text-text-secondary dark:text-text-light">Cổng thanh toán</span>
                   <span className="font-bold text-text-primary dark:text-white">
-                    {transaction.provider === 'MOMO' ? 'Ví MoMo' : transaction.provider}
+                    {transaction.provider === 'MOMO'
+                      ? 'Ví MoMo'
+                      : transaction.provider === 'SEPAY'
+                        ? 'Cổng SePay'
+                        : transaction.provider}
                   </span>
                 </div>
 

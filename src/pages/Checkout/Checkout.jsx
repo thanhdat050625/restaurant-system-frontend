@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   ArrowLeft,
   QrCode,
+  CreditCard,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageWrapper from '../../layouts/PageWrapper';
@@ -450,6 +451,42 @@ const Checkout = () => {
                       </p>
                     </div>
                   </label>
+
+                  {/* SePay */}
+                  <label
+                    htmlFor="payment-sepay"
+                    className={`p-4 rounded-xl border flex items-center gap-3.5 cursor-pointer transition-all ${
+                      paymentMethod === 'SEPAY'
+                        ? 'border-[#0052cc] bg-[#0052cc]/5 dark:bg-[#0052cc]/10 ring-2 ring-[#0052cc]/20'
+                        : 'border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-card'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      id="payment-sepay"
+                      name="paymentMethod"
+                      value="SEPAY"
+                      checked={paymentMethod === 'SEPAY'}
+                      onChange={() => setPaymentMethod('SEPAY')}
+                      className="accent-[#0052cc] w-4 h-4 cursor-pointer"
+                    />
+                    <div className="w-10 h-10 rounded-xl bg-[#0052cc]/10 flex items-center justify-center text-[#0052cc] shrink-0 font-extrabold text-xs">
+                      <CreditCard size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold text-text-primary dark:text-white">
+                          Cổng thanh toán SePay
+                        </p>
+                        <span className="text-[10px] font-bold text-[#0052cc] bg-[#0052cc]/10 px-2 py-0.5 rounded-full">
+                          VietQR / Thẻ
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-text-secondary dark:text-text-light">
+                        Quét mã VietQR ngân hàng, NAPAS hoặc Thẻ quốc tế Visa/Mastercard
+                      </p>
+                    </div>
+                  </label>
                 </div>
               </fieldset>
             </div>
@@ -506,7 +543,9 @@ const Checkout = () => {
                     ? 'Đang gửi đơn...'
                     : paymentMethod === 'MOMO'
                       ? `Thanh toán qua MoMo (${formatPrice(total)})`
-                      : `Đặt món (${formatPrice(total)})`}
+                      : paymentMethod === 'SEPAY'
+                        ? `Thanh toán qua SePay (${formatPrice(total)})`
+                        : `Đặt món (${formatPrice(total)})`}
                 </button>
               </div>
             </div>

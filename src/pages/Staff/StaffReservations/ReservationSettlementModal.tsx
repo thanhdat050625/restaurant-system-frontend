@@ -106,7 +106,7 @@ export const ReservationSettlementModal: React.FC<ReservationSettlementModalProp
 
       const resData = res?.data?.data || res?.data || res;
 
-      if (paymentMethod === 'MOMO') {
+      if (paymentMethod === 'MOMO' || paymentMethod === 'SEPAY') {
         if (resData?.payUrl) {
           setOnlinePayUrl(resData.payUrl);
           toast.success('Đã tạo liên kết thanh toán. Quét mã QR hoặc nhấn vào link.');
@@ -303,6 +303,27 @@ export const ReservationSettlementModal: React.FC<ReservationSettlementModalProp
                   </div>
                   <p className="text-[10px] text-gray-500">Tạo mã thanh toán MoMo (hỗ trợ QR, ATM, Thẻ quốc tế).</p>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentMethod('SEPAY');
+                    setOnlinePayUrl(null);
+                  }}
+                  className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                    paymentMethod === 'SEPAY'
+                      ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 bg-white dark:bg-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-4 h-4 rounded bg-[#0052cc] text-white flex items-center justify-center font-bold text-[9px]">
+                      S
+                    </span>
+                    <span className="font-bold text-xs text-gray-800 dark:text-gray-100">SePay</span>
+                  </div>
+                  <p className="text-[10px] text-gray-500">Tạo mã SePay (VietQR ngân hàng, Thẻ).</p>
+                </button>
               </div>
 
               {paymentMethod === 'CASH' && (
@@ -386,7 +407,7 @@ export const ReservationSettlementModal: React.FC<ReservationSettlementModalProp
                   ) : (
                     <>
                       <QrCode size={14} />
-                      <span>Tạo mã thanh toán MoMo</span>
+                      <span>Tạo mã thanh toán {paymentMethod === 'SEPAY' ? 'SePay' : 'MoMo'}</span>
                     </>
                   )}
                 </button>

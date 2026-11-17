@@ -223,7 +223,7 @@ const OrderTracking = () => {
                   {isPaid && successfulPayment ? (
                     <span className="px-3 py-1.5 rounded-full font-bold text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300 flex items-center gap-1.5">
                       <CheckCircle2 size={13} />
-                      <span>Đã thanh toán (MoMo)</span>
+                      <span>Đã thanh toán ({successfulPayment.provider === 'SEPAY' ? 'SePay' : 'MoMo'})</span>
                     </span>
                   ) : isRefunded ? (
                     <span className="px-3 py-1.5 rounded-full font-bold text-xs bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-300 flex items-center gap-1.5">
@@ -393,7 +393,11 @@ const OrderTracking = () => {
                     <div>
                       Cổng thanh toán:{' '}
                       <strong className="text-text-primary dark:text-white">
-                        {successfulPayment.provider === 'MOMO' ? 'Ví điện tử MoMo' : successfulPayment.provider}
+                        {successfulPayment.provider === 'MOMO'
+                          ? 'Ví điện tử MoMo'
+                          : successfulPayment.provider === 'SEPAY'
+                            ? 'Cổng thanh toán SePay'
+                            : successfulPayment.provider}
                       </strong>
                     </div>
                     <div>
@@ -451,7 +455,7 @@ const OrderTracking = () => {
                   </div>
 
                   {!isCancelled && order.status !== 'COMPLETED' && (
-                    <div className="pt-1">
+                    <div className="pt-1 space-y-2">
                       <button
                         type="button"
                         onClick={() => handleOnlinePay('MOMO')}
@@ -464,6 +468,20 @@ const OrderTracking = () => {
                           <ExternalLink size={15} />
                         )}
                         <span>Thanh toán trực tuyến bằng MoMo</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOnlinePay('SEPAY')}
+                        disabled={payingProvider !== null}
+                        className="w-full py-3 px-4 bg-[#0052cc] hover:bg-[#0747a6] text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {payingProvider === 'SEPAY' ? (
+                          <Loader2 size={15} className="animate-spin" />
+                        ) : (
+                          <ExternalLink size={15} />
+                        )}
+                        <span>Thanh toán trực tuyến qua SePay (VietQR / Thẻ)</span>
                       </button>
                     </div>
                   )}
