@@ -17,12 +17,6 @@ export const paymentService = {
     });
   },
 
-  verifyVnpayReturn: async (params: Record<string, unknown>) => {
-    return apiClient.get<ApiResponse<IPaymentTransaction>>('/payments/vnpay/verify', {
-      params,
-    });
-  },
-
   getPaymentsByTarget: async (params: IQueryPaymentParams) => {
     return apiClient.get<ApiResponse<IPaymentTransaction[]>>('/payments', {
       params,

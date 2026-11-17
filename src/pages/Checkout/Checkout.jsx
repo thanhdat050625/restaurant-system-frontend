@@ -13,7 +13,6 @@ import {
   ShoppingBag,
   ArrowLeft,
   QrCode,
-  CreditCard,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageWrapper from '../../layouts/PageWrapper';
@@ -447,38 +446,7 @@ const Checkout = () => {
                         </span>
                       </div>
                       <p className="text-[11px] text-text-secondary dark:text-text-light">
-                        Quét mã QR MoMo hoặc mở ứng dụng MoMo để thanh toán bảo mật
-                      </p>
-                    </div>
-                  </label>
-
-                  {/* VNPay */}
-                  <label
-                    htmlFor="payment-vnpay"
-                    className={`p-4 rounded-xl border flex items-center gap-3.5 cursor-pointer transition-all ${
-                      paymentMethod === 'VNPAY'
-                        ? 'border-[#005BAA] bg-[#005BAA]/5 dark:bg-[#005BAA]/10 ring-2 ring-[#005BAA]/20'
-                        : 'border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-card'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      id="payment-vnpay"
-                      name="paymentMethod"
-                      value="VNPAY"
-                      checked={paymentMethod === 'VNPAY'}
-                      onChange={() => setPaymentMethod('VNPAY')}
-                      className="accent-[#005BAA] w-4 h-4 cursor-pointer"
-                    />
-                    <div className="w-10 h-10 rounded-xl bg-[#005BAA]/10 flex items-center justify-center text-[#005BAA] shrink-0">
-                      <CreditCard size={20} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-text-primary dark:text-white">
-                        Cổng thanh toán VNPay
-                      </p>
-                      <p className="text-[11px] text-text-secondary dark:text-text-light">
-                        Thẻ ATM nội địa, Internet Banking, VNPAY-QR, Thẻ Visa/Mastercard
+                        Quét mã QR MoMo, Thẻ ATM nội địa hoặc Thẻ quốc tế (Visa/Mastercard)
                       </p>
                     </div>
                   </label>
@@ -538,9 +506,7 @@ const Checkout = () => {
                     ? 'Đang gửi đơn...'
                     : paymentMethod === 'MOMO'
                       ? `Thanh toán qua MoMo (${formatPrice(total)})`
-                      : paymentMethod === 'VNPAY'
-                        ? `Thanh toán qua VNPay (${formatPrice(total)})`
-                        : `Đặt món (${formatPrice(total)})`}
+                      : `Đặt món (${formatPrice(total)})`}
                 </button>
               </div>
             </div>

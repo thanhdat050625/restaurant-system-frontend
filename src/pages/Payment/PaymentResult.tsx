@@ -32,22 +32,16 @@ export const PaymentResult = () => {
         paramsObj[key] = val;
       });
 
-      const isVnpay = searchParams.has('vnp_TxnRef') || searchParams.has('vnp_SecureHash');
       const isMomo = searchParams.has('orderId') || searchParams.has('partnerCode');
 
-      if (!isVnpay && !isMomo) {
+      if (!isMomo) {
         setState('FAILED');
         setErrorMessage('Không tìm thấy thông tin xác thực từ cổng thanh toán.');
         return;
       }
 
       try {
-        let res;
-        if (isMomo) {
-          res = await paymentService.verifyMomoReturn(paramsObj);
-        } else {
-          res = await paymentService.verifyVnpayReturn(paramsObj);
-        }
+        const res = await paymentService.verifyMomoReturn(paramsObj);
 
         const data: IPaymentTransaction =
           (res as { data?: IPaymentTransaction })?.data ?? (res as unknown as IPaymentTransaction);
@@ -127,7 +121,7 @@ export const PaymentResult = () => {
                 <div className="flex justify-between items-center pt-2 border-t border-light-border dark:border-dark-border">
                   <span className="text-text-secondary dark:text-text-light">Cổng thanh toán</span>
                   <span className="font-bold text-text-primary dark:text-white">
-                    {transaction.provider === 'MOMO' ? 'Ví MoMo' : 'Cổng VNPay'}
+                    {transaction.provider === 'MOMO' ? 'Ví MoMo' : transaction.provider}
                   </span>
                 </div>
 

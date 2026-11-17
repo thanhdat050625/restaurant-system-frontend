@@ -373,7 +373,7 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
                           ? 'Tiền mặt'
                           : p.provider === 'MOMO'
                             ? 'Ví MoMo'
-                            : 'Cổng VNPay'}
+                            : p.provider}
                       </span>
                       <span className="text-[10px] text-primary font-bold">
                         {p.purpose === 'RESERVATION_DEPOSIT' ? '· Tiền cọc' : '· Quyết toán'}

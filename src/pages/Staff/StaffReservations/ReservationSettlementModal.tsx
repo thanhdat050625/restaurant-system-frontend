@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  CreditCard,
   Banknote,
   CheckCircle2,
   Printer,
@@ -107,7 +106,7 @@ export const ReservationSettlementModal: React.FC<ReservationSettlementModalProp
 
       const resData = res?.data?.data || res?.data || res;
 
-      if (paymentMethod === 'MOMO' || paymentMethod === 'VNPAY') {
+      if (paymentMethod === 'MOMO') {
         if (resData?.payUrl) {
           setOnlinePayUrl(resData.payUrl);
           toast.success('Đã tạo liên kết thanh toán. Quét mã QR hoặc nhấn vào link.');
@@ -300,28 +299,9 @@ export const ReservationSettlementModal: React.FC<ReservationSettlementModalProp
                     <span className="w-4 h-4 rounded bg-[#A50064] text-white flex items-center justify-center font-bold text-[9px]">
                       M
                     </span>
-                    <span className="font-bold text-xs text-gray-800 dark:text-gray-100">Ví MoMo QR</span>
+                    <span className="font-bold text-xs text-gray-800 dark:text-gray-100">Ví MoMo</span>
                   </div>
-                  <p className="text-[10px] text-gray-500">Sinh mã QR MoMo cho khách quét thanh toán tức thì.</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPaymentMethod('VNPAY');
-                    setOnlinePayUrl(null);
-                  }}
-                  className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
-                    paymentMethod === 'VNPAY'
-                      ? 'border-primary bg-primary/5 dark:bg-primary/10'
-                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 bg-white dark:bg-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <CreditCard size={16} className="text-[#005BAA]" />
-                    <span className="font-bold text-xs text-gray-800 dark:text-gray-100">Cổng VNPay</span>
-                  </div>
-                  <p className="text-[10px] text-gray-500">Thanh toán qua mã VNPAY-QR hoặc thẻ ngân hàng.</p>
+                  <p className="text-[10px] text-gray-500">Tạo mã thanh toán MoMo (hỗ trợ QR, ATM, Thẻ quốc tế).</p>
                 </button>
               </div>
 
@@ -406,7 +386,7 @@ export const ReservationSettlementModal: React.FC<ReservationSettlementModalProp
                   ) : (
                     <>
                       <QrCode size={14} />
-                      <span>Tạo mã thanh toán {paymentMethod === 'MOMO' ? 'MoMo' : 'VNPay'}</span>
+                      <span>Tạo mã thanh toán MoMo</span>
                     </>
                   )}
                 </button>

@@ -69,7 +69,7 @@ export const ReservationSuccessView: React.FC<ReservationSuccessViewProps> = ({
   ];
 
   if (latestPayment) {
-    const paymentLabel = latestPayment.provider === 'MOMO' ? 'Ví MoMo' : 'Cổng VNPay';
+    const paymentLabel = latestPayment.provider === 'MOMO' ? 'Ví MoMo' : latestPayment.provider;
     const statusText =
       latestPayment.status === 'SUCCESS'
         ? 'Đã thanh toán cọc'

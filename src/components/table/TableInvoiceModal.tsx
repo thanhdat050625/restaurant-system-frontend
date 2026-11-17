@@ -36,7 +36,6 @@ const kitchenStatusBadge: Record<KitchenItemStatus, { label: string; cls: string
 const paymentOptions: { value: PaymentMethodType; label: string }[] = [
   { value: 'CASH', label: 'Tiền mặt (CASH)' },
   { value: 'BANKING', label: 'Chuyển khoản (BANKING)' },
-  { value: 'VNPAY', label: 'VNPay QR' },
   { value: 'MOMO', label: 'Ví MoMo' },
   { value: 'CARD', label: 'Quẹt thẻ (CARD)' },
 ];
