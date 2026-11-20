@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { formatPrice } from '../../utils/helpers';
-import { getReservationDisplayFoodInfo } from './reservationUi';
+import { formatReservationTablesText, getReservationDisplayFoodInfo } from './reservationUi';
 
 interface ReservationHistoryCardProps {
   reservation: IReservation;
@@ -26,6 +26,11 @@ interface ReservationHistoryCardProps {
 }
 
 const statusConfig: Record<ReservationStatus, { label: string; bg: string; text: string }> = {
+  AWAITING_PAYMENT: {
+    label: 'Chờ thanh toán',
+    bg: 'bg-orange-100 dark:bg-orange-950/60',
+    text: 'text-orange-800 dark:text-orange-300',
+  },
   PENDING: { label: 'Chờ xác nhận', bg: 'bg-amber-100 dark:bg-amber-950/50', text: 'text-amber-800 dark:text-amber-300' },
   CONFIRMED: { label: 'Đã xác nhận', bg: 'bg-emerald-100 dark:bg-emerald-950/50', text: 'text-emerald-800 dark:text-emerald-300' },
   SEATED: { label: 'Đã nhận bàn', bg: 'bg-blue-100 dark:bg-blue-950/50', text: 'text-blue-800 dark:text-blue-300' },
@@ -56,6 +61,7 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
   });
 
   const foodInfo = getReservationDisplayFoodInfo(reservation);
+  const tablesLabel = formatReservationTablesText(reservation);
   const canShowCheckInQR =
     reservation.status === 'PENDING' || reservation.status === 'CONFIRMED';
   const isSeatedWithTable =
@@ -104,8 +110,8 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
         <div className="flex items-center gap-2">
           <MapPin size={15} className="text-primary shrink-0" />
           <span className="line-clamp-1">
-            {reservation.table ? (
-              <>Bàn <strong className="text-primary font-bold">{reservation.table.tableNumber}</strong> (Tầng {reservation.table.floor})</>
+            {tablesLabel ? (
+              <strong className="text-primary font-bold">{tablesLabel}</strong>
             ) : reservation.tableType ? (
               <>{reservation.tableType.name}</>
             ) : (
@@ -143,7 +149,7 @@ export const ReservationHistoryCard: React.FC<ReservationHistoryCardProps> = ({
         <div className="p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="text-emerald-800 dark:text-emerald-300">
             <p className="font-bold">
-              Bàn {reservation.table.tableNumber} đã sẵn sàng gọi món!
+              {tablesLabel || `Bàn ${reservation.table.tableNumber}`} đã sẵn sàng gọi món!
             </p>
             <p className="text-[11px] opacity-90">
               Mở thực đơn bàn hoặc lấy mã QR cho bạn bè cùng bàn quét gọi món xuống Bếp.

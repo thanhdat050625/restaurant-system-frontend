@@ -18,7 +18,7 @@ import PageWrapper from '../../layouts/PageWrapper';
 import PageHero from '../../components/ui/PageHero';
 import { IReservation } from '../../types/reservation.type';
 import { formatPrice } from '../../utils/helpers';
-import { ui } from './reservationUi';
+import { formatReservationTablesText, ui } from './reservationUi';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920';
 
@@ -37,7 +37,7 @@ export const ReservationSuccessView: React.FC<ReservationSuccessViewProps> = ({
     month: '2-digit',
     year: 'numeric',
   });
-  const { table } = reservation;
+  const tablesLabel = formatReservationTablesText(reservation);
 
   const latestPayment = reservation.payments && reservation.payments.length > 0
     ? reservation.payments[reservation.payments.length - 1]
@@ -59,7 +59,7 @@ export const ReservationSuccessView: React.FC<ReservationSuccessViewProps> = ({
     {
       icon: Armchair,
       label: 'Vị trí bàn',
-      value: table ? `Bàn ${table.tableNumber} · Tầng ${table.floor}` : 'Nhà hàng tự xếp bàn',
+      value: tablesLabel || 'Nhà hàng tự xếp bàn',
     },
     {
       icon: Phone,

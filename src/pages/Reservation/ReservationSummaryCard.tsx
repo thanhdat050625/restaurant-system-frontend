@@ -14,7 +14,7 @@ interface ReservationSummaryCardProps {
   slotCount?: number;
   slotDurationMinutes?: number;
   guests: number;
-  selectedTable: ITable | null;
+  selectedTables: ITable[];
   holdExpiresAt: number | null;
   preOrders: IPreOrderItem[];
 }
@@ -55,13 +55,14 @@ export const ReservationSummaryCard: React.FC<ReservationSummaryCardProps> = ({
   slotCount = 1,
   slotDurationMinutes = 90,
   guests,
-  selectedTable,
+  selectedTables,
   holdExpiresAt,
   preOrders,
 }) => {
-  const countdown = useCountdown(selectedTable ? holdExpiresAt : null);
+  const countdown = useCountdown(selectedTables.length > 0 ? holdExpiresAt : null);
   const totalCount = preOrders.reduce((sum, p) => sum + p.quantity, 0);
   const totalAmount = preOrders.reduce((sum, p) => sum + (p.menuItem?.price || 0) * p.quantity, 0);
+  const totalSeats = selectedTables.reduce((sum, t) => sum + (t.tableType?.capacity || 2), 0);
   const placeholder = <span className="font-normal text-text-light">Chưa chọn</span>;
 
   return (
@@ -98,12 +99,13 @@ export const ReservationSummaryCard: React.FC<ReservationSummaryCardProps> = ({
           </Row>
         </div>
         <Row icon={Armchair} label="Vị trí bàn">
-          {selectedTable ? (
+          {selectedTables.length > 0 ? (
             <span>
-              Bàn {selectedTable.tableNumber}
+              Bàn {selectedTables.map((t) => t.tableNumber).join(', ')}
               <span className="font-normal text-text-secondary dark:text-text-light">
-                {' '}
-                · Tầng {selectedTable.floor || 1} · {selectedTable.tableType?.capacity || 2} chỗ
+                {selectedTables.length === 1
+                  ? ` · Tầng ${selectedTables[0].floor || 1} · ${totalSeats} chỗ`
+                  : ` · ${selectedTables.length} bàn · ${totalSeats} chỗ`}
               </span>
             </span>
           ) : (

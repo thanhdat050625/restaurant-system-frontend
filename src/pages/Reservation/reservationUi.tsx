@@ -85,6 +85,29 @@ export const formatReservationDate = (date: string) => {
   return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
+/** Danh sách bàn đã gán cho đơn đặt bàn (hỗ trợ cả đơn nhiều bàn lẫn đơn cũ 1 bàn) */
+export const getReservationTablesList = (
+  reservation?: IReservation | null,
+): Array<{ id: string; tableNumber: string; floor: number }> => {
+  if (!reservation) return [];
+  const fromPivot = (reservation.reservationTables || [])
+    .map((rt) => rt.table)
+    .filter(Boolean);
+  if (fromPivot.length > 0) return fromPivot;
+  return reservation.table ? [reservation.table] : [];
+};
+
+export const formatReservationTablesText = (
+  reservation?: IReservation | null,
+): string | null => {
+  const list = getReservationTablesList(reservation);
+  if (list.length === 0) return null;
+  if (list.length === 1) {
+    return `Bàn ${list[0].tableNumber} · Tầng ${list[0].floor}`;
+  }
+  return `Bàn ${list.map((t) => `${t.tableNumber} (T${t.floor})`).join(', ')}`;
+};
+
 /** Tạo object thông tin bàn dùng cho TableQRModal từ một đơn đặt bàn đã gán bàn */
 export const buildTableQrTarget = (
   reservation?: IReservation | null,

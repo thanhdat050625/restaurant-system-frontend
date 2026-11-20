@@ -6,12 +6,16 @@ import { IReservation } from '../../../types/reservation.type';
 import { tableService } from '../../../services/admin/tableService';
 import { ITable } from '../../../types/admin/table.type';
 
+import { getReservationTablesList, formatReservationTablesText } from '../../Reservation/reservationUi';
+
+const MAX_ASSIGN_TABLES = 5;
+
 interface AssignTableModalProps {
   isOpen: boolean;
   onClose: () => void;
   reservation: IReservation | null;
   branchId: string;
-  onConfirmAssign: (tableId: string) => Promise<void>;
+  onConfirmAssign: (tableIds: string[]) => Promise<void>;
 }
 
 const statusDisplay: Record<string, { label: string; badge: string; isSelectable: boolean }> = {
@@ -46,14 +50,15 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
 }) => {
   const [tables, setTables] = useState<ITable[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [selectedTableIds, setSelectedTableIds] = useState<string[]>([]);
   const [selectedFloor, setSelectedFloor] = useState<number | 'ALL'>('ALL');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !branchId) return;
 
-    setSelectedTableId(reservation?.tableId || null);
+    const currentIds = getReservationTablesList(reservation).map((t) => t.id);
+    setSelectedTableIds(currentIds);
 
     const loadTables = async () => {
       setIsLoading(true);
@@ -77,15 +82,32 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
 
   const floors = Array.from(new Set(tables.map((t) => t.floor))).sort((a, b) => a - b);
   const displayedTables = tables.filter((t) => (selectedFloor === 'ALL' ? true : t.floor === selectedFloor));
+  const selectedTotalSeats = tables
+    .filter((t) => selectedTableIds.includes(t.id))
+    .reduce((sum, t) => sum + (t.tableType?.capacity || 0), 0);
+  const currentTablesLabel = formatReservationTablesText(reservation);
+
+  const toggleTable = (tableId: string) => {
+    setSelectedTableIds((prev) => {
+      if (prev.includes(tableId)) {
+        return prev.filter((id) => id !== tableId);
+      }
+      if (prev.length >= MAX_ASSIGN_TABLES) {
+        toast.error(`Chỉ được ghép tối đa ${MAX_ASSIGN_TABLES} bàn cho một đơn.`);
+        return prev;
+      }
+      return [...prev, tableId];
+    });
+  };
 
   const handleConfirm = async () => {
-    if (!selectedTableId) {
-      toast.error('Vui lòng chọn một bàn trống để xếp chỗ.');
+    if (selectedTableIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một bàn trống để xếp chỗ.');
       return;
     }
     setIsSubmitting(true);
     try {
-      await onConfirmAssign(selectedTableId);
+      await onConfirmAssign(selectedTableIds);
       onClose();
     } catch {
       // Error handled by caller
@@ -108,9 +130,9 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
               {reservation.reservationDate.split('T')[0]}
             </p>
           </div>
-          {reservation.table && (
+          {currentTablesLabel && (
             <span className="px-2.5 py-1 bg-white dark:bg-slate-800 rounded-lg text-primary font-bold border border-primary/30">
-              Bàn hiện tại: {reservation.table.tableNumber} (Tầng {reservation.table.floor})
+              Bàn hiện tại: {currentTablesLabel}
             </span>
           )}
         </div>
@@ -183,7 +205,7 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
                     badge: 'bg-gray-100 text-gray-600',
                     isSelectable: false,
                   };
-              const isSelected = selectedTableId === t.id;
+              const isSelected = selectedTableIds.includes(t.id);
               const isSuitableCapacity = (t.tableType?.capacity || 4) >= reservation.guestCount;
               const isSelectable = (statusCfg.isSelectable || isSelected) && (!isLockedOnline || isSelected);
 
@@ -192,7 +214,7 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
                   key={t.id}
                   type="button"
                   disabled={!isSelectable}
-                  onClick={() => setSelectedTableId(t.id)}
+                  onClick={() => toggleTable(t.id)}
                   className={`p-3 rounded-xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
                     isSelected
                       ? 'border-primary bg-primary/10 shadow-sm ring-2 ring-primary/30'
@@ -230,7 +252,11 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
         )}
 
         {/* Footer actions */}
-        <div className="pt-3 border-t border-gray-200 dark:border-slate-700 flex items-center justify-end gap-2">
+        <div className="pt-3 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+            Đã chọn {selectedTableIds.length}/{MAX_ASSIGN_TABLES} bàn ({selectedTotalSeats}/{reservation.guestCount} chỗ)
+          </span>
+          <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onClose}
@@ -242,7 +268,7 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={!selectedTableId || isSubmitting}
+            disabled={selectedTableIds.length === 0 || isSubmitting}
             className="px-4 py-2 bg-primary hover:bg-primary-hover active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
           >
             {isSubmitting ? (
@@ -252,6 +278,7 @@ export const AssignTableModal: React.FC<AssignTableModalProps> = ({
             )}
             <span>Xác nhận xếp bàn</span>
           </button>
+          </div>
         </div>
       </div>
     </Modal>

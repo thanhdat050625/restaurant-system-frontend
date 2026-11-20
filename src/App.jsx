@@ -51,8 +51,23 @@ import BranchMenu from './pages/Admin/BranchMenu/BranchMenu';
 import BranchOperatingHours from './pages/Admin/BranchOperatingHours/BranchOperatingHours';
 import AdminPickupOrders from './pages/Admin/PickupOrders/AdminPickupOrders';
 
+const getSafeRedirectPath = (from) => {
+  if (
+    !from ||
+    typeof from.pathname !== 'string' ||
+    !from.pathname.startsWith('/') ||
+    from.pathname.startsWith('//') ||
+    ['/login', '/register', '/forgot-password'].includes(from.pathname)
+  ) {
+    return '/';
+  }
+  const search = typeof from.search === 'string' ? from.search : '';
+  return `${from.pathname}${search}`;
+};
+
 const GuestRoute = ({ children }) => {
   const { user, isAuthenticated, isCheckingAuth } = useAuth();
+  const location = useLocation();
 
   if (isCheckingAuth) {
     return null;
@@ -62,7 +77,7 @@ const GuestRoute = ({ children }) => {
     if (user?.role === 'ADMIN') return <Navigate to="/admin" replace />;
     if (user?.role === 'STAFF') return <Navigate to="/staff" replace />;
     if (user?.role === 'KITCHEN') return <Navigate to="/kitchen" replace />;
-    return <Navigate to="/" replace />;
+    return <Navigate to={getSafeRedirectPath(location.state?.from)} replace />;
   }
   return children;
 };
@@ -88,8 +103,8 @@ const Layout = () => {
           <Route path="/menu" element={<Menu />} />
           <Route path="/menu/:categorySlug" element={<Menu />} />
           <Route path="/branches" element={<BranchesPage />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/reservation" element={<Reservation />} />
           <Route path="/reservations/history" element={<Navigate to="/profile?tab=reservations" replace />} />
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />

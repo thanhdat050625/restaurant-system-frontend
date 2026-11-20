@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, ArrowRight, Trash2, ArrowLeft, UtensilsCrossed } from 'lucide-react';
 import PageWrapper from '../../layouts/PageWrapper';
 import CartItem from '../../components/common/CartItem';
@@ -13,14 +13,14 @@ const Cart = () => {
     return (
       <PageWrapper>
         <section className="pt-32 pb-20 min-h-screen flex items-center justify-center bg-light dark:bg-dark">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+          <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
             <div className="text-8xl mb-6">🛒</div>
             <h2 className="text-3xl font-bold text-text-primary dark:text-white font-[family-name:var(--font-heading)] mb-4">Giỏ hàng trống</h2>
             <p className="text-text-secondary dark:text-text-light mb-8">Hãy thêm món ăn yêu thích vào giỏ hàng</p>
             <Link to="/menu" className="inline-flex items-center gap-2 px-8 py-4 bg-primary hover:bg-primary-dark text-white font-semibold rounded-full transition-all hover:scale-105 hover:shadow-glow">
               <ShoppingBag size={20} /> Xem thực đơn <ArrowRight size={18} />
             </Link>
-          </motion.div>
+          </Motion.div>
         </section>
       </PageWrapper>
     );

@@ -32,4 +32,8 @@ export const paymentService = {
   getTransactionByCode: async (transactionCode: string) => {
     return apiClient.get<ApiResponse<IPaymentTransaction>>(`/payments/${transactionCode}`);
   },
+
+  cancelPayment: async (transactionCode: string) => {
+    return apiClient.post<ApiResponse<IPaymentTransaction>>(`/payments/${transactionCode}/cancel`);
+  },
 };

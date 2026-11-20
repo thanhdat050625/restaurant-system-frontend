@@ -23,7 +23,7 @@ import {
 import Modal from '../../components/ui/Modal';
 import { IReservation, ReservationStatus } from '../../types/reservation.type';
 import { formatPrice } from '../../utils/helpers';
-import { getReservationDisplayFoodInfo } from './reservationUi';
+import { formatReservationTablesText, getReservationDisplayFoodInfo } from './reservationUi';
 
 export interface ReservationDetailModalProps {
   isOpen: boolean;
@@ -39,6 +39,12 @@ const statusBadgeMap: Record<
   ReservationStatus,
   { label: string; bg: string; text: string; icon: React.ComponentType<any> }
 > = {
+  AWAITING_PAYMENT: {
+    label: 'Chờ thanh toán',
+    bg: 'bg-orange-100 dark:bg-orange-950/60',
+    text: 'text-orange-800 dark:text-orange-300',
+    icon: Clock3,
+  },
   PENDING: {
     label: 'Chờ duyệt',
     bg: 'bg-amber-100 dark:bg-amber-950/60',
@@ -191,17 +197,16 @@ export const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
                 onClick={() => onAssignTable(reservation)}
                 className="text-xs font-bold text-primary hover:underline cursor-pointer"
               >
-                {reservation.table ? 'Đổi bàn khác' : 'Xếp bàn ngay'}
+                {formatReservationTablesText(reservation) ? 'Đổi bàn khác' : 'Xếp bàn ngay'}
               </button>
             )}
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
             <MapPin size={15} className="text-primary shrink-0" />
-            {reservation.table ? (
+            {formatReservationTablesText(reservation) ? (
               <span>
-                Bàn <strong className="text-primary font-bold">{reservation.table.tableNumber}</strong> (Tầng{' '}
-                {reservation.table.floor})
-                {reservation.tableType && (
+                <strong className="text-primary font-bold">{formatReservationTablesText(reservation)}</strong>
+                {reservation.tableType && !(reservation.reservationTables && reservation.reservationTables.length > 1) && (
                   <span className="text-gray-400 ml-1">
                     - {reservation.tableType.name} ({reservation.tableType.capacity} chỗ)
                   </span>
