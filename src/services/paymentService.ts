@@ -17,8 +17,8 @@ export const paymentService = {
     });
   },
 
-  verifyVnpayReturn: async (params: Record<string, unknown>) => {
-    return apiClient.get<ApiResponse<IPaymentTransaction>>('/payments/vnpay/verify', {
+  verifySepayReturn: async (params: Record<string, unknown>) => {
+    return apiClient.get<ApiResponse<IPaymentTransaction>>('/payments/sepay/verify', {
       params,
     });
   },
@@ -31,5 +31,9 @@ export const paymentService = {
 
   getTransactionByCode: async (transactionCode: string) => {
     return apiClient.get<ApiResponse<IPaymentTransaction>>(`/payments/${transactionCode}`);
+  },
+
+  cancelPayment: async (transactionCode: string) => {
+    return apiClient.post<ApiResponse<IPaymentTransaction>>(`/payments/${transactionCode}/cancel`);
   },
 };

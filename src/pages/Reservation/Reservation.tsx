@@ -62,12 +62,12 @@ export const Reservation: React.FC = () => {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   // Bàn đang giữ gắn với đúng chi nhánh + ngày + giờ + số khách + thời lượng; đổi bất kỳ yếu tố nào sẽ nhả bàn
-  const { heldTable: selectedTable, holdExpiresAt, holdTable, clearHold } = useTableHold(
+  const { heldTables: selectedTables, holdExpiresAt, holdTable, releaseSingleTable, clearHold } = useTableHold(
     `${selectedBranchId}|${date}|${time}|${guests}|${totalDurationMinutes}`,
   );
 
   const [preOrders, setPreOrders] = useState<IPreOrderItem[]>([]);
-  const [paymentProvider, setPaymentProvider] = useState<'COD' | 'MOMO' | 'VNPAY'>('COD');
+  const [paymentProvider, setPaymentProvider] = useState<'COD' | 'MOMO' | 'SEPAY'>('COD');
 
   const preOrdersTotal = useMemo(
     () => preOrders.reduce((sum, p) => sum + (p.menuItem?.price || 0) * p.quantity, 0),
@@ -204,8 +204,9 @@ export const Reservation: React.FC = () => {
         reservationTime: time,
         durationMinutes: totalDurationMinutes,
         guestCount: guests,
-        tableId: selectedTable?.id || undefined,
-        tableTypeId: selectedTable?.tableTypeId || undefined,
+        tableId: selectedTables[0]?.id || undefined,
+        tableIds: selectedTables.length > 0 ? selectedTables.map((t) => t.id) : undefined,
+        tableTypeId: selectedTables[0]?.tableTypeId || undefined,
         customerName: name.trim(),
         customerPhone: phone.replace(/[\s.-]/g, ''),
         customerEmail: email.trim() || undefined,
@@ -236,7 +237,7 @@ export const Reservation: React.FC = () => {
       const msg = Array.isArray(rawMsg) ? rawMsg[0] : rawMsg || 'Đặt bàn thất bại. Vui lòng thử lại.';
       toast.error(msg);
       // Bàn không còn được giữ / đã bị đặt -> quay lại bước chọn bàn
-      if (selectedTable && /giữ bàn|đã được đặt|chọn lại bàn/i.test(msg)) {
+      if (selectedTables.length > 0 && /giữ bàn|đã được đặt|chọn lại bàn/i.test(msg)) {
         clearHold(false);
         setStep(2);
       }
@@ -279,7 +280,7 @@ export const Reservation: React.FC = () => {
       slotCount={slotCount}
       slotDurationMinutes={slotDurationMinutes}
       guests={guests}
-      selectedTable={selectedTable}
+      selectedTables={selectedTables}
       holdExpiresAt={holdExpiresAt}
       preOrders={preOrders}
     />
@@ -352,10 +353,11 @@ export const Reservation: React.FC = () => {
                       time={time}
                       durationMinutes={totalDurationMinutes}
                       partySize={guests}
-                      selectedTable={selectedTable}
+                      selectedTables={selectedTables}
                       holdExpiresAt={holdExpiresAt}
                       onTableHeld={holdTable}
-                      onReleaseTable={clearHold}
+                      onReleaseSingleTable={releaseSingleTable}
+                      onReleaseAllTables={clearHold}
                       onBack={() => setStep(1)}
                       onNext={() => setStep(3)}
                     />

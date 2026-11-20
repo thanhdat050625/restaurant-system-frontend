@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { ShoppingCart, Menu, X, Sun, Moon, User, LogOut, ChevronDown, Shield, Calendar, ChefHat } from 'lucide-react';
 import { useCart } from '../features/menu/CartContext';
 import { useAuth } from '../features/auth/AuthContext';
@@ -21,11 +22,18 @@ const toSlug = (str) => {
 };
 
 const Header = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentRouteKey = `${location.pathname}${location.search}`;
+
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [mobileMenuPath, setMobileMenuPath] = useState(null);
+  const [userMenuPath, setUserMenuPath] = useState(null);
   const [categoriesList, setCategoriesList] = useState(fallbackCategories);
   const [hoveredCat, setHoveredCat] = useState(fallbackCategories[0] || null);
+
+  const isMobileMenuOpen = mobileMenuPath === currentRouteKey;
+  const isUserMenuOpen = userMenuPath === currentRouteKey;
 
   useEffect(() => {
     const fetchCats = async () => {
@@ -49,18 +57,11 @@ const Header = () => {
     fetchCats();
   }, []);
   const { totalItems } = useCart();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isCheckingAuth, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
-  const location = useLocation();
 
-  // Khai báo các trang có banner tối màu ở trên cùng
   const darkHeroPages = ['/', '/menu', '/branches', '/reservation', '/about', '/contact', '/login', '/register'];
-  // Kiểm tra xem trang hiện tại có nằm trong danh sách trên không hoặc là đường dẫn menu/danh-muc
   const hasDarkHero = darkHeroPages.includes(location.pathname) || location.pathname.startsWith('/menu/');
-  
-  // Header sẽ chuyển sang dạng Solid (nền trắng/đen rõ ràng) nếu:
-  // 1. Đã cuộn chuột XUỐNG
-  // HOẶC 2. Đang ở trang KHÔNG CÓ banner tối (như Cart, Profile)
   const isSolidHeader = isScrolled || !hasDarkHero;
 
   useEffect(() => {
@@ -69,10 +70,13 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setIsUserMenuOpen(false);
-  }, [location]);
+  const handleCartClick = (e) => {
+    if (!isCheckingAuth && !isAuthenticated) {
+      e.preventDefault();
+      toast.error('Vui lòng đăng nhập để xem giỏ hàng', { id: 'cart-auth-required' });
+      navigate('/login', { state: { from: { pathname: '/cart', search: '' } } });
+    }
+  };
 
   const navLinks = [
     { to: '/', label: 'Trang chủ' },
@@ -132,7 +136,7 @@ const Header = () => {
                           {link.label}
                           <ChevronDown size={14} className="opacity-70 group-hover:rotate-180 transition-transform" />
                           {isActive && (
-                            <motion.div
+                            <Motion.div
                               layoutId="activeNav"
                               className="absolute -bottom-2 left-0 right-0 h-0.5 bg-primary rounded-full"
                             />
@@ -198,7 +202,7 @@ const Header = () => {
                           }`}>
                             <div className="relative h-full min-h-[280px] overflow-hidden">
                               <AnimatePresence mode="wait">
-                                <motion.img
+                                <Motion.img
                                   key={hoveredCat.id}
                                   src={hoveredCat.image}
                                   alt={hoveredCat.name}
@@ -212,7 +216,7 @@ const Header = () => {
                               <div className="absolute inset-0 bg-gradient-to-t from-dark/85 via-dark/20 to-transparent" />
                               <div className="absolute bottom-4 left-3 right-3">
                                 <AnimatePresence mode="wait">
-                                  <motion.div
+                                  <Motion.div
                                     key={hoveredCat.id + '-text'}
                                     initial={{ opacity: 0, y: 4 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -221,7 +225,7 @@ const Header = () => {
                                   >
                                     <p className="text-white text-xs font-semibold">{hoveredCat.name}</p>
                                     <p className="text-white/60 text-[11px] mt-0.5">{hoveredCat.itemCount} món</p>
-                                  </motion.div>
+                                  </Motion.div>
                                 </AnimatePresence>
                               </div>
                             </div>
@@ -251,7 +255,7 @@ const Header = () => {
                     <>
                       {link.label}
                       {isActive && (
-                        <motion.div
+                        <Motion.div
                           layoutId="activeNav"
                           className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
                         />
@@ -280,6 +284,8 @@ const Header = () => {
             {/* Cart */}
             <Link
               to="/cart"
+              onClick={handleCartClick}
+              aria-label="Giỏ hàng"
               className={`relative p-2 rounded-full transition-all duration-300 hover:scale-110 ${
                 isSolidHeader
                   ? 'text-text-primary dark:text-white hover:bg-light-card dark:hover:bg-dark-card'
@@ -287,14 +293,14 @@ const Header = () => {
               }`}
             >
               <ShoppingCart size={20} />
-              {totalItems > 0 && (
-                <motion.span
+              {isAuthenticated && totalItems > 0 && (
+                <Motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center"
                 >
                   {totalItems}
-                </motion.span>
+                </Motion.span>
               )}
             </Link>
 
@@ -302,7 +308,7 @@ const Header = () => {
             {isAuthenticated ? (
               <div className="relative hidden lg:block">
                 <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  onClick={() => setUserMenuPath(isUserMenuOpen ? null : currentRouteKey)}
                   className={`flex items-center gap-2 p-1.5 rounded-full transition-all duration-300 ${
                     isSolidHeader
                       ? 'hover:bg-light-card dark:hover:bg-dark-card'
@@ -319,7 +325,7 @@ const Header = () => {
 
                 <AnimatePresence>
                   {isUserMenuOpen && (
-                    <motion.div
+                    <Motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
@@ -352,7 +358,7 @@ const Header = () => {
                       >
                         <LogOut size={16} /> Đăng xuất
                       </button>
-                    </motion.div>
+                    </Motion.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -367,7 +373,7 @@ const Header = () => {
 
             {/* Mobile menu toggle */}
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setMobileMenuPath(isMobileMenuOpen ? null : currentRouteKey)}
               className={`lg:hidden p-2 rounded-full transition-all duration-300 ${
                 isSolidHeader
                   ? 'text-text-primary dark:text-white'
@@ -382,7 +388,7 @@ const Header = () => {
         {/* Mobile Menu */}
         <AnimatePresence>
           {isMobileMenuOpen && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -441,7 +447,7 @@ const Header = () => {
                   </Link>
                 )}
               </div>
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
       </nav>

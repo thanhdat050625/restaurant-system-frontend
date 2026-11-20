@@ -26,7 +26,12 @@ import { ReservationDetailModal } from '../Reservation/ReservationDetailModal';
 import { AssignTableModal } from './StaffReservations/AssignTableModal';
 import { OrderFoodModal } from '../Reservation/OrderFoodModal';
 import TableQRModal, { TableQRTarget } from '../../components/table/TableQRModal';
-import { buildTableQrTarget, getReservationDisplayFoodInfo } from '../Reservation/reservationUi';
+import {
+  buildTableQrTarget,
+  formatReservationTablesText,
+  getReservationDisplayFoodInfo,
+  getReservationTablesList,
+} from '../Reservation/reservationUi';
 import { ReservationSettlementModal } from './StaffReservations/ReservationSettlementModal';
 import QrScannerModal from '../../components/common/QrScannerModal';
 import ConfirmModal from '../../components/ui/ConfirmModal';
@@ -35,6 +40,12 @@ const statusConfig: Record<
   ReservationStatus,
   { label: string; badge: string; text: string; icon: React.ComponentType<any> }
 > = {
+  AWAITING_PAYMENT: {
+    label: 'Chờ thanh toán',
+    badge: 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300 border-orange-300',
+    text: 'text-orange-800',
+    icon: Clock,
+  },
   PENDING: {
     label: 'Chờ duyệt',
     badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300',
@@ -181,8 +192,8 @@ export const StaffReservations: React.FC = () => {
 
   // Khách đến ăn / Check-in vào bàn
   const handleSeatCustomer = async (reservation: IReservation) => {
-    // Nếu chưa có bàn cụ thể -> mở modal xếp bàn
-    if (!reservation.tableId) {
+    const tablesList = getReservationTablesList(reservation);
+    if (tablesList.length === 0) {
       setAssignTableTarget(reservation);
       return;
     }
@@ -190,8 +201,9 @@ export const StaffReservations: React.FC = () => {
     setUpdatingId(reservation.id);
     try {
       const res = await reservationService.updateStatus(reservation.id, 'SEATED');
+      const tablesLabel = tablesList.map((t) => t.tableNumber).join(', ');
       toast.success(
-        `Khách đã vào bàn ${reservation.table?.tableNumber || ''}. Đưa mã QR bàn cho khách quét xem menu & gọi món!`,
+        `Khách đã vào bàn ${tablesLabel}. Đưa mã QR bàn cho khách quét xem menu & gọi món!`,
       );
       openTableQrAfterSeat(res, reservation);
       fetchReservations(false);
@@ -250,14 +262,15 @@ export const StaffReservations: React.FC = () => {
   };
 
   // Xếp bàn và check-in vào bàn cùng lúc từ AssignTableModal
-  const handleAssignTableConfirm = async (tableId: string) => {
-    if (!assignTableTarget) return;
+  const handleAssignTableConfirm = async (tableIds: string[]) => {
+    if (!assignTableTarget || tableIds.length === 0) return;
     try {
       const res = await reservationService.updateStatus(
         assignTableTarget.id,
         'SEATED',
         'Xếp bàn và check-in phục vụ',
-        tableId,
+        tableIds[0],
+        tableIds,
       );
       toast.success('Đã xếp bàn, đưa khách vào bàn & tạo mã QR gọi món!');
       openTableQrAfterSeat(res, assignTableTarget);
@@ -319,7 +332,9 @@ export const StaffReservations: React.FC = () => {
       const codeMatch = r.reservationCode.toLowerCase().includes(term);
       const nameMatch = r.customerName.toLowerCase().includes(term);
       const phoneMatch = r.customerPhone.includes(term);
-      const tableMatch = r.table?.tableNumber?.toLowerCase().includes(term);
+      const tableMatch = getReservationTablesList(r).some((t) =>
+        t.tableNumber.toLowerCase().includes(term),
+      );
       if (!codeMatch && !nameMatch && !phoneMatch && !tableMatch) return false;
     }
     return true;
@@ -524,10 +539,9 @@ export const StaffReservations: React.FC = () => {
                   <div className="mt-2.5 flex items-center justify-between text-xs px-1">
                     <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                       <MapPin size={14} className="text-primary shrink-0" />
-                      {res.table ? (
-                        <span>
-                          Bàn <strong className="text-primary font-bold">{res.table.tableNumber}</strong> (Tầng{' '}
-                          {res.table.floor})
+                      {formatReservationTablesText(res) ? (
+                        <span className="font-medium text-primary">
+                          {formatReservationTablesText(res)}
                         </span>
                       ) : (
                         <span className="text-amber-600 dark:text-amber-400 font-medium">
@@ -542,7 +556,7 @@ export const StaffReservations: React.FC = () => {
                         onClick={() => setAssignTableTarget(res)}
                         className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
                       >
-                        {res.table ? 'Đổi bàn' : 'Xếp bàn'}
+                        {formatReservationTablesText(res) ? 'Đổi bàn' : 'Xếp bàn'}
                       </button>
                     )}
                   </div>
@@ -602,7 +616,7 @@ export const StaffReservations: React.FC = () => {
                           className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
                         >
                           <UtensilsCrossed size={14} />
-                          <span>{res.tableId ? 'Vào bàn' : 'Xếp bàn & Vào'}</span>
+                          <span>{getReservationTablesList(res).length > 0 ? 'Vào bàn' : 'Xếp bàn & Vào'}</span>
                         </button>
                       </>
                     )}

@@ -447,38 +447,43 @@ const Checkout = () => {
                         </span>
                       </div>
                       <p className="text-[11px] text-text-secondary dark:text-text-light">
-                        Quét mã QR MoMo hoặc mở ứng dụng MoMo để thanh toán bảo mật
+                        Quét mã QR MoMo, Thẻ ATM nội địa hoặc Thẻ quốc tế (Visa/Mastercard)
                       </p>
                     </div>
                   </label>
 
-                  {/* VNPay */}
+                  {/* SePay */}
                   <label
-                    htmlFor="payment-vnpay"
+                    htmlFor="payment-sepay"
                     className={`p-4 rounded-xl border flex items-center gap-3.5 cursor-pointer transition-all ${
-                      paymentMethod === 'VNPAY'
-                        ? 'border-[#005BAA] bg-[#005BAA]/5 dark:bg-[#005BAA]/10 ring-2 ring-[#005BAA]/20'
+                      paymentMethod === 'SEPAY'
+                        ? 'border-[#0052cc] bg-[#0052cc]/5 dark:bg-[#0052cc]/10 ring-2 ring-[#0052cc]/20'
                         : 'border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-card'
                     }`}
                   >
                     <input
                       type="radio"
-                      id="payment-vnpay"
+                      id="payment-sepay"
                       name="paymentMethod"
-                      value="VNPAY"
-                      checked={paymentMethod === 'VNPAY'}
-                      onChange={() => setPaymentMethod('VNPAY')}
-                      className="accent-[#005BAA] w-4 h-4 cursor-pointer"
+                      value="SEPAY"
+                      checked={paymentMethod === 'SEPAY'}
+                      onChange={() => setPaymentMethod('SEPAY')}
+                      className="accent-[#0052cc] w-4 h-4 cursor-pointer"
                     />
-                    <div className="w-10 h-10 rounded-xl bg-[#005BAA]/10 flex items-center justify-center text-[#005BAA] shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-[#0052cc]/10 flex items-center justify-center text-[#0052cc] shrink-0 font-extrabold text-xs">
                       <CreditCard size={20} />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-bold text-text-primary dark:text-white">
-                        Cổng thanh toán VNPay
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold text-text-primary dark:text-white">
+                          Cổng thanh toán SePay
+                        </p>
+                        <span className="text-[10px] font-bold text-[#0052cc] bg-[#0052cc]/10 px-2 py-0.5 rounded-full">
+                          VietQR / Thẻ
+                        </span>
+                      </div>
                       <p className="text-[11px] text-text-secondary dark:text-text-light">
-                        Thẻ ATM nội địa, Internet Banking, VNPAY-QR, Thẻ Visa/Mastercard
+                        Quét mã VietQR ngân hàng, NAPAS hoặc Thẻ quốc tế Visa/Mastercard
                       </p>
                     </div>
                   </label>
@@ -538,8 +543,8 @@ const Checkout = () => {
                     ? 'Đang gửi đơn...'
                     : paymentMethod === 'MOMO'
                       ? `Thanh toán qua MoMo (${formatPrice(total)})`
-                      : paymentMethod === 'VNPAY'
-                        ? `Thanh toán qua VNPay (${formatPrice(total)})`
+                      : paymentMethod === 'SEPAY'
+                        ? `Thanh toán qua SePay (${formatPrice(total)})`
                         : `Đặt món (${formatPrice(total)})`}
                 </button>
               </div>

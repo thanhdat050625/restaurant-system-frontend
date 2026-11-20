@@ -7,6 +7,7 @@ export interface TableMapProps {
   tables: ITable[];
   mode?: 'customer' | 'admin';
   selectedTableId?: string | null;
+  selectedTableIds?: string[];
   onSelectTable?: (table: ITable) => void;
   onTableAction?: (table: ITable) => void;
   onViewQr?: (table: ITable) => void;
@@ -18,6 +19,7 @@ export const TableMap: React.FC<TableMapProps> = ({
   tables,
   mode = 'customer',
   selectedTableId = null,
+  selectedTableIds = [],
   onSelectTable,
   onTableAction,
   onViewQr,
@@ -152,7 +154,7 @@ export const TableMap: React.FC<TableMapProps> = ({
         {mode === 'customer' && (
           <div className="text-text-secondary dark:text-gray-400 font-medium flex items-center gap-1.5">
             <Sparkles size={14} className="text-primary" />
-            <span>Click vào bàn màu xanh để chọn và giữ bàn trong 10 phút</span>
+            <span>Click vào các bàn màu xanh để chọn (có thể ghép tối đa 5 bàn, giữ trong 10 phút)</span>
           </div>
         )}
       </div>
@@ -204,7 +206,7 @@ export const TableMap: React.FC<TableMapProps> = ({
         <AnimatePresence mode="popLayout">
           {currentFloorTables.map((table) => {
             const capacity = table.tableType?.capacity || 2;
-            const isSelected = selectedTableId === table.id;
+            const isSelected = selectedTableId === table.id || selectedTableIds.includes(table.id);
             const isLockedByOthers = table.lockStatus?.isLocked && !table.lockStatus?.lockedByMe;
             const isLockedByMe = table.lockStatus?.isLocked && table.lockStatus?.lockedByMe;
             const isCustomerMode = mode === 'customer';
@@ -368,7 +370,7 @@ export const TableMap: React.FC<TableMapProps> = ({
 
                 {/* Cảnh báo nếu số khách đông hơn sức chứa bàn */}
                 {isUnderCapacity && isAvailable && (
-                  <div className="absolute top-2 right-2" title={`Bàn ${capacity} chỗ có thể chật so với ${partySize} khách`}>
+                  <div className="absolute top-2 right-2" title={`Bàn ${capacity} chỗ (có thể chọn ghép nhiều bàn cho ${partySize} khách)`}>
                     <AlertTriangle size={14} className="text-amber-500" />
                   </div>
                 )}

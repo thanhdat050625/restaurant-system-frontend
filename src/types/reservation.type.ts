@@ -2,6 +2,7 @@ import { IInvoice } from './dine-in.type';
 import { PaymentProvider, IPaymentTransaction } from './payment.type';
 
 export type ReservationStatus =
+  | 'AWAITING_PAYMENT'
   | 'PENDING'
   | 'CONFIRMED'
   | 'SEATED'
@@ -32,6 +33,7 @@ export interface ICreateReservationDto {
   durationMinutes?: number;
   tableTypeId?: string;
   tableId?: string;
+  tableIds?: string[];
   specialNotes?: string;
   paymentProvider?: PaymentProvider;
   preOrders?: IPreOrderItem[];
@@ -98,6 +100,20 @@ export interface IReservation {
     tableNumber: string;
     floor: number;
   } | null;
+  reservationTables?: {
+    id: string;
+    tableId: string;
+    table: {
+      id: string;
+      tableNumber: string;
+      floor: number;
+      tableType?: {
+        id: string;
+        name: string;
+        capacity: number;
+      };
+    };
+  }[];
   orders?: {
     id: string;
     menuItemId: string;

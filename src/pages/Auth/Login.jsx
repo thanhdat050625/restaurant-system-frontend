@@ -1,9 +1,23 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion as Motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import PageWrapper from '../../layouts/PageWrapper';
 import { useAuth } from '../../features/auth/AuthContext';
+
+const getSafeRedirectPath = (from) => {
+  if (
+    !from ||
+    typeof from.pathname !== 'string' ||
+    !from.pathname.startsWith('/') ||
+    from.pathname.startsWith('//') ||
+    ['/login', '/register', '/forgot-password'].includes(from.pathname)
+  ) {
+    return '/';
+  }
+  const search = typeof from.search === 'string' ? from.search : '';
+  return `${from.pathname}${search}`;
+};
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +26,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,13 +41,13 @@ const Login = () => {
       if (response?.success) {
         const role = response.data?.user?.role;
         if (role === 'ADMIN') {
-          navigate('/admin');
+          navigate('/admin', { replace: true });
         } else if (role === 'STAFF') {
-          navigate('/staff');
+          navigate('/staff', { replace: true });
         } else if (role === 'KITCHEN') {
-          navigate('/kitchen');
+          navigate('/kitchen', { replace: true });
         } else {
-          navigate('/');
+          navigate(getSafeRedirectPath(location.state?.from), { replace: true });
         }
       }
     } catch (error) {
@@ -62,7 +77,7 @@ const Login = () => {
 
         {/* Right - Form */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-light dark:bg-dark">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+          <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
             <Link to="/" className="inline-flex items-center gap-2 text-text-secondary dark:text-text-light hover:text-primary dark:hover:text-primary mb-8 transition-colors font-medium">
               <ArrowLeft size={18} /> Quay lại Trang chủ
             </Link>
@@ -99,10 +114,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-light cursor-pointer">
-                  {/* <input type="checkbox" className="w-4 h-4 accent-primary rounded" /> Ghi nhớ */}
-                </label>
+              <div className="flex items-center justify-end">
                 <Link to="/forgot-password" className="text-sm text-primary hover:text-primary-dark font-medium">Quên mật khẩu?</Link>
               </div>
 
@@ -127,7 +139,7 @@ const Login = () => {
               Chưa có tài khoản?{' '}
               <Link to="/register" className="text-primary hover:text-primary-dark font-semibold">Đăng ký ngay</Link>
             </p>
-          </motion.div>
+          </Motion.div>
         </div>
       </section>
     </PageWrapper>

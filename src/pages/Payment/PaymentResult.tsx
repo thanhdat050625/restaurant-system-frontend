@@ -32,33 +32,92 @@ export const PaymentResult = () => {
         paramsObj[key] = val;
       });
 
-      const isVnpay = searchParams.has('vnp_TxnRef') || searchParams.has('vnp_SecureHash');
       const isMomo = searchParams.has('orderId') || searchParams.has('partnerCode');
+      const isSepay = searchParams.get('provider') === 'SEPAY' || searchParams.has('order_invoice_number');
 
-      if (!isVnpay && !isMomo) {
+      if (!isMomo && !isSepay) {
         setState('FAILED');
         setErrorMessage('Không tìm thấy thông tin xác thực từ cổng thanh toán.');
         return;
       }
 
       try {
-        let res;
         if (isMomo) {
-          res = await paymentService.verifyMomoReturn(paramsObj);
-        } else {
-          res = await paymentService.verifyVnpayReturn(paramsObj);
-        }
+          const res = await paymentService.verifyMomoReturn(paramsObj);
+          const data: IPaymentTransaction =
+            (res as { data?: IPaymentTransaction })?.data ?? (res as unknown as IPaymentTransaction);
 
-        const data: IPaymentTransaction =
-          (res as { data?: IPaymentTransaction })?.data ?? (res as unknown as IPaymentTransaction);
+          if (data.status === 'SUCCESS') {
+            setTransaction(data);
+            setState('SUCCESS');
+          } else {
+            setTransaction(data);
+            setState('FAILED');
+            setErrorMessage('Giao dịch chưa được thanh toán thành công hoặc đã bị hủy.');
+          }
+        } else if (isSepay) {
+          const transactionCode =
+            searchParams.get('order_invoice_number') || searchParams.get('transactionCode') || '';
+          const sepayStatus = searchParams.get('sepayStatus');
 
-        if (data.status === 'SUCCESS') {
-          setTransaction(data);
-          setState('SUCCESS');
-        } else {
-          setTransaction(data);
-          setState('FAILED');
-          setErrorMessage('Giao dịch chưa được thanh toán thành công hoặc đã bị hủy.');
+          if (!transactionCode) {
+            setState('FAILED');
+            setErrorMessage('Không tìm thấy mã giao dịch SePay.');
+            return;
+          }
+
+          if (sepayStatus === 'cancel' || sepayStatus === 'error') {
+            const cancelRes = await paymentService.cancelPayment(transactionCode);
+            const data: IPaymentTransaction =
+              (cancelRes as { data?: IPaymentTransaction })?.data ??
+              (cancelRes as unknown as IPaymentTransaction);
+
+            if (data && data.status === 'SUCCESS') {
+              setTransaction(data);
+              setState('SUCCESS');
+            } else {
+              setTransaction(data);
+              setState('FAILED');
+              setErrorMessage(
+                sepayStatus === 'cancel'
+                  ? 'Bạn đã hủy thanh toán. Bàn đang giữ đã được giải phóng.'
+                  : 'Thanh toán qua SePay gặp lỗi. Bàn đang giữ đã được giải phóng.',
+              );
+            }
+            return;
+          }
+
+          let data: IPaymentTransaction | null = null;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            const res = await paymentService.verifySepayReturn({
+              order_invoice_number: transactionCode,
+              ...(sepayStatus ? { sepayStatus } : {}),
+            });
+            const currentTx =
+              (res as { data?: IPaymentTransaction })?.data ?? (res as unknown as IPaymentTransaction);
+            if (currentTx) {
+              data = currentTx;
+              if (data.status === 'SUCCESS' || data.status === 'FAILED' || data.status === 'EXPIRED') {
+                break;
+              }
+            }
+            if (attempt < 2) {
+              await new Promise((resolve) => setTimeout(resolve, 1500));
+            }
+          }
+
+          if (data && data.status === 'SUCCESS') {
+            setTransaction(data);
+            setState('SUCCESS');
+          } else {
+            setTransaction(data);
+            setState('FAILED');
+            setErrorMessage(
+              data?.status === 'FAILED' || data?.status === 'EXPIRED'
+                ? 'Giao dịch đã bị hủy hoặc quá hạn thanh toán.'
+                : 'Giao dịch chưa được thanh toán thành công hoặc đang chờ xác nhận từ ngân hàng.',
+            );
+          }
         }
       } catch (err: unknown) {
         setState('FAILED');
@@ -127,7 +186,11 @@ export const PaymentResult = () => {
                 <div className="flex justify-between items-center pt-2 border-t border-light-border dark:border-dark-border">
                   <span className="text-text-secondary dark:text-text-light">Cổng thanh toán</span>
                   <span className="font-bold text-text-primary dark:text-white">
-                    {transaction.provider === 'MOMO' ? 'Ví MoMo' : 'Cổng VNPay'}
+                    {transaction.provider === 'MOMO'
+                      ? 'Ví MoMo'
+                      : transaction.provider === 'SEPAY'
+                        ? 'Cổng SePay'
+                        : transaction.provider}
                   </span>
                 </div>
 
@@ -217,23 +280,41 @@ export const PaymentResult = () => {
               )}
 
               <div className="space-y-3">
-                {transaction?.pickupOrderId && (
-                  <button
-                    onClick={() => navigate(`/order/${transaction.pickupOrderId}`)}
-                    className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl transition-all shadow-glow flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <RefreshCw size={15} />
-                    <span>Xem đơn hàng & Thanh toán lại</span>
-                  </button>
+                {transaction?.pickupOrderId ? (
+                  <>
+                    <button
+                      onClick={() => navigate(`/order/${transaction.pickupOrderId}`)}
+                      className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl transition-all shadow-glow flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <RefreshCw size={15} />
+                      <span>Xem đơn hàng & Thanh toán lại</span>
+                    </button>
+                    <Link
+                      to="/cart"
+                      className="w-full py-3 bg-light-card hover:bg-gray-100 dark:bg-dark-card dark:hover:bg-dark-border/40 text-text-primary dark:text-white font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-2"
+                    >
+                      <ShoppingBag size={15} />
+                      <span>Quay lại giỏ hàng</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/reservation"
+                      className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl transition-all shadow-glow flex items-center justify-center gap-2"
+                    >
+                      <RefreshCw size={15} />
+                      <span>Quay lại đặt bàn</span>
+                    </Link>
+                    <Link
+                      to="/"
+                      className="w-full py-3 bg-light-card hover:bg-gray-100 dark:bg-dark-card dark:hover:bg-dark-border/40 text-text-primary dark:text-white font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Home size={15} />
+                      <span>Quay về trang chủ</span>
+                    </Link>
+                  </>
                 )}
-
-                <Link
-                  to="/cart"
-                  className="w-full py-3 bg-light-card hover:bg-gray-100 dark:bg-dark-card dark:hover:bg-dark-border/40 text-text-primary dark:text-white font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-2"
-                >
-                  <ShoppingBag size={15} />
-                  <span>Quay lại giỏ hàng</span>
-                </Link>
               </div>
             </motion.div>
           )}
