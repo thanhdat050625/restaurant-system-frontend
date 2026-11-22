@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
 import { branchService } from '../../services/admin/branchService';
 import { Building2 } from 'lucide-react';
+import NotificationBell from '../common/NotificationBell';
 
 const StaffTopbar: React.FC = () => {
   const location = useLocation();
@@ -58,6 +59,8 @@ const StaffTopbar: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-3">
+        <NotificationBell variant="staff" />
+
         <div className="flex items-center gap-2.5 px-3.5 py-1.5 bg-orange-50/80 border border-orange-200/80 rounded-xl shadow-2xs">
           <Building2 size={16} className="text-primary shrink-0" />
           <div className="flex flex-col">

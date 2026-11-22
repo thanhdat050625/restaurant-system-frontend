@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import NotificationBell from '../common/NotificationBell';
 
 const Topbar: React.FC = () => {
   const location = useLocation();
@@ -34,11 +35,8 @@ const Topbar: React.FC = () => {
       <div>
         <h2 className="text-xl font-semibold text-gray-800">{getPageTitle()}</h2>
       </div>
-      <div className="flex items-center gap-4">
-        {/* Có thể thêm nút thông báo hoặc search ở đây sau */}
-        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-          🔔
-        </button>
+      <div className="flex items-center gap-3">
+        <NotificationBell variant="staff" />
       </div>
     </header>
   );

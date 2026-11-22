@@ -5,8 +5,6 @@ import {
   RefreshCw,
   Sun,
   Moon,
-  Volume2,
-  VolumeX,
   Wifi,
   WifiOff,
   LogOut,
@@ -22,12 +20,14 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../features/auth/AuthContext';
+import { useNotifications } from '../../features/notifications/NotificationContext';
 import { useTheme } from '../../hooks/ThemeContext';
 import { kitchenService } from '../../services/kitchenService';
 import { branchService } from '../../services/admin/branchService';
 import { socketService } from '../../services/socketService';
 import Modal from '../../components/ui/Modal';
 import ConfirmModal from '../../components/ui/ConfirmModal';
+import NotificationBell from '../../components/common/NotificationBell';
 import { IBranch } from '../../types/admin/branch.type';
 import { IDineInOrderItem, KitchenItemStatus } from '../../types/dine-in.type';
 import {
@@ -92,6 +92,7 @@ const getErrorMsg = (err: unknown, fallback: string): string => {
 
 export const KitchenDashboard: React.FC = () => {
   const { user, logout } = useAuth();
+  const { soundEnabled } = useNotifications();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -127,7 +128,6 @@ export const KitchenDashboard: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const soundEnabledRef = useRef(soundEnabled);
   soundEnabledRef.current = soundEnabled;
 
@@ -234,13 +234,17 @@ export const KitchenDashboard: React.FC = () => {
       tableNumber?: string;
       batchNumber?: number;
     }) => {
-      const tableNum = payload?.table?.tableNumber || payload?.tableNumber || 'bàn ăn';
-      const batchNum = payload?.batch?.batchNumber || payload?.batchNumber;
-      if (soundEnabledRef.current) playChimeSound();
-      toast.success(
-        `Đơn mới tại ${tableNum}${batchNum ? ` (Đợt #${batchNum})` : ''}!`,
-        { duration: 4500 },
-      );
+      // Nếu là KITCHEN thì NotificationProvider đã phát chuông & lưu vào chuông,
+      // tránh hiện popup chồng chéo; chỉ phát toast phụ nếu ADMIN đang giám sát chéo chi nhánh.
+      if (userTyped?.role !== 'KITCHEN') {
+        const tableNum = payload?.table?.tableNumber || payload?.tableNumber || 'bàn ăn';
+        const batchNum = payload?.batch?.batchNumber || payload?.batchNumber;
+        if (soundEnabledRef.current) playChimeSound();
+        toast.success(
+          `Đơn mới tại ${tableNum}${batchNum ? ` (Đợt #${batchNum})` : ''}!`,
+          { duration: 4500 },
+        );
+      }
       fetchQueue(false);
     };
 
@@ -249,11 +253,13 @@ export const KitchenDashboard: React.FC = () => {
     };
 
     const handlePickupCreated = (payload?: { orderCode?: string }) => {
-      if (soundEnabledRef.current) playChimeSound();
-      toast.success(
-        `Có đơn mang về mới${payload?.orderCode ? ` #${payload.orderCode}` : ''}!`,
-        { duration: 4500 },
-      );
+      if (userTyped?.role !== 'KITCHEN') {
+        if (soundEnabledRef.current) playChimeSound();
+        toast.success(
+          `Có đơn mang về mới${payload?.orderCode ? ` #${payload.orderCode}` : ''}!`,
+          { duration: 4500 },
+        );
+      }
       fetchQueue(false);
     };
 
@@ -278,7 +284,7 @@ export const KitchenDashboard: React.FC = () => {
       socketService.leaveKitchen(activeBranchId);
       socketService.leaveBranch(activeBranchId);
     };
-  }, [activeBranchId, userTyped?.id, fetchQueue]);
+  }, [activeBranchId, userTyped?.id, userTyped?.role, fetchQueue]);
 
   // Sync pickupOrders client-side against statusFilter & sourceFilter
   const filteredPickupOrders = useMemo(() => {
@@ -444,18 +450,7 @@ export const KitchenDashboard: React.FC = () => {
               </Link>
             )}
 
-            <button
-              type="button"
-              onClick={() => setSoundEnabled((v) => !v)}
-              title={soundEnabled ? 'Tắt chuông báo đơn mới' : 'Bật chuông báo đơn mới'}
-              className={`p-2 rounded-xl border text-xs font-semibold inline-flex items-center gap-1 cursor-pointer ${
-                soundEnabled
-                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300'
-                  : 'bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-500 dark:text-gray-400'
-              }`}
-            >
-              {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-            </button>
+            <NotificationBell variant="staff" />
 
             <button
               type="button"

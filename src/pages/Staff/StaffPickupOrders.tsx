@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import {
   ShoppingBag,
@@ -74,6 +75,7 @@ const getApiErrorMessage = (err: unknown, fallbackMessage: string): string => {
 export const StaffPickupOrders: React.FC = () => {
   const { user } = useAuth();
   const branchId = user?.branchId ?? user?.branch?.id;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [orders, setOrders] = useState<IPickupOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,32 +113,40 @@ export const StaffPickupOrders: React.FC = () => {
     fetchOrders(true);
   }, [fetchOrders]);
 
-  // WebSocket realtime
+  // Mở chi tiết đơn mang về khi nhân viên bấm từ thông báo (?code=PU-...)
+  useEffect(() => {
+    const codeParam = searchParams.get('code')?.trim();
+    if (!codeParam || loading) return;
+
+    const matched = orders.find((o) => o.orderCode === codeParam);
+    if (matched) {
+      setStatusFilter('ALL');
+      setSelectedOrder(matched);
+      const next = new URLSearchParams(searchParams);
+      next.delete('code');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, orders, loading]);
+
+  // WebSocket realtime đồng bộ danh sách đơn trên màn hình hiện tại
   useEffect(() => {
     if (!branchId) return;
 
     socketService.connect(user?.id);
     socketService.joinBranch(branchId);
 
-    const handleNewOrder = (order?: Partial<IPickupOrder>) => {
-      toast.success(
-        order?.orderCode
-          ? `Có đơn đặt món mang về mới: ${order.orderCode}!`
-          : 'Có đơn đặt món mang về mới!'
-      );
+    const handleRefresh = () => {
       fetchOrders(false);
     };
 
-    const handleStatusChanged = () => {
-      fetchOrders(false);
-    };
-
-    socketService.on('pickupOrder:created', handleNewOrder);
-    socketService.on('pickupOrder:statusChanged', handleStatusChanged);
+    socketService.on('pickupOrder:created', handleRefresh);
+    socketService.on('pickupOrder:statusChanged', handleRefresh);
+    window.addEventListener('foodhub:notification', handleRefresh);
 
     return () => {
-      socketService.off('pickupOrder:created', handleNewOrder);
-      socketService.off('pickupOrder:statusChanged', handleStatusChanged);
+      socketService.off('pickupOrder:created', handleRefresh);
+      socketService.off('pickupOrder:statusChanged', handleRefresh);
+      window.removeEventListener('foodhub:notification', handleRefresh);
       socketService.leaveBranch(branchId);
     };
   }, [branchId, user, fetchOrders]);

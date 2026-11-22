@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   CalendarCheck,
   RefreshCw,
@@ -87,6 +88,7 @@ const statusConfig: Record<
 export const StaffReservations: React.FC = () => {
   const { user } = useAuth();
   const branchId = (user as any)?.branchId || (user as any)?.branch?.id;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [reservations, setReservations] = useState<IReservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +135,50 @@ export const StaffReservations: React.FC = () => {
     fetchReservations(true);
   }, [fetchReservations]);
 
+  // Mở chi tiết đơn đặt bàn khi nhân viên bấm vào thông báo popup / chuông (?code=RES-...)
+  useEffect(() => {
+    const codeParam = searchParams.get('code')?.trim();
+    if (!codeParam || !branchId) return;
+
+    const clearCodeParam = () => {
+      const next = new URLSearchParams(searchParams);
+      next.delete('code');
+      setSearchParams(next, { replace: true });
+    };
+
+    const existing = reservations.find((r) => r.reservationCode === codeParam);
+    if (existing) {
+      setDetailTarget(existing);
+      clearCodeParam();
+      return;
+    }
+
+    let cancelled = false;
+    reservationService
+      .getReservationById(codeParam)
+      .then((res: any) => {
+        if (cancelled) return;
+        const found: IReservation | undefined =
+          res?.data?.data || res?.data || res;
+        if (found && found.reservationCode) {
+          const resDate = String(found.reservationDate).slice(0, 10);
+          if (resDate && resDate !== dateFilter) {
+            setDateFilter(resDate);
+          }
+          setStatusFilter('ALL');
+          setDetailTarget(found);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) clearCodeParam();
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, setSearchParams, branchId, reservations, dateFilter]);
+
   // Real-time WebSocket sync
   useEffect(() => {
     if (!branchId) return;
@@ -141,12 +187,8 @@ export const StaffReservations: React.FC = () => {
     socketService.joinBranch(branchId);
 
     const handleRefresh = () => fetchReservations(false);
-    const handleNewReservation = () => {
-      toast('Có đơn đặt bàn mới!', { icon: '🔔' });
-      fetchReservations(false);
-    };
 
-    socketService.on('reservation:created', handleNewReservation);
+    socketService.on('reservation:created', handleRefresh);
     socketService.on('reservation:updated', handleRefresh);
     socketService.on('reservation:statusChanged', handleRefresh);
     socketService.on('payment:updated', handleRefresh);
@@ -154,9 +196,10 @@ export const StaffReservations: React.FC = () => {
     socketService.on('table:reserved', handleRefresh);
     socketService.on('table:batch_created', handleRefresh);
     socketService.on('table:bill_updated', handleRefresh);
+    window.addEventListener('foodhub:notification', handleRefresh);
 
     return () => {
-      socketService.off('reservation:created', handleNewReservation);
+      socketService.off('reservation:created', handleRefresh);
       socketService.off('reservation:updated', handleRefresh);
       socketService.off('reservation:statusChanged', handleRefresh);
       socketService.off('payment:updated', handleRefresh);
@@ -164,6 +207,7 @@ export const StaffReservations: React.FC = () => {
       socketService.off('table:reserved', handleRefresh);
       socketService.off('table:batch_created', handleRefresh);
       socketService.off('table:bill_updated', handleRefresh);
+      window.removeEventListener('foodhub:notification', handleRefresh);
       socketService.leaveBranch(branchId);
     };
   }, [branchId, user, fetchReservations]);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Calendar, PlusCircle, UtensilsCrossed } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -17,6 +17,7 @@ import ConfirmModal from '../../components/ui/ConfirmModal';
 
 export const ProfileReservationsTab: React.FC = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [timeline, setTimeline] = useState<'UPCOMING' | 'PAST'>('UPCOMING');
   const [reservations, setReservations] = useState<IReservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +46,20 @@ export const ProfileReservationsTab: React.FC = () => {
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
+
+  // Mở chi tiết đơn đặt bàn khi khách bấm từ thông báo chuông / popup (?tab=reservations&code=RES-...)
+  useEffect(() => {
+    const codeParam = searchParams.get('code')?.trim();
+    if (!codeParam || isLoading) return;
+
+    const matched = reservations.find((r) => r.reservationCode === codeParam);
+    if (matched) {
+      setSelectedDetailReservation(matched);
+      const next = new URLSearchParams(searchParams);
+      next.delete('code');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, reservations, isLoading]);
 
   // Lắng nghe cập nhật trạng thái đặt bàn & món ăn tại bàn theo thời gian thực qua user:${user.id}
   useEffect(() => {
