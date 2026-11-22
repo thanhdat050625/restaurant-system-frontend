@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   BrushCleaning,
   RefreshCw,
@@ -18,6 +19,7 @@ import { TableInvoiceModal } from '../../components/table/TableInvoiceModal';
 export const StaffTableTurnover: React.FC = () => {
   const { user } = useAuth();
   const branchId = (user as any)?.branchId || (user as any)?.branch?.id;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [turnoverData, setTurnoverData] = useState<ITableTurnoverResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,6 +52,25 @@ export const StaffTableTurnover: React.FC = () => {
     fetchTurnover(true);
   }, [fetchTurnover]);
 
+  // Chọn & mở bàn khi nhân viên bấm vào thông báo yêu cầu thanh toán / món READY (?table=...)
+  useEffect(() => {
+    const tableParam = searchParams.get('table')?.trim();
+    if (!tableParam || isLoading || !turnoverData?.floors) return;
+
+    const flatTables = turnoverData.floors.flatMap((f) => f.tables);
+    const matched = flatTables.find((t) => t.id === tableParam);
+    if (matched) {
+      setSelectedFloor(matched.floor);
+      setSelectedStatus('ALL');
+      if (matched.status === 'OCCUPIED') {
+        setInvoiceTable(matched);
+      }
+      const next = new URLSearchParams(searchParams);
+      next.delete('table');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, turnoverData, isLoading]);
+
   // Lắng nghe sự kiện WebSocket thời gian thực khi trạng thái bàn thay đổi
   useEffect(() => {
     if (!branchId) return;
@@ -58,15 +79,6 @@ export const StaffTableTurnover: React.FC = () => {
     socketService.joinBranch(branchId);
 
     const handleStatusChanged = () => {
-      fetchTurnover(false);
-    };
-
-    const handlePaymentRequested = (payload?: { tableName?: string; tableNumber?: string; invoiceCode?: string }) => {
-      const tableLabel = payload?.tableName || payload?.tableNumber || 'một bàn';
-      toast(`Khách ${tableLabel} vừa yêu cầu thanh toán!`, {
-        icon: '💳',
-        duration: 5000,
-      });
       fetchTurnover(false);
     };
 
@@ -79,7 +91,8 @@ export const StaffTableTurnover: React.FC = () => {
     socketService.on('table:batch_created', handleStatusChanged);
     socketService.on('table:bill_updated', handleStatusChanged);
     socketService.on('table:invoice_closed', handleStatusChanged);
-    socketService.on('table:payment_requested', handlePaymentRequested);
+    socketService.on('table:payment_requested', handleStatusChanged);
+    window.addEventListener('foodhub:notification', handleStatusChanged);
 
     return () => {
       socketService.off('table:status_changed', handleStatusChanged);
@@ -91,7 +104,8 @@ export const StaffTableTurnover: React.FC = () => {
       socketService.off('table:batch_created', handleStatusChanged);
       socketService.off('table:bill_updated', handleStatusChanged);
       socketService.off('table:invoice_closed', handleStatusChanged);
-      socketService.off('table:payment_requested', handlePaymentRequested);
+      socketService.off('table:payment_requested', handleStatusChanged);
+      window.removeEventListener('foodhub:notification', handleStatusChanged);
       socketService.leaveBranch(branchId);
     };
   }, [branchId, user, fetchTurnover]);

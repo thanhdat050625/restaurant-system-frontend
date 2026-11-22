@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Mail, Phone, MapPin, LogOut,
   AtSign, Calendar, Venus, Mars, CircleDot,
-  ShieldCheck, Clock, ChevronRight, Edit3, PlusCircle, ShoppingBag,
+  ShieldCheck, Clock, ChevronRight, Edit3, PlusCircle, ShoppingBag, Bell,
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import PageWrapper from '../../layouts/PageWrapper';
@@ -20,6 +20,7 @@ const TABS = [
   { id: 'info', label: 'Thông tin cá nhân', Icon: User },
   { id: 'reservations', label: 'Lịch sử đặt bàn', Icon: Calendar },
   { id: 'pickup-orders', label: 'Đơn đặt mang về', Icon: ShoppingBag },
+  { id: 'notifications', label: 'Cài đặt thông báo', Icon: Bell },
 ];
 
 const Profile = () => {
@@ -189,6 +190,16 @@ const Profile = () => {
                 {activeTab === 'info' && <InfoTab key="info" />}
                 {activeTab === 'reservations' && <ProfileReservationsTab key="reservations" />}
                 {activeTab === 'pickup-orders' && <ProfilePickupOrdersTab key="pickup-orders" />}
+                {activeTab === 'notifications' && (
+                  <motion.div
+                    key="notifications"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <NotificationSettingsPanel />
+                  </motion.div>
+                )}
               </AnimatePresence>
             </motion.main>
 

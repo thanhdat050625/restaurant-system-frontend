@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { ShoppingBag, Clock, Building2, QrCode, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -8,22 +9,14 @@ import {
 } from '../../services/pickupOrderService';
 import { socketService } from '../../services/socketService';
 import { useAuth } from '../../features/auth/AuthContext';
-import { IPickupOrder, PickupOrderStatus } from '../../types/pickup-order.type';
+import { IPickupOrder } from '../../types/pickup-order.type';
 import { formatPrice } from '../../utils/helpers';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import Modal from '../../components/ui/Modal';
 
-const STATUS_LABELS: Record<PickupOrderStatus, string> = {
-  PENDING: 'Chờ duyệt',
-  CONFIRMED: 'Đã xác nhận',
-  PREPARING: 'Đang chuẩn bị món',
-  READY: 'Sẵn sàng nhận món',
-  COMPLETED: 'Đã hoàn tất',
-  CANCELLED: 'Đã hủy',
-};
-
 export const ProfilePickupOrdersTab: React.FC = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<IPickupOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,6 +44,20 @@ export const ProfilePickupOrdersTab: React.FC = () => {
     fetchMyOrders(true);
   }, [fetchMyOrders]);
 
+  // Mở modal mã nhận hàng khi khách bấm vào thông báo đơn mang về (?tab=pickup-orders&code=PU-...)
+  useEffect(() => {
+    const codeParam = searchParams.get('code')?.trim();
+    if (!codeParam || loading) return;
+
+    const matched = orders.find((o) => o.orderCode === codeParam);
+    if (matched) {
+      setSelectedQrOrder(matched);
+      const next = new URLSearchParams(searchParams);
+      next.delete('code');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, orders, loading]);
+
   // Lắng nghe cập nhật đơn mang về theo thời gian thực qua kênh user:${user.id}
   useEffect(() => {
     if (!user?.id) return;
@@ -61,11 +68,7 @@ export const ProfilePickupOrdersTab: React.FC = () => {
       fetchMyOrders(false);
     };
 
-    const handleOrderStatusChanged = (updatedOrder?: Partial<IPickupOrder>) => {
-      if (updatedOrder?.orderCode && updatedOrder?.status) {
-        const statusLabel = STATUS_LABELS[updatedOrder.status] ?? updatedOrder.status;
-        toast.success(`Đơn ${updatedOrder.orderCode}: ${statusLabel}`);
-      }
+    const handleOrderStatusChanged = () => {
       fetchMyOrders(false);
     };
 

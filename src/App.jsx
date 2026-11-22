@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { CartProvider } from './features/menu/CartContext';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
+import { NotificationProvider } from './features/notifications/NotificationContext';
 import { ThemeProvider } from './hooks/ThemeContext';
 import Header from './layouts/Header';
 import Footer from './layouts/Footer';
@@ -167,10 +168,12 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <CartProvider>
-            <Toaster position="top-right" />
-            <Layout />
-          </CartProvider>
+          <NotificationProvider>
+            <CartProvider>
+              <Toaster position="top-right" />
+              <Layout />
+            </CartProvider>
+          </NotificationProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

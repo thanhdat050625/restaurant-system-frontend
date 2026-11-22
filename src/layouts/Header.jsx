@@ -8,6 +8,7 @@ import { useAuth } from '../features/auth/AuthContext';
 import { useTheme } from '../hooks/ThemeContext';
 import { categories as fallbackCategories } from '../assets/data/categoryData';
 import { publicMenuService } from '../services/publicMenuService';
+import NotificationBell from '../components/common/NotificationBell';
 
 const toSlug = (str) => {
   if (!str) return '';
@@ -303,6 +304,14 @@ const Header = () => {
                 </Motion.span>
               )}
             </Link>
+
+            {/* Notifications Bell */}
+            {isAuthenticated && (
+              <NotificationBell
+                variant="customer"
+                isSolidHeader={isSolidHeader}
+              />
+            )}
 
             {/* Auth */}
             {isAuthenticated ? (
